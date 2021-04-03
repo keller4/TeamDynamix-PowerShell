@@ -1,31 +1,5 @@
 ### Services
 
-<#
-.Synopsis
-    Get a Service Catalog service in TeamDynamix
-.DESCRIPTION
-    Get a Service Catalog service in TeamDynamix. Specify the service ID number
-    or get a list of all services.
-.PARAMETER ID
-    Article ID to retrieve from TeamDynamix.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-    C:\>Get-TDService -AuthenticationToken $Authentication
-
-    Retrieves all services from the Service Catalog in TeamDynamix.
-.EXAMPLE
-    C:\>Get-TDService -ID 1752 -AuthenticationToken $Authentication
-
-    Retrieves Service Catalog service ID 1752 from TeamDynamix.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function Get-TDService
 {
     [CmdletBinding()]

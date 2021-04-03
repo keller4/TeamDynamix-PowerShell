@@ -1,178 +1,5 @@
 ### Tickets
 
-<#
-.Synopsis
-    Get a ticket in TeamDynamix
-.DESCRIPTION
-    Get a ticket in TeamDynamix. Specify the ticket ID number
-    or search using the text of the article, status,
-    responsible person's UID, and the parent ticket ID.
-.PARAMETER ID
-    Ticket ID to retrieve from TeamDynamix. Use "*" to retrieve all articles.
-.PARAMETER SearchText
-    Text to search for in tickets.
-.PARAMETER TicketClassificiation
-    Classification type for tickets to search for.
-.PARAMETER ParentTicketID
-    Search for tickets with specified parent ID.
-.PARAMETER StatusIDs
-    Retrieve only tickets with specified status ID.
-.PARAMETER PastStatusIDs
-    Retrieve tickets with specified past status IDs.
-.PARAMETER StatusClassIDs
-    Retrieve only tickets with the specified status class IDs.
-.PARAMETER PriorityIDs
-    Retrieve only tickets with the specified priority IDs.
-.PARAMETER UrgencyIDs
-    Retrieve only tickets with the specified urgency IDs.
-.PARAMETER ImpactIDs
-    Retrieve only tickets with the specified impact IDs.
-.PARAMETER AccountIDs
-    Retrieve only tickets with the specified acccount (department) IDs.
-.PARAMETER TypeIDs
-    Retrieve only tickets with the specified type IDs.
-.PARAMETER SourceIDs
-    Retrieve only tickets with the specified source IDs.
-.PARAMETER UpdatedDateFrom
-    Retrieve only tickets updated more recently than the specified date.
-.PARAMETER UpdatedDateTo
-    Retrieve only tickets updated before the specified date.
-.PARAMETER UpdatedByUid
-    Retrieve only tickets updated by the user with the specified UID.
-.PARAMETER ModifiedDateFrom
-    Retrieve only tickets modified more recently than the specified date.
-.PARAMETER ModifiedDateTo
-    Retrieve only tickets modified before the specified date.
-.PARAMETER ModifiedByUid
-    Retrieve only tickets modified by the user with the specified UID.
-.PARAMETER StartDateFrom
-    Retrieve only tickets whose start date is after the specified date.
-.PARAMETER StartDateTo
-    Retrieve only tickets whose start date is before the specified date
-.PARAMETER EndDateFrom
-    Retrieve only tickets whose end date is after the specified date.
-.PARAMETER EndDateTo
-    Retrieve only tickets whose end date is before the specified date.
-.PARAMETER RespondedDateFrom
-    Retrieve only tickets whose responded date is after the specified date.
-.PARAMETER RespondedDateTo
-    Retrieve only tickets whose responded date is before the specified date.
-.PARAMETER RespondedByUid
-    Retrieve only tickets where the responding user has the specified UID.
-.PARAMETER ClosedDateFrom
-    Retrieve only tickets whose closed date is after the specified date.
-.PARAMETER ClosedDateTo
-    Retrieve only tickets whose closed date is before the specified date.
-.PARAMETER ClosedByUid
-    Retrieve only tickets closed by the user with the specified UID.
-.PARAMETER RespondByDateFrom
-    Retrieve only tickets whose respond by date is after the specified date.
-.PARAMETER RespondByDateTo
-    Retrieve only tickets whose respond by date is before the specified date.
-.PARAMETER CloseByDateFrom
-    Retrieve only tickets whose close by date is after the specified date.
-.PARAMETER CloseByDateTo
-    Retrieve only tickets whose close by date is before the specified date.
-.PARAMETER CreatedDateFrom
-    Retrieve only tickets whose created date is after the specified date.
-.PARAMETER CreatedDateTo
-    Retrieve only tickets whose created date is before the specified date.
-.PARAMETER CreatedByUid
-    Retrieve only tickets created by the user with the specified UID.
-.PARAMETER DaysOldFrom
-    Retrieve only tickets whose age is more than the specified number of days.
-.PARAMETER DaysOldTo
-    Retrieve only tickets whose age is less than the specified number of days.
-.PARAMETER ResponsibilityUids
-    Retrieve only tickets for the specified UID of the responsible user.
-.PARAMETER SlaIDs
-    Retrieve only tickets with the specified Service Level Agreement IDs.
-.PARAMETER SlaViolationStatus
-    Retrieve only tickets with the specified Service Level Agreement violation
-    status.
-.PARAMETER SlaUnmetConstraints
-    Retrieve only tickets with the specified Service Level Agreement unmet
-    constraints.
-.PARAMETER KBArticleIDs
-    Retrieve only tickets with the specified Knowledge Base article IDs.
-.PARAMETER AssignmentStatus
-    Retrieve only tickets with the specified assignment status
-.PARAMETER ConvertedToTask
-    Retrieve only tickets that have been converted to tasks.
-.PARAMETER ReviewerUid
-    Retrieve only tickets reviewed by the user with the specified UID.
-.PARAMETER SubmitterUid
-    Retrieve only tickets submitted by the user with the specified UID.
-.PARAMETER UserAccountsUid
-    Retrieve only tickets from users in the specified department UID.
-.PARAMETER UserGroupsUid
-    Retrieve only tickets from users in the specified group UID.
-.PARAMETER UserGroupName
-    Retrieve only tickets from users the specified group name.
-.PARAMETER RequestorUids
-    Retrieve only tickets requested by users with the specified UIDs.
-.PARAMETER RequestorNameSearch
-    Retrieve only tickets requested by users with the specified names.
-.PARAMETER RequestorEmailSearch
-    Retrieve only tickets requested by users with the specified email address.
-.PARAMETER RequestorPhoneSearch
-    Retrieve only tickets requested by users with the specified phone number.
-.PARAMETER ConfigurationItemIDs
-    Retrieve only tickets with the specified Configuration Item IDs.
-.PARAMETER ExcludeConfigurationItemIDs
-    Do not retrieve any tickets with the specified Configuration Item IDs.
-.PARAMETER IsOnHold
-    Retrieve only tickets on hold.
-.PARAMETER GoesOffHoldFrom
-    Retrieve only tickets that go off hold after the specified date.
-.PARAMETER GoesOffHoldTo
-    Retrieve only tickets that go off hold before the specified date.
-.PARAMETER LocationIDs
-    Retrieve only tickets with the specified building IDs.
-.PARAMETER LocationRoomIDs
-    Retrieve only tickets with the specified room IDs.
-.PARAMETER ServiceIDs
-    Retrieve only tickets with the specified service IDs.
-.PARAMETER CustomAttributes
-    Retrieve only tickets with the specified custom attributes.
-.PARAMETER HasReferenceCode
-    Retrieve only tickets with a reference code.
-.PARAMETER MaxResults
-    Maximum number of tickets to return. Default 50.
-.PARAMETER AppID
-    Application ID for the ticketing app.
-.PARAMETER EligibleAssignment
-    Retrieve names of resources eligible for assignment for the ticketing
-    application.
-.PARAMETER Detail
-    Return full detail for ticket. Default searches return partial detail.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-    C:\>Get-TDTicket -AuthenticationToken $Authentication
-
-    Retrieves all tickets from TeamDynamix.
-.EXAMPLE
-    C:\>Get-TDTicket -TicketID 1752 -AuthenticationToken $Authentication
-
-    Retrieves ticket number 1752 from TeamDynamix.
-.EXAMPLE
-    C:\>Get-TDTicket -SearchText vpn -AuthenticationToken $Authentication
-
-    Retrieves first 50 tickets containing the text "vpn" from TeamDynamix.
-.EXAMPLE
-    C:\>Get-TDTicket -SearchText smith -EligibleAssignment -AuthenticationToken $Authentication
-
-    Retrieves up to five resources named smith eligible for assignment for the
-    ticketing application.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function Get-TDTicket
 {
     [CmdletBinding(DefaultParameterSetName='Search')]
@@ -822,44 +649,6 @@ function Get-TDTicket
     }
 }
 
-<#
-.Synopsis
-    Get list of ticket statuses from TeamDynamix
-.DESCRIPTION
-    Get list of ticket statuses from TeamDynamix. Returns list of active ticket
-    statuses by default.
-.PARAMETER ID
-    ID of ticket status type to get.
-.PARAMETER Filter
-    Substring description search filter.
-.PARAMETER IsActive
-    Boolean to limit return set to active ticket statuses ($true), inactive
-    ticket statuses ($false), or all ($null). Default: $true.
-.PARAMETER IsDefault
-    Boolean to limit return set to default ticket status ($true), non-default
-    ticket statuses ($false). or all ($null).
-.PARAMETER StatusClass
-    Filter return set to specified status class name.
-.PARAMETER RequiresGoesOffHold
-    Boolean to limit return set to ticket statuses requiring ticket to go off
-    hold ($true), ticket statuses that do not require the ticket to go off hold
-    ($false). or all ($null).
-.PARAMETER AppID
-    Application ID for the ticketing app.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-    C:\>Get-TDTicketStatus -AuthenticationToken $Authentication
-
-    Retrieves list of all ticket statuses from TeamDynamix.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function Get-TDTicketStatus
 {
     [CmdletBinding(DefaultParameterSetName='Filter')]
@@ -965,37 +754,6 @@ function Get-TDTicketStatus
     }
 }
 
-<#
-.Synopsis
-    Create a new ticket status in TeamDynamix
-.DESCRIPTION
-    Creates a new ticket status in TeamDynamix.
-.PARAMETER Name
-    Name of the ticket status.
-.PARAMETER Description
-    Description of ticket status.
-.PARAMETER Order
-    The order of the ticket status when displayed in a list (default 1.0).
-.PARAMETER StatusClass
-    Status class name of the ticket status.
-.PARAMETER IsActive
-    Set whether ticket status is active or not. Default: true.
-.PARAMETER AppID
-    Application ID for the ticketing application.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-   C:\>New-TDTicketStatus -Name 'Slow Test' -Description 'Test status for slow items' -Order 1 -StatusClass 'New' -AuthenticationToken $Authentication
-
-   Creates a new active ticket status.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function New-TDTicketStatus
 {
     [CmdletBinding(SupportsShouldProcess=$true,
@@ -1082,39 +840,6 @@ function New-TDTicketStatus
     }
 }
 
-<#
-.Synopsis
-    Modify a ticket status in TeamDynamix
-.DESCRIPTION
-    Modify ticket status in TeamDynamix.
-.PARAMETER ID
-    ID of the ticket status to be modified.
-.PARAMETER Name
-    Name of the ticket status.
-.PARAMETER Description
-    Description of ticket status.
-.PARAMETER Order
-    The order of the ticket status when displayed in a list (default 1.0).
-.PARAMETER StatusClass
-    Status class name of the ticket status.
-.PARAMETER IsActive
-    Set whether ticket status is active or not. Default: true.
-.PARAMETER AppID
-    Application ID for the ticketing application.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-   C:\>Set-TDTicketStatus -ID 87775 -Name 'Slow Test' -Description 'Test status for slow items' -Order 1 -StatusClass 'New' -AuthenticationToken $Authentication
-
-   Modifies ticket status with ID 87775.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function Set-TDTicketStatus
 {
     [CmdletBinding(SupportsShouldProcess=$true,
@@ -1219,34 +944,7 @@ function Set-TDTicketStatus
         }
     }
 }
-
-<#
-.Synopsis
-    Add a file attachment to a ticket in TeamDynamix
-.DESCRIPTION
-    Add a file attachment to a ticket in TeamDynamix. Returns
-    information regarding the attachment of the form
-    TeamDynamix.Api.Attachments.Attachment.
-.PARAMETER ID
-    ID number of the ticket the attachment will be added to in TeamDynamix.
-.PARAMETER FilePath
-    The full path and filename of the file to be added as an attachment.
-.PARAMETER AppID
-    Application ID for the ticketing app.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-    C:\> Add-TDTicketAttachment -ID 111 -FilePath C:\temp\1.jpg -AuthenticationToken $Authentication
-
-    Attaches the file c:\temp\1.jpg to ticket ID 111 in TeamDynamix.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>function Add-TDTicketAttachment
+function Add-TDTicketAttachment
 {
     [CmdletBinding(SupportsShouldProcess=$true)]
     Param
@@ -1325,84 +1023,6 @@ function Set-TDTicketStatus
     }
 }
 
-<#
-.Synopsis
-    Modifies a ticket in TeamDynamix
-.DESCRIPTION
-    Modifies a ticket in TeamDynamix. Also accepts an object
-    on the pipeline that contains all the ticket information.
-.PARAMETER ID
-    Ticket ID to modify in TeamDynamix.
-.PARAMETER TypeID
-    Ticket type ID.
-.PARAMETER FormID
-    Form type ID. Use "0" to apply the default form for the classification.
-.PARAMETER Title
-    Ticket title.
-.PARAMETER Description
-    Ticket description.
-.PARAMETER AccountID
-    Department ID assigned to the ticket.
-.PARAMETER SourceID
-    Ticket source ID.
-.PARAMETER StatusID
-    Ticket status ID.
-.PARAMETER ImpactID
-    Ticket impact ID.
-.PARAMETER UrgencyID
-    Ticket urgency ID.
-.PARAMETER PriorityID
-    Ticket priority ID.
-.PARAMETER GoesOffHoldDate
-    Date ticket goes off hold.
-.PARAMETER RequestorUID
-    ID of ticket requestor.
-.PARAMETER EstimatedMinutes
-    Estimated minutes to completion of the ticket.
-.PARAMETER StartDate
-    Ticket start date.
-.PARAMETER EndDate
-    Ticket end date.
-.PARAMETER ResponsibleUID
-    UID of person responsible for ticket.
-.PARAMETER ResponsibleGroupID
-    UID of group responsible for ticket.
-.PARAMETER TimeBudget
-    Time budget for ticket.
-.PARAMETER ExpensesBudget
-    Expenses budget for ticket.
-.PARAMETER LocationID
-    ID of building for ticket.
-.PARAMETER LocationRoomID
-    ID of room for ticket.
-.PARAMETER LocationName
-    Location name for ticket in TeamDynamix.
-.PARAMETER LocationRoomName
-    Room name for ticket in TeamDynamix.
-.PARAMETER ServiceID
-    ID of associated service.
-.PARAMETER Attributes
-    Custom attributes.
-.PARAMETER NotifyNewResponsible
-    Boolean to determine if the responsible resource is notified of the change.
-    $true indicates they will be notified, $false indicates no notification.
-    Default is no notification.
-.PARAMETER AppID
-    Application ID for the ticketing app.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-    C:\>Set-TDTicket -ID 9934 -Description 'Test ticket' -AuthenticationToken $Authentication
-
-    Modifies description of ticket ID 9934 in TeamDynamix.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function Set-TDTicket
 {
     [CmdletBinding(SupportsShouldProcess=$true,
@@ -1795,95 +1415,6 @@ function Set-TDTicket
     }
 }
 
-<#
-.Synopsis
-    Creates a ticket in TeamDynamix
-.DESCRIPTION
-    Creates a ticket in TeamDynamix. Also accepts an object
-    on the pipeline that contains all the ticket information.
-.PARAMETER TypeID
-    Ticket type ID.
-.PARAMETER FormID
-    Form type ID. Use "0" to apply the default form for the classification.
-.PARAMETER Title
-    Ticket title.
-.PARAMETER Description
-    Ticket description.
-.PARAMETER AccountID
-    Department ID assigned to the ticket.
-.PARAMETER SourceID
-    Ticket source ID.
-.PARAMETER StatusID
-    Ticket status ID.
-.PARAMETER ImpactID
-    Ticket impact ID.
-.PARAMETER UrgencyID
-    Ticket urgency ID.
-.PARAMETER PriorityID
-    Ticket priority ID.
-.PARAMETER GoesOffHoldDate
-    Date ticket goes off hold.
-.PARAMETER RequestorUID
-    ID of ticket requestor.
-.PARAMETER EstimatedMinutes
-    Estimated minutes to completion of the ticket.
-.PARAMETER StartDate
-    Ticket start date.
-.PARAMETER EndDate
-    Ticket end date.
-.PARAMETER ResponsibleUID
-    UID of person responsible for ticket.
-.PARAMETER ResponsibleGroupID
-    UID of group responsible for ticket.
-.PARAMETER TimeBudget
-    Time budget for ticket.
-.PARAMETER ExpensesBudget
-    Expenses budget for ticket.
-.PARAMETER LocationID
-    ID of building for ticket.
-.PARAMETER LocationRoomID
-    ID of room for ticket.
-.PARAMETER LocationName
-    Location name for ticket.
-.PARAMETER LocationRoomName
-    Room name for ticket.
-.PARAMETER ServiceID
-    ID of associated service.
-.PARAMETER Attributes
-    Custom attributes.
-.PARAMETER NotifyResponsible
-    Boolean to determine if the responsible resource is notified of the ticket.
-    $true indicates they will be notified, $false indicates no notification.
-    Default is no notification.
-.PARAMETER EnableNotifyReviewer
-    Boolean to determine if the reviewer is notified of the ticket.
-    $true indicates they will be notified, $false indicates no notification.
-    Default is no notification.
-.PARAMETER NotifyRequestor
-    Boolean to determine if the requestor is notified of the ticket.
-    $true indicates they will be notified, $false indicates no notification.
-    Default is no notification.
-.PARAMETER AllowRequestorCreation
-    Boolean to determine if the requestor should be created if an existing
-    person with matching information cannot be found. $true indicates they will
-    be created, $false indicates they will not be created.
-    Default is no creation.
-.PARAMETER AppID
-    Application ID for the ticketing app.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-    C:\>New-TDTicket -Type 20750 -Title 'New ticket' -AccountID 33502 -StatusID 12005 -PriorityID 2944 -RequestorUID XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX -AuthenticationToken $Authentication
-
-    Creates new ticket in TeamDynamix.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function New-TDTicket
 {
     [CmdletBinding(SupportsShouldProcess=$true,
@@ -2281,30 +1812,6 @@ function New-TDTicket
     }
 }
 
-<#
-.Synopsis
-    Get list of active ticket types from TeamDynamix
-.DESCRIPTION
-    Get list of active ticket types from TeamDynamix
-.PARAMETER IsActive
-    Select types based on whether they are active. Default ($null) returns
-    all types.
-.PARAMETER AppID
-    Application ID for the ticketing app.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-    C:\>Get-TDTicketType -AuthenticationToken $Authentication
-
-    Retrieves list of all active ticket types from TeamDynamix.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function Get-TDTicketType
 {
     [CmdletBinding()]
@@ -2357,31 +1864,6 @@ function Get-TDTicketType
     }
 }
 
-<#
-.Synopsis
-    Get list of active ticket sources from TeamDynamix
-.DESCRIPTION
-    Get list of active ticket sources from TeamDynamix, such as email, phone,
-    web, etc...
-.PARAMETER IsActive
-    Select sources based on whether they are active. Default ($null) returns
-    all sources.
-.PARAMETER AppID
-    Application ID for the ticketing app.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-    C:\>Get-TDTicketType -AuthenticationToken $Authentication
-
-    Retrieves list of all active ticket types from TeamDynamix.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function Get-TDTicketSource
 {
     [CmdletBinding()]
@@ -2434,31 +1916,6 @@ function Get-TDTicketSource
     }
 }
 
-<#
-.Synopsis
-    Get list of active ticket impacts from TeamDynamix
-.DESCRIPTION
-    Get list of active ticket impacts from TeamDynamix, such as "affects user",
-    "affects group", "affects department", and "affects organization".
-.PARAMETER IsActive
-    Select impacts based on whether they are active. Default ($null) returns
-    all impacts.
-.PARAMETER AppID
-    Application ID for the ticketing app.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-    C:\>Get-TDTicketImpact -AuthenticationToken $Authentication
-
-    Retrieves list of all active ticket impacts from TeamDynamix.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function Get-TDTicketImpact
 {
     [CmdletBinding()]
@@ -2511,31 +1968,6 @@ function Get-TDTicketImpact
     }
 }
 
-<#
-.Synopsis
-    Get list of active ticket priorities from TeamDynamix
-.DESCRIPTION
-    Get list of active ticket priorities from TeamDynamix, such as low, medium,
-    high, and emergency.
-.PARAMETER IsActive
-    Select priorities based on whether they are active. Default ($null) returns
-    all priorities.
-.PARAMETER AppID
-    Application ID for the ticketing app.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-    C:\>Get-TDTicketPriority -AuthenticationToken $Authentication
-
-    Retrieves list of all active ticket priorities from TeamDynamix.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function Get-TDTicketPriority
 {
     [CmdletBinding()]
@@ -2588,31 +2020,6 @@ function Get-TDTicketPriority
     }
 }
 
-<#
-.Synopsis
-    Get list of active ticket urgencies from TeamDynamix
-.DESCRIPTION
-    Get list of active ticket urgencies from TeamDynamix, such as routine,
-    normal, expedited, and emergency.
-.PARAMETER IsActive
-    Select urgencies based on whether they are active. Default ($null) returns
-    all urgencies.
-.PARAMETER AppID
-    Application ID for the ticketing app.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-    C:\>Get-TDTicketUrgency -AuthenticationToken $Authentication
-
-    Retrieves list of all active ticket urgencies from TeamDynamix.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function Get-TDTicketUrgency
 {
     [CmdletBinding()]
@@ -2665,38 +2072,6 @@ function Get-TDTicketUrgency
     }
 }
 
-<#
-.Synopsis
-    Get list of contacts on a ticket from TeamDynamix
-.DESCRIPTION
-    Get list of contacts on a ticket from TeamDynamix. Note that the list of
-    contacts does not include the individual currently responsible for the
-    ticket.
-.PARAMETER ID
-    Ticket ID whose contacts will be retrieved from TeamDynamix.
-.PARAMETER IncludeResponsible
-    Includes the person responsible for the ticket.
-.PARAMETER AppID
-    Application ID for the ticketing app.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-    C:\>Get-TDTicketContact -ID 99432 -AuthenticationToken $Authentication
-
-    Retrieves list of all contacts on a ticket ID 99432 from TeamDynamix.
-.EXAMPLE
-    C:\>Get-TDTicketContact -ID 99432 -IncludeResponsible -AuthenticationToken $Authentication
-
-    Retrieves list of all contacts on a ticket ID 99432 from TeamDynamix,
-    including the user responsible for the ticket.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function Get-TDTicketContact
 {
     [CmdletBinding()]
@@ -2760,32 +2135,6 @@ function Get-TDTicketContact
     }
 }
 
-<#
-.Synopsis
-    Removes a contact from a ticket in TeamDynamix
-.DESCRIPTION
-    Removes a contact from a ticket in TeamDynamix.
-.PARAMETER ID
-    Ticket ID whose contact will be removed in TeamDynamix.
-.PARAMETER UID
-    UID of contact to be removed from the ticket in TeamDynamix.
-.PARAMETER AppID
-    Application ID for the ticketing app.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-    C:\>Remove-TDTicketContact -ID 99432 -UID XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX -AuthenticationToken $Authentication
-
-    Removes contact with UID XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX from ticket
-    ID 99432 in TeamDynamix.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function Remove-TDTicketContact
 {
     [CmdletBinding(SupportsShouldProcess=$true)]
@@ -2843,32 +2192,6 @@ function Remove-TDTicketContact
     }
 }
 
-<#
-.Synopsis
-    Adds a contact to a ticket in TeamDynamix
-.DESCRIPTION
-    Adds a contact to a ticket in TeamDynamix.
-.PARAMETER ID
-    Ticket ID whose contact will be added in TeamDynamix.
-.PARAMETER UID
-    UID of contact to be added to the ticket in TeamDynamix.
-.PARAMETER AppID
-    Application ID for the ticketing app.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-    C:\>Add-TDTicketContact -ID 99432 -UID XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX -AuthenticationToken $Authentication
-
-    Adds contact with UID XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX to ticket
-    ID 99432 in TeamDynamix.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function Add-TDTicketContact
 {
     [CmdletBinding(SupportsShouldProcess=$true)]
@@ -2926,42 +2249,6 @@ function Add-TDTicketContact
     }
 }
 
-<#
-.Synopsis
-    Updates a ticket in TeamDynamix
-.DESCRIPTION
-    Post an update to a ticket in TeamDynamix.
-.PARAMETER ID
-    Ticket ID to be updated in TeamDynamix.
-.PARAMETER NewStatusID
-    Updated ticket status ID.
-.PARAMETER Comments
-    Updated ticket comments.
-.PARAMETER Notify
-    Individuals to notify.
-.PARAMETER IsPrivate
-    Set feed entry to private or not.
-.PARAMETER AppID
-    Application ID for the ticketing app.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-    C:\>Update-TDTicket -ID 99432 -Comments 'Working on problem' -Notify keller.4@osu.edu, seconduser@domain -NewStatusName 'In Process' -IsPrivate $false -AuthenticationToken $Authentication
-
-    Updates ticket ID 99432 from TeamDynamix and notifies two users.
-.EXAMPLE
-    C:\>Update-TDTicket -ID 99432 -Comments 'Working on problem' -Notify (Get-TDTicketContacts 99432 -Environment Sandbox -IncludeResponsible).AlertEmail -NewStatusName 'In Process' -IsPrivate $false -AuthenticationToken $Authentication
-
-    Updates ticket ID 99432 from TeamDynamix and notify the contacts and the
-    person responsible for the ticket.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function Update-TDTicket
 {
     [CmdletBinding(SupportsShouldProcess=$true)]
@@ -3094,56 +2381,6 @@ function Update-TDTicket
     }
 }
 
-<#
-.Synopsis
-    Get blackout windows from TeamDynamix
-.DESCRIPTION
-    Gets a specific blackout window or searches for matching windows
-    from TeamDynamix. Get a list of all active blackout windows, or use the
-    -NameLike option to match on a substring from the window name. Blackout
-    windows specify periods when blackout activities may not take place.
-    Blackout windows are specific to each ticketing application.
-.PARAMETER ID
-    ID of blackout window to get.
-.PARAMETER NameLike
-    Substring search filter.
-.PARAMETER IsActive
-    Boolean to limit return set to active blackout windows ($true), inactive
-    blackout windows ($false), or all ($null).
-.PARAMETER AppID
-    Application ID for the blackout window.
-.PARAMETER Exact
-    Return only a single unambiguous match for NameLike searches. If search
-    was ambiguous, that is, matched more than one location or room, return no
-    result at all.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-   C:\>Get-TDBlackoutWindow -ID 6331 -AuthenticationToken $Authentication
-
-   Returns a blackout window with ID 6331.
-.EXAMPLE
-   C:\>Get-TDBlackoutWindow -AuthenticationToken $Authentication
-
-   Returns a list of all active blackout windows.
-.EXAMPLE
-   C:\>Get-TDBlackoutWindow -IsActive $null -AuthenticationToken $Authentication
-
-   Returns a list of all blackout windows, including active and inactive
-   windows.
-.EXAMPLE
-   C:\>Get-TDBlackoutWindow -Filter Grad -IsActive $false -AuthenticationToken $Authentication
-
-   Returns list of inactive blackout windows with the word, "Grad" in
-   the name in the of the blackout window.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function Get-TDBlackoutWindow
 {
     [CmdletBinding(DefaultParameterSetName='Search')]
@@ -3243,38 +2480,6 @@ function Get-TDBlackoutWindow
     }
 }
 
-<#
-.Synopsis
-    Create a new blackout window in TeamDynamix
-.DESCRIPTION
-    Creates a new blackout window in TeamDynamix. Blackout windows are specific
-    to the ticketing application.
-.PARAMETER Name
-    Name of blackout window.
-.PARAMETER Description
-    Description of blackout window.
-.PARAMETER TimeZoneID
-    ID number of Time Zone.
-.PARAMETER TimeZoneName
-    Name of Time Zone.
-.PARAMETER IsActive
-    Set whether blackout window is active or not. Default: true.
-.PARAMETER AppID
-    Application ID for the blackout window.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-   C:\>New-TDBlackoutWindow -Name 'New blackout window' -Description 'Blackout window for assets' -AuthenticationToken $Authentication
-
-   Creates a new active blackout window named, "New blackout window".
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function New-TDBlackoutWindow
 {
     [CmdletBinding(SupportsShouldProcess=$true,
@@ -3388,39 +2593,6 @@ function New-TDBlackoutWindow
     }
 }
 
-<#
-.Synopsis
-    Modify a blackout window in TeamDynamix
-.DESCRIPTION
-    Modifies a blackout window in TeamDynamix.
-.PARAMETER ID
-    ID of blackout window to modify in TeamDynamix.
-.PARAMETER Name
-    Name of blackout window.
-.PARAMETER Description
-    Description of blackout window.
-.PARAMETER TimeZoneID
-    ID number of Time Zone.
-.PARAMETER TimeZoneName
-    Name of Time Zone.
-.PARAMETER IsActive
-    Set whether blackout windows is active or not.
-.PARAMETER AppID
-    Application ID for the blackout window.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-   C:\>Set-TDBlackoutWindow -ID 5531 -Name 'Modified blackout window' -Description 'Changed window' -AuthenticationToken $Authentication
-
-   Modifies blackout window with ID, 5531, to have a new name and description.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function Set-TDBlackoutWindow
 {
     [CmdletBinding(SupportsShouldProcess=$true,
@@ -3546,29 +2718,6 @@ function Set-TDBlackoutWindow
     }
 }
 
-<#
-.Synopsis
-    Get list of assets on a ticket from TeamDynamix
-.DESCRIPTION
-    Get list of assets on a ticket from TeamDynamix.
-.PARAMETER ID
-    Ticket ID whose assets will be retrieved from TeamDynamix.
-.PARAMETER AppID
-    Application ID for the ticketing app.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-    C:\>Get-TDTicketAsset -ID 99432 -AuthenticationToken $Authentication
-
-    Retrieves list of all contacts on a ticket ID 99432 from TeamDynamix.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function Get-TDTicketAsset
 {
     [CmdletBinding()]
@@ -3619,31 +2768,6 @@ function Get-TDTicketAsset
     }
 }
 
-<#
-.Synopsis
-    Removes an asset from a ticket in TeamDynamix
-.DESCRIPTION
-    Removes an asset from a ticket in TeamDynamix.
-.PARAMETER ID
-    Ticket ID whose assets will be removed in TeamDynamix.
-.PARAMETER AssetID
-    Asset ID of asset to be removed from the ticket in TeamDynamix.
-.PARAMETER AppID
-    Application ID for the ticketing app.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-    C:\>Remove-TDTicketAsset -ID 99432 -AssetID 55421 -AuthenticationToken $Authentication
-
-    Removes asset with Asset ID 55421 from ticket ID 99432 in TeamDynamix.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function Remove-TDTicketAsset
 {
     [CmdletBinding(SupportsShouldProcess=$true)]
@@ -3701,31 +2825,6 @@ function Remove-TDTicketAsset
     }
 }
 
-<#
-.Synopsis
-    Adds an asset to a ticket in TeamDynamix
-.DESCRIPTION
-    Adds an asset to a ticket in TeamDynamix.
-.PARAMETER ID
-    Ticket ID whose asset will be added in TeamDynamix.
-.PARAMETER AssetID
-    Asset ID of asset to be added to the ticket in TeamDynamix.
-.PARAMETER AppID
-    Application ID for the ticketing app.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-    C:\>Add-TDTicketAsset -ID 99432 -AssetID 55421 -AuthenticationToken $Authentication
-
-    Adds asset with ID 55421 to ticket wth ID 99432 in TeamDynamix.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function Add-TDTicketAsset
 {
     [CmdletBinding(SupportsShouldProcess=$true)]
@@ -3783,33 +2882,6 @@ function Add-TDTicketAsset
     }
 }
 
-<#
-.Synopsis
-    Get list of tasks on a ticket from TeamDynamix
-.DESCRIPTION
-    Get list of tasks on a ticket from TeamDynamix.
-.PARAMETER ID
-    Ticket ID whose tasks will be retrieved from TeamDynamix.
-.PARAMETER AppID
-    Application ID for the ticketing app.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-    C:\>Get-TDTicketTask -ID 99432 -AuthenticationToken $Authentication
-
-    Retrieves list of all tasks on a ticket ID 99432 from TeamDynamix.
-.EXAMPLE
-    C:\>Get-TDTicketTask -ID 99432 -TaskID 3398 -AuthenticationToken $Authentication
-
-    Retrieves task ID 3398 on ticket ID 99432 from TeamDynamix.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function Get-TDTicketTask
 {
     [CmdletBinding(DefaultParameterSetName='AllTasks')]
@@ -3893,31 +2965,6 @@ function Get-TDTicketTask
     }
 }
 
-<#
-.Synopsis
-    Get the feed on a ticket task from TeamDynamix
-.DESCRIPTION
-    et the feed on a ticket task from TeamDynamix.
-.PARAMETER ID
-    Ticket ID whose task feed will be retrieved from TeamDynamix.
-.PARAMETER TaskID
-    Task ID whose feed will be retrieved from TeamDynamix.
-.PARAMETER AppID
-    Application ID for the ticketing app.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-    C:\>Get-TDTicketTaskFeed -ID 99432 -TaskID 3398 -AuthenticationToken $Authentication
-
-    Retrieves the feed for task ID 3398 on ticket ID 99432 from TeamDynamix.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function Get-TDTicketTaskFeed
 {
     [CmdletBinding()]
@@ -3976,31 +3023,6 @@ function Get-TDTicketTaskFeed
     }
 }
 
-<#
-.Synopsis
-    Removes a task from a ticket in TeamDynamix
-.DESCRIPTION
-    Removes a task from a ticket in TeamDynamix.
-.PARAMETER ID
-    Ticket ID whose task will be removed in TeamDynamix.
-.PARAMETER TaskID
-    Task ID of task to be removed from the ticket in TeamDynamix.
-.PARAMETER AppID
-    Application ID for the ticketing app.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-    C:\>Remove-TDTicketTask -ID 99432 -AssetID 55421 -AuthenticationToken $Authentication
-
-    Removes task with task ID 55421 from ticket ID 99432 in TeamDynamix.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function Remove-TDTicketTask
 {
     [CmdletBinding(SupportsShouldProcess=$true)]
@@ -4058,53 +3080,6 @@ function Remove-TDTicketTask
     }
 }
 
-<#
-.Synopsis
-    Adds a task to a ticket in TeamDynamix
-.DESCRIPTION
-    Adds a task to a ticket in TeamDynamix.
-.PARAMETER ID
-    ID of ticket that task will be added to.
-.PARAMETER Title
-    Title of ticket task.
-.PARAMETER Description
-    Description of ticket task.
-.PARAMETER StartDate
-    Start date of ticket task.
-.PARAMETER EndDate
-    End date of ticket task.
-.PARAMETER CompleteWithinMinutes
-    Expected duration of task, in minutes. Value is in operational minutes, so
-    operational hours, weekends, and days off are all taken into account.
-.PARAMETER EstimatedMinutes
-    Estimated minutes elapsed on the task. Maintenance activities do not
-    require this.
-.PARAMETER ResponsibleUID
-    UID of the user responsible for the task.
-.PARAMETER ResponsibleGroupID
-    ID of the group responsible for the task.
-.PARAMETER PredecessorID
-    ID of the predecessor for the task.
-.PARAMETER TypeID
-    Type of ticket task. Types include: regular task, scheduled maintenance,
-    workflow, or other. Default is regular task.
-.PARAMETER AppID
-    Application ID for the ticketing app.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-    C:\>New-TDTicketTask -ID 99432 -Title 'First task' -ResponsibleUID XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX -AuthenticationToken $Authentication
-
-    Creates new task with title "First task" on ticket wth ID 99432 in
-    TeamDynamix.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function New-TDTicketTask
 {
     [CmdletBinding(SupportsShouldProcess=$true)]
@@ -4233,52 +3208,6 @@ function New-TDTicketTask
     }
 }
 
-<#
-.Synopsis
-    Update a ticket task with new values in TeamDynamix
-.DESCRIPTION
-    Update a ticket task with new values in TeamDynamix.
-.PARAMETER ID
-    ID of ticket whose task will be modified.
-.PARAMETER TaskID
-    Task ID of task to be modified in TeamDynamix.
-.PARAMETER Title
-    Title of ticket task.
-.PARAMETER Description
-    Description of ticket task.
-.PARAMETER StartDate
-    Start date of ticket task.
-.PARAMETER EndDate
-    End date of ticket task.
-.PARAMETER CompleteWithinMinutes
-    Expected duration of task, in minutes. Value is in operational minutes, so
-    operational hours, weekends, and days off are all taken into account.
-.PARAMETER EstimatedMinutes
-    Estimated minutes elapsed on the task. Maintenance activities do not
-    require this.
-.PARAMETER ResponsibleUID
-    UID of the user responsible for the task.
-.PARAMETER ResponsibleGroupID
-    ID of the group responsible for the task.
-.PARAMETER PredecessorID
-    ID of the predecessor for the task.
-.PARAMETER AppID
-    Application ID for the ticketing app.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-    C:\>Set-TDTicketTask -ID 99432 -TaskID 27744 -Title 'First task' -ResponsibleUID XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX -AuthenticationToken $Authentication
-
-    Changes task with ID 27744 to title "First task" on ticket wth ID 99432 in
-    TeamDynamix.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function Set-TDTicketTask
 {
     [CmdletBinding(SupportsShouldProcess=$true)]
@@ -4417,40 +3346,6 @@ function Set-TDTicketTask
     }
 }
 
-<#
-.Synopsis
-    Update a ticket task status in TeamDynamix
-.DESCRIPTION
-    Update a ticket task status in TeamDynamix.
-.PARAMETER ID
-    ID of ticket whose task status will be updated.
-.PARAMETER TaskID
-    Task ID of task to be updated in TeamDynamix.
-.PARAMETER PercentComplete
-    Percent complete of the ticket task.
-.PARAMETER Comments
-    Comment for the feed entry.
-.PARAMETER Notify
-    Email addresses to notify.
-.PARAMETER IsPrivate
-    Indicates whether the feed entry is private.
-.PARAMETER AppID
-    Application ID for the ticketing app.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-    C:\>Update-TDTicketTask -ID 99432 -Task ID 27744 -Comment 'Task comment' -AuthenticationToken $Authentication
-
-    Updates status of task 27744 with comment "Task comment" on ticket wth ID 99432
-    in TeamDynamix.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function Update-TDTicketTask
 {
     [CmdletBinding(DefaultParameterSetName='Comment',

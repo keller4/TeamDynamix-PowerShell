@@ -1,420 +1,6 @@
 ﻿### Service
 
-# Functions necessary to parse JSON output from .NET serializer to PowerShell Objects
-function ParseItem
-{
-    [CmdletBinding()]
-    Param
-    (
-        # Item to be parsed
-        [Parameter(Mandatory=$true,
-                   ValueFromPipeline=$true)]
-        $JsonItem
-    )
-
-    Write-ActivityHistory "-----"
-    Write-ActivityHistory "In $($MyInvocation.MyCommand.Name)"
-    if ($JsonItem.PSObject.TypeNames -match "Array")
-    {
-        return ParseJsonArray($JsonItem)
-    }
-    elseif ($JsonItem.PSObject.TypeNames -match "Dictionary")
-    {
-        return ParseJsonObject([HashTable]$JsonItem)
-    }
-    else
-    {
-        return $JsonItem
-    }
-}
-
-function ParseJsonObject
-{
-    [CmdletBinding()]
-    Param
-    (
-        # JSON object to be parsed into a Powershell object
-        [Parameter(Mandatory=$true,
-                   ValueFromPipeline=$true)]
-        $JsonObject
-    )
-
-    Write-ActivityHistory "-----"
-    Write-ActivityHistory "In $($MyInvocation.MyCommand.Name)"
-    $result = New-Object -TypeName PSCustomObject
-    foreach ($Key in $JsonObject.Keys)
-    {
-        $Item = $JsonObject[$Key]
-        if ($Item)
-        {
-            $ParsedItem = ParseItem $Item
-        }
-        else
-        {
-            $ParsedItem = $null
-        }
-        $Result | Add-Member -MemberType NoteProperty -Name $Key -Value $ParsedItem
-    }
-    return $Result
-}
-
-function ParseJsonArray
-{
-    [CmdletBinding()]
-    Param
-    (
-        # Array to be parsed
-        [Parameter(Mandatory=$true,
-                   ValueFromPipeline=$true)]
-        [array]$JsonArray
-    )
-
-    Write-ActivityHistory "-----"
-    Write-ActivityHistory "In $($MyInvocation.MyCommand.Name)"
-    $Result = @()
-    $ProgressCount = 0
-    foreach ($JsonItem in $JsonArray)
-    {
-        $ProgressCount++
-        Write-Progress -Activity 'Converting JSON result into PowerShell object' -PercentComplete ($ProgressCount / $JsonArray.Count * 100)
-        $Parsed = New-Object psobject -Property $JsonItem
-        $Result += $Parsed
-    }
-    return $Result
-}
-
-function ParseJsonString
-{
-    [CmdletBinding()]
-    Param
-    (
-        # JSON string to be parsed
-        [Parameter(Mandatory=$true,
-                   ValueFromPipeline=$true)]
-        [string]$JsonString
-    )
-
-    Write-ActivityHistory "-----"
-    Write-ActivityHistory "In $($MyInvocation.MyCommand.Name)"
-    [void][System.Reflection.Assembly]::LoadWithPartialName("System.Web.Extensions")
-    $JsonSerializer = New-Object -TypeName System.Web.Script.Serialization.JavaScriptSerializer
-    $JsonSerializer.MaxJsonLength = [System.Int32]::MaxValue
-
-    ParseItem($JsonSerializer.DeserializeObject($JsonString))
-}
-
-<#
-.Synopsis
-   Pushes a call onto the named timing queue.
-.DESCRIPTION
-   Pushes a call onto the named timing queue. The timing queue ensures that
-   only the allowed number of calls per minute are executed per queue. This
-   function does that by delaying the return until only the allowed number of
-   calls are being done.
-.PARAMETER QueueName
-    The name of the queue the call is to be enqueued to.
-.PARAMETER CallsPerMinute
-    The number of calls permitted to this queue per minute. Default is 60.
-.EXAMPLE
-   C:\>Push-TimingQueue -QueueName Get-TDUser -CallsPerMinute 60
-
-   Puts an entry onto the "Get-TDUser" queue and will only return after there
-   have been fewer than 60 entries enqueued in the last minute.
-#>
-<#
-function Push-TimingQueue
-{
-    [CmdletBinding()]
-    Param
-    (
-        # Name of queue to track
-        [Parameter(Mandatory=$true,
-                   ValueFromPipelineByPropertyName=$true,
-                   Position=0)]
-        [string]
-        $QueueName,
-
-        # Number of calls permitted per minute
-        [Parameter(Mandatory=$false,
-                   ValueFromPipelineByPropertyName=$true,
-                   Position=1)]
-        [int]
-        $CallsPerMinute = 60
-    )
-
-    Begin
-    {
-        Write-ActivityHistory "-----`nIn $($MyInvocation.MyCommand.Name)"
-        if (-not $QueueList)
-        {
-            [hashtable]$global:QueueList = @{}
-        }
-    }
-    Process
-    {
-        if ($QueueList -and $QueueList.Contains($QueueName)) # Queue exists, make it the working queue
-        {
-            $WorkingQueue = $QueueList.$QueueName
-        }
-        else # Queue doesn't exist, create it and make it the working queue
-        {
-            $global:QueueList.Add($QueueName.ToString(),(New-Object System.Collections.Queue))
-            $WorkingQueue = $QueueList.$QueueName
-        }
-
-        # Add the current time to the working queue
-        $WorkingQueue.Enqueue((Get-Date))
-
-        # Clear entries older than one minute from the working queue
-        while ($WorkingQueue.Peek() -lt (Get-Date).AddMinutes(-1))
-        {
-            $WorkingQueue.Dequeue() | Out-Null
-        }
-
-        # If there have been more calls than are allowed per minute, wait until some have been removed
-        while ($WorkingQueue.Count -gt ($CallsPerMinute - 1))
-        {
-            Write-Verbose "Sleeping for queue, $QueueName."
-            Start-Sleep -Milliseconds (60000/$CallsPerMinute/2) # Divide a minute by the number of calls allowed, and sleep for half that time
-            if ($WorkingQueue.Peek() -lt (Get-Date).AddMinutes(-1))
-            {
-                $WorkingQueue.Dequeue() | Out-Null
-            }
-        }
-    }
-}
-#>
-
-<#
-.Synopsis
-   Requests a REST API call.
-.DESCRIPTION
-   Requests a REST API call. This function ensures that if a call receives an
-   error, it will be retried until it is successful or receives a fatal error.
-   The hint regarding the number of calls assists in optimizing the backoff
-   algorithm.
-.PARAMETER URI
-    The REST API endpoint.
-.PARAMETER ContentType
-    The REST API content type.
-.PARAMETER Headers
-    The REST API headers.
-.PARAMETER Body
-    The REST API body.
-.EXAMPLE
-   C:\>Invoke-RESTCall -URI 'https://rest.domain.com/endpoint/json' -ContentType 'charset=utf-8' -Headers @{User='username';Password='password'} -Body (ConvertTo-Json @{data='input'} -Depth 10)
-
-   Requests a REST API call which has a maximum number of 60 calls per minute
-   permitted.
-#>
-function Invoke-RESTCall
-{
-    [CmdletBinding()]
-    Param
-    (
-        # REST API endpoint
-        [Parameter(Mandatory=$true,
-                   ValueFromPipelineByPropertyName=$true,
-                   Position=0)]
-        [string]
-        $URI,
-
-        # REST API content type
-        [Parameter(Mandatory=$true,
-                   ValueFromPipelineByPropertyName=$true,
-                   Position=1)]
-        [string]
-        $ContentType,
-
-        # REST API method
-        [Parameter(Mandatory=$true,
-                   ValueFromPipelineByPropertyName=$true,
-                   Position=2)]
-        [ValidateSet('GET','POST','PATCH','PUT','DELETE')]
-        [string]
-        $Method,
-
-        # REST API headers
-        [Parameter(Mandatory=$false,
-                   ValueFromPipelineByPropertyName=$true,
-                   Position=3)]
-        [psobject]
-        $Headers = $null,
-
-        # REST API body
-        [Parameter(Mandatory=$false,
-                   ValueFromPipelineByPropertyName=$true,
-                   Position=4)]
-        [psobject]
-        $Body = $null
-    )
-
-    begin
-    {
-        Write-ActivityHistory "-----`nIn $($MyInvocation.MyCommand.Name)"
-        # Force TLS 1.2
-        [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-    }
-    process
-    {
-        Write-ActivityHistory "Calling REST API $URI, using method $Method"
-        Write-ActivityHistory (Get-PSCallStack | Out-String)
-        $Retries = 0
-        do
-        {
-            if ($Retries -gt 0)
-            {
-                Write-ActivityHistory "Retry. Try number $Retries"
-            }
-            try
-            {
-                $Return = Invoke-RestMethod -Uri $URI -ContentType $ContentType -Method $Method -Headers $Headers -Body $Body -ErrorAction Stop
-                $Retry = $false
-            }
-            catch
-            {
-                if (($_.Exception.GetType().Fullname -eq 'Microsoft.PowerShell.Commands.HttpResponseException') -or ($_.Exception.GetType().Fullname -eq 'System.Net.WebException'))
-                {
-                    # Too many requests
-                    if ($_.Exception.Response.StatusCode.Value__ -eq '429')
-                    {
-                        # Extract rate limit reset time and current time from exception and wait until that time (plus 2 seconds to allow for small mayhem)
-                        $RateLimitResetTime   = $_.Exception.Response.Headers.GetValues('X-RateLimit-Reset') | Get-Date
-                        $APIEndpointTime      = $_.Exception.Response.Headers.GetValues('Date')              | Get-Date
-                        $WaitTime = (New-TimeSpan -Start ($APIEndpointTime) -End ($RateLimitResetTime).AddSeconds(2)).TotalSeconds
-                        Write-ActivityHistory "Waiting $WaitTime seconds to make next TD request. Waiting until $RateLimitResetTime"
-                        # Wait time should never be more than 60 seconds - cap it at 60 seconds in case of unforseen date calculation error
-                        if ($WaitTime -gt 60)
-                        {
-                            $WaitTime = 60
-                            Write-ActivityHistory "Wait time adjusted to $WaitTime"
-                        }
-                        # Wait time should never be negative, and small numbers are dangerous - set to one second to avoid an error on Start-Sleep
-                        # Small, and even negative, values could occur when reset is very close to current time
-                        if ($WaitTime -lt 1)
-                        {
-                            $WaitTime = 1
-                            Write-ActivityHistory "Wait time adjusted to $WaitTime"
-                        }
-                        Start-Sleep -Seconds $WaitTime
-                        $Retry = $true
-                    }
-                    # Unauthorized
-                    elseif ($_.Exception.Response.StatusCode.Value__ -eq '401')
-                    {
-                        Write-ActivityHistory -MessageChannel 'Error' -ThrowError -Message 'TeamDynamix authentication token is invalid or has expired. Tokens expire 24 hours.'
-                        $Retry = $false
-                    }
-                    # Not found
-                    elseif ($_.Exception.Response.StatusCode.Value__ -eq '404')
-                    {
-                        Write-ActivityHistory -MessageChannel 'Error' -Message 'Item not found in TeamDynamix.'
-                        $Retry = $false
-                    }
-                    # Bad request
-                    elseif ($_.Exception.Response.StatusCode.Value__ -eq '400')
-                    {
-                        Write-ActivityHistory -ErrorRecord $_ -ErrorMessage 'TeamDynamix has rejected the request.'
-                        $Retry = $false
-                    }
-                    # Fobidden
-                    elseif ($_.Exception.Response.StatusCode.Value__ -eq '403')
-                    {
-                        if ($_.Exception.Message -eq $script:TDLoginFailureText)
-                        {
-                            Write-ActivityHistory -MessageChannel 'Error' -ThrowError -Message $script:TDLoginFailureText
-                        }
-                        else
-                        {
-                            Write-ActivityHistory -MessageChannel 'Error' -ThrowError -Message $_.Exception.Message
-                        }
-                        $Retry = $false
-                    }
-                    # Other error
-                    else
-                    {
-                        Write-ActivityHistory -ErrorRecord $_ -ErrorMessage "Fatal $($_.Exception.GetType().Fullname) calling URI, $URI, with method $Method. - $_.Exception.Message"
-                        $Retry = $false
-                    }
-                }
-                elseif ($_.Exception.GetType().Fullname -eq 'System.Net.Http.HttpRequestException')
-                {
-                    Write-ActivityHistory -MessageChannel 'Verbose' -Message $_.Exception.InnerException.Message
-                    $Retry = $true
-                }
-                else
-                {
-                    $Retry = $false
-                    Write-ActivityHistory -ErrorRecord $_ -ThrowError -ErrorMessage "Fatal unknown error calling URI, $URI, with method $Method."
-                }
-            }
-            $Retries++
-        }
-        while ($Retry -and ($Retries -lt 10))
-        if ($Retries -ge 10)
-        {
-            Write-ActivityHistory -MessageChannel 'Error' -ThrowError -Message 'API call failed due to excessive retries.'
-        }
-
-        # If returned data is larger than 4MB PowerShell's default JSON
-        # serializer/deserializer will return a string rather than an object.
-        if (($Return -and $Return.GetType().Name -eq 'string') -and ($Return.Length -gt 4096))
-        {
-            Write-ActivityHistory 'A large result was returned, requiring special processing. Stand by.'
-            if ($PSVersionTable.PSVersion.Major -ge 7)
-            {
-                $Return = ConvertFrom-Json -AsHashtable -InputObject $Return
-            }
-            else
-            {
-                # No AsHashtable option prior to PowerShell Core
-                $Return = ParseJsonString($Return)
-            }
-            Write-ActivityHistory 'Processing complete.'
-        }
-        return $Return
-    }
-    end
-    {
-        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
-    }
-}
-function New-SimplePassword
-{
-    Write-ActivityHistory "-----"
-    Write-ActivityHistory "In $($MyInvocation.MyCommand.Name)"
-    $lower = 'abcdefghijklmnopqrstuvwxyz'
-    $upper = $lower.ToUpper()
-    $numbers = '0123456789'
-
-    $a = (Get-Random -Count 5 -InputObject $lower.ToCharArray()) -join ''
-    $b = (Get-Random -Count 5 -InputObject $upper.ToCharArray()) -join ''
-    $c = (Get-Random -Count 5 -InputObject $numbers.ToCharArray()) -join ''
-
-    $pool = $a + $b + $c
-    $i = Get-Random -Count 14 -InputObject (0..14)
-    $password = $pool[$i] -join ''
-
-    return $password
-}
-
-<#
-.Synopsis
-   Display the time zones and time zone IDs used by TeamDynamix
-.DESCRIPTION
-   Display the time zones and time zone IDs used by TeamDynamix. For Standard
-   Time. Data is from TeamDynamix configuration file, TeamDynamix.psm1.
-.PARAMETER SortByGMTOffset
-    Sort output by GMT Offset.
-.EXAMPLE
-   C:\>Get-TDTimeZoneInformation
-
-   Returns time zone names, IDs, and offset from GMT.
-.EXAMPLE
-   C:\>Get-TDTimeZoneInformation -SortByGMTOffset
-
-   Returns time zone names, IDs, and offset from GMT, sorted by GMT offset.
-#>
+#region Public functions
 function Get-TDTimeZoneInformation
 {
     [CmdletBinding()]
@@ -455,31 +41,6 @@ function Get-TDTimeZoneInformation
     return $TDTimeZones
 }
 
-<#
-.Synopsis
-   Returns a list of applications in TeamDynamix
-.DESCRIPTION
-   Return a list of applications in TeamDynamix. Data is from TeamDynamix
-   configuration file, TeamDynamix.psm1.
-.PARAMETER IsActive
-    Filter the list of applications based on whether they're active or not.
-    Default returns only active applications.
-.PARAMETER WithDuplicates
-    Return all applications, including duplicates.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-   C:\>Get-TDApplication
-
-   Return the TeamDynamix application names and IDs.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function Get-TDApplication
 {
     [CmdletBinding()]
@@ -553,17 +114,6 @@ function Get-TDApplication
     }
 }
 
-<#
-.Synopsis
-   Returns a list of license types in TeamDynamix
-.DESCRIPTION
-   Return a list of license types in TeamDynamix. Data is from TeamDynamix
-   configuration file, TeamDynamix.psm1.
-.EXAMPLE
-   C:\>Get-TDLicenseType
-
-   Return the TeamDynamix license type names and IDs.
-#>
 function Get-TDLicenseType
 {
     [CmdletBinding()]
@@ -579,17 +129,6 @@ function Get-TDLicenseType
     Write-Output $Return
 }
 
-<#
-.Synopsis
-   Returns a list of attribute components in TeamDynamix
-.DESCRIPTION
-   Return a list of attribute components in TeamDynamix. Data is from TeamDynamix
-   configuration file, TeamDynamix.psm1.
-.EXAMPLE
-   C:\>Get-TDAttributeComponent
-
-   Return the TeamDynamix attribute component names and IDs.
-#>
 function Get-TDAttributeComponent
 {
     [CmdletBinding()]
@@ -606,17 +145,6 @@ function Get-TDAttributeComponent
     Write-Output $Return
 }
 
-<#
-.Synopsis
-   Returns a list of ticket classes in TeamDynamix
-.DESCRIPTION
-   Return a list of ticket classes in TeamDynamix. Data is from TeamDynamix
-   configuration file, TeamDynamix.psm1.
-.EXAMPLE
-   C:\>Get-TDTicketClass
-
-   Return the TeamDynamix ticket class names and IDs.
-#>
 function Get-TDTicketClass
 {
     [CmdletBinding()]
@@ -632,17 +160,6 @@ function Get-TDTicketClass
     Write-Output $Return
 }
 
-<#
-.Synopsis
-   Returns a list of user types in TeamDynamix
-.DESCRIPTION
-   Return a list of user types in TeamDynamix. Data is from TeamDynamix
-   configuration file, TeamDynamix.psm1.
-.EXAMPLE
-   C:\>Get-TDUserType
-
-   Return the TeamDynamix user type names and IDs.
-#>
 function Get-TDUserType
 {
     [CmdletBinding()]
@@ -658,17 +175,6 @@ function Get-TDUserType
     Write-Output $Return
 }
 
-<#
-.Synopsis
-   Returns a list of KB article statuses in TeamDynamix
-.DESCRIPTION
-   Return a list of Knowledge Base articles statuses in TeamDynamix. Data is
-   from TeamDynamix configuration file, TeamDynamix.psm1.
-.EXAMPLE
-   C:\>Get-TDKBArticleStatus
-
-   Return the TeamDynamix KB article status names and IDs.
-#>
 function Get-TDKBArticleStatus
 {
     [CmdletBinding()]
@@ -684,17 +190,6 @@ function Get-TDKBArticleStatus
     Write-Output $Return
 }
 
-<#
-.Synopsis
-   Returns a list of ticket status classes in TeamDynamix
-.DESCRIPTION
-   Return a list of ticket status classes in TeamDynamix. Data is from
-   TeamDynamix configuration file, TeamDynamix.psm1.
-.EXAMPLE
-   C:\>Get-TDTicketStatusClass
-
-   Return the TeamDynamix ticket status class names and IDs.
-#>
 function Get-TDTicketStatusClass
 {
     [CmdletBinding()]
@@ -710,17 +205,6 @@ function Get-TDTicketStatusClass
     Write-Output $Return
 }
 
-<#
-.Synopsis
-   Returns a list of attachment types in TeamDynamix
-.DESCRIPTION
-   Return a list of attachment types in TeamDynamix. Data is from
-   TeamDynamix configuration file, TeamDynamix.psm1.
-.EXAMPLE
-   C:\>Get-TDAttachmentType
-
-   Return the TeamDynamix attachment type names and IDs.
-#>
 function Get-TDAttachmentType
 {
     [CmdletBinding()]
@@ -736,17 +220,6 @@ function Get-TDAttachmentType
     Write-Output $Return
 }
 
-<#
-.Synopsis
-   Returns a list of feed item types in TeamDynamix
-.DESCRIPTION
-   Return a list of feed item types in TeamDynamix. Data is from
-   TeamDynamix configuration file, TeamDynamix.psm1.
-.EXAMPLE
-   C:\>Get-TDFeedItemType
-
-   Return the TeamDynamix feed item type names and IDs.
-#>
 function Get-TDFeedItemType
 {
     [CmdletBinding()]
@@ -762,17 +235,6 @@ function Get-TDFeedItemType
     Write-Output $Return
 }
 
-<#
-.Synopsis
-   Returns a list of feed update types in TeamDynamix
-.DESCRIPTION
-   Return a list of feed update types in TeamDynamix. Data is from
-   TeamDynamix configuration file, TeamDynamix.psm1.
-.EXAMPLE
-   C:\>Get-TDFeedUpdateType
-
-   Return the TeamDynamix feed update type names and IDs.
-#>
 function Get-TDFeedUpdateType
 {
     [CmdletBinding()]
@@ -788,17 +250,6 @@ function Get-TDFeedUpdateType
     Write-Output $Return
 }
 
-<#
-.Synopsis
-   Returns a list of bulk operation result types in TeamDynamix
-.DESCRIPTION
-   Return a list of bulk operation result types in TeamDynamix. Data is from
-   TeamDynamix configuration file, TeamDynamix.psm1.
-.EXAMPLE
-   C:\>Get-TDBulkOperationResultType
-
-   Return the TeamDynamix feed update type names and IDs.
-#>
 function Get-TDBulkOperationResultType
 {
     [CmdletBinding()]
@@ -814,18 +265,6 @@ function Get-TDBulkOperationResultType
     Write-Output $Return
 }
 
-<#
-.Synopsis
-   Returns a list of backing item types in TeamDynamix
-.DESCRIPTION
-   Return a list of backing item types in TeamDynamix. Backing item types are
-   types that a configuration item can describe. Data is from TeamDynamix
-   configuration file, TeamDynamix.psm1.
-.EXAMPLE
-   C:\>Get-TDBackingItemType
-
-   Return the TeamDynamix backing item type names and IDs.
-#>
 function Get-TDBackingItemType
 {
     [CmdletBinding()]
@@ -841,17 +280,6 @@ function Get-TDBackingItemType
     Write-Output $Return
 }
 
-<#
-.Synopsis
-   Returns a list of service catalog request types in TeamDynamix
-.DESCRIPTION
-   Return a list of service catalog request types in TeamDynamix. Data is from
-   TeamDynamix configuration file, TeamDynamix.psm1.
-.EXAMPLE
-   C:\>Get-TDServiceCatalogRequestType
-
-   Return the TeamDynamix service catalog request type names and IDs.
-#>
 function Get-TDServiceCatalogRequestType
 {
     [CmdletBinding()]
@@ -867,17 +295,6 @@ function Get-TDServiceCatalogRequestType
     Write-Output $Return
 }
 
-<#
-.Synopsis
-   Returns a list of ticket task types in TeamDynamix
-.DESCRIPTION
-   Return a list of ticket task types in TeamDynamix. Data is from
-   TeamDynamix configuration file, TeamDynamix.psm1.
-.EXAMPLE
-   C:\>Get-TDTicketTaskType
-
-   Return the TeamDynamix ticket task type names and IDs.
-#>
 function Get-TDTicketTaskType
 {
     [CmdletBinding()]
@@ -893,17 +310,6 @@ function Get-TDTicketTaskType
     Write-Output $Return
 }
 
-<#
-.Synopsis
-   Returns a list of conflict types in TeamDynamix
-.DESCRIPTION
-   Return a list of conflict types in TeamDynamix. Data is from
-   TeamDynamix configuration file, TeamDynamix.psm1.
-.EXAMPLE
-   C:\>Get-TDConflictType
-
-   Return the TeamDynamix conflict type names and IDs.
-#>
 function Get-TDConflictType
 {
     [CmdletBinding()]
@@ -919,47 +325,6 @@ function Get-TDConflictType
     Write-Output $Return
 }
 
-<#
-.Synopsis
-    Create a user application object locally for use with TeamDynamix.
-.DESCRIPTION
-    Create a local user application object. This is used when creating or
-    modifying user OrgApplications in TeamDynamix. This does not create an
-    object on TeamDynamix.
-.PARAMETER SecurityRoleId
-    The ID of the specific security role that the user has within the
-    application.
-.PARAMETER IsAdministrator
-    Gets whether the user is marked as an administrator of the application.
-    Default is false.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-    C:\>New-TDUserApplication -SecurityRoleID XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
-
-    Returns an object for the specified security role, not an administrator
-    for the application, suitable for use with New-TDUser or Set-TDUser's
-    OrgApplication parameter.
-.EXAMPLE
-    C:\>New-TDUserApplication -SecurityRoleID XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX -IsAdministrator $true
-
-    Returns an object for the specified security role, as an administrator
-    for the application, suitable for use with New-TDUser or Set-TDUser's
-    OrgApplication parameter.
-.EXAMPLE
-    C:\>$UserApp = New-TDUserApplication -SecurityRoleID XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX -IsAdministrator $true
-    C:\>Set-TDUser -UID XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX -OrgApplications $UserApp
-
-    Creates a user application object and adds that application to the
-    specified user.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function New-TDUserApplication
 {
     [CmdletBinding()]
@@ -1014,210 +379,6 @@ function New-TDUserApplication
     }
 }
 
-<#
-.Synopsis
-   Update the properties of an object
-.DESCRIPTION
-   Update the properties of an object using the command-line and default
-   parameters, ignoring parameters as directed. This is a service routine,
-   intended to reduce the volume of code and ease maintenance.
-.PARAMETER InputObject
-    Object to be updated.
-.PARAMETER ParameterList
-    List of properties in the invoking function.
-.PARAMETER BoundParameterList
-    List of bound properties from the invoking function.
-.PARAMETER IgnoreList
-    A list of properties in the ParameterList that should be ignored, usually
-    because there is no corresponding property in the InputObject.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-   C:\>Update-Object -InputObject $NewAsset -ParameterList $Parameters -IgnoreList ($LocalIgnoreParameters + $GlobalIgnoreParameters)
-
-   Return the NewAsset object, updated by "Parameters", ignoring the local and global ignore parameters.
-#>
-function Update-Object
-{
-    [CmdletBinding()]
-    Param
-    (
-        # Object to be updated
-        [Parameter(Mandatory=$true,
-                   Position=0)]
-        $InputObject,
-
-        # Full list of properties for the invoking function
-        [Parameter(Mandatory=$true,
-                   Position=1)]
-        $ParameterList,
-
-        # List of bound properties from the invoking function
-        [Parameter(Mandatory=$true,
-                   Position=1)]
-        $BoundParameterList,
-
-        # Properties to be ignored in the update
-        [Parameter(Mandatory=$true,
-                   Position=2)]
-        $IgnoreList,
-
-        # TeamDynamix authentication token
-        [Parameter(Mandatory=$false)]
-        [hashtable]
-        $AuthenticationToken = $TDAuthentication,
-
-        # TeamDynamix working environment
-        [Parameter(Mandatory=$false)]
-        [EnvironmentChoices]
-        $Environment = $WorkingEnvironment
-    )
-
-    Write-ActivityHistory "-----"
-    Write-ActivityHistory "In $($MyInvocation.MyCommand.Name)"
-    Write-ActivityHistory (Get-PSCallStack | Out-String)
-    $IgnoreList += @('Attributes','CustomAttributes','OrgApplications')
-    foreach ($Parameter in $ParameterList)
-    {
-        # Set parameter values
-        # Ignore items from ignore list
-        if ($Parameter -notin $IgnoreList)
-        {
-            # Only update items that are on the bound parameter list, or which are not either null or empty
-            if (($Parameter -in $BoundParameterList) -or (-not (($null -eq (Get-Variable -Name $Parameter).Value) -or ((Get-Variable -Name $Parameter).Value -eq ''))))
-            {
-                Write-ActivityHistory "$($Parameter): $((Get-Variable -Name $Parameter).Value)"
-                $InputObject.$Parameter = (Get-Variable -Name $Parameter).Value
-            }
-        }
-    }
-    # Check if there is there an OrgApplications parameter
-    # Special handling for OrgApplications is required since the input is an array and an array can't be assigned to the object
-    if ($ParameterList -contains 'OrgApplications')
-    {
-        # Replaces existing OrgApplications list with updated items, if none, current list is cleared
-        if ($null -ne $OrgApplications)
-        {
-            $InputObject.OrgApplications = @()
-            foreach ($OrgApplication in $OrgApplications)
-            {
-                $InputObject.OrgApplications += $OrgApplication
-            }
-        }
-        # If OrgApplications is set to null, remove all OrgApplications
-        #  Must return an empty array to clear all items
-        else
-        {
-            $InputObject.OrgApplications = @()
-        }
-    }
-    # Check if there is there an Attributes parameter
-    # Special handling for Attributes is largely to cover input checking and handling of names of the attributes instead of ID numbers
-    if (($ParameterList -contains 'Attributes') -or ($ParameterList -contains 'CustomAttributes'))
-    {
-        # Some functions refer to Attributes as CustomAttributes, but they never appear together
-        if ($ParameterList -contains 'CustomAttributes')
-        {
-            $Attributes = $CustomAttributes
-        }
-        # Check if Attributes parameter is populated
-        if ($Attributes.Count -gt 0)
-        {
-            # Check to see if the attributes are already in TD format
-            if ($Attributes.GetType().Name -eq 'TeamDynamix_Api_CustomAttributes_CustomAttribute[]')
-            {
-                # No special action required, attributes are already properly formatted. This usually happens when passing an object back from TD.
-                $InputObject.AddCustomAttribute($Attributes,$true)
-            }
-            else # Not in TD format
-            {
-                # Verify that input is either a hashtable, an array of paired strings, or an array of an array of paired strings or paired ID number and string
-                $AttributesTypeName = ($Attributes | Get-Member).TypeName[0]
-                switch ($AttributesTypeName)
-                {
-                    'System.Collections.Hashtable'
-                    {
-                        # Add hashtable directly, overwriting existing attributes
-                        $InputObject.AddCustomAttribute($Attributes,$true)
-                    }
-                    'System.String'
-                    {
-                        if ($Attributes.Count -eq 2)
-                        {
-                            $InputObject.AddCustomAttribute($Attributes[0],$Attributes[1],$true,$AuthenticationToken,$Environment)
-                        }
-                        else
-                        {
-                            Write-ActivityHistory -MessageChannel 'Error' -ThrowError -Message 'Input string should be a paired attribute name and value.'
-                        }
-                    }
-                    'System.Object[]'
-                    {
-                        #  Check for attribute value (attributeset[1]) being a string of integers when there are choices
-                        foreach ($AttributeSet in $Attributes)
-                        {
-                            if ((($AttributeSet | Get-Member).TypeName[0] -eq 'System.String') -and ($AttributeSet.Count -eq 2))
-                            {
-                                $InputObject.AddCustomAttribute($AttributeSet[0],$AttributeSet[1],$true,$AuthenticationToken,$Environment)
-                            }
-                            elseif ((($AttributeSet | Get-Member).TypeName[0] -eq 'System.Int32') -and ($AttributeSet.Count -eq 2))
-                            {
-                                $InputObject.AddCustomAttribute($AttributeSet[0],$AttributeSet[1],$true)
-                            }
-                            else
-                            {
-                                Write-ActivityHistory -MessageChannel 'Error' -ThrowError -Message 'Input string should be sets of paired attribute names and values, or ID numbers and values.'
-                            }
-                        }
-                    }
-                    'System.Int32'
-                    {
-                        if ($Attributes.Count -eq 2)
-                        {
-                            $InputObject.AddCustomAttribute($Attributes[0],$Attributes[1],$true)
-                        }
-                        else
-                        {
-                            Write-ActivityHistory -MessageChannel 'Error' -ThrowError -Message 'Input string should be a paired attribute ID and value.'
-                        }
-                    }
-                    default
-                    {
-                        Write-ActivityHistory -MessageChannel 'Error' -ThrowError -Message 'Bad custom attributes submitted. Ensure that the input is either a paired attribute name and value, or a hashtable containing the attribute ID and value ID.'
-                    }
-                }
-            }
-        }
-    }
-}
-
-<#
-.Synopsis
-    Convert from TD Web API description to PowerShell class definition
-.DESCRIPTION
-    Convert from TD Web API description to PowerShell class definition using
-    text or a web page URL as a source.
-.PARAMETER InputData
-    Text from TD Web API web page to be imported. Save web content by cut/paste
-    via Notepad. Use -Raw option on Get-Content to ensure that the data is a
-    single string.
-.PARAMETER URL
-    URL of the TD Web API web page to be imported.
-.PARAMETER ClassName
-    Name of the class to be created.
-.PARAMETER IncludeTD_Class
-    Include TD_ class definition
-.PARAMETER AttributeComponent
-    The attribute component name or ID number. Required for classes with custom
-    attributes.
-.EXAMPLE
-    C:\>ConvertFrom-TDWebAPIToClass (Get-Content C:\TDText.txt -Raw) -ClassName TeamDynamix_Api_Test
-#>
 function ConvertFrom-TDWebAPIToClass
 {
     [CmdletBinding(DefaultParameterSetName='URL')]
@@ -1634,30 +795,6 @@ function ConvertFrom-TDWebAPIToClass
     }
 }
 
-<#
-.Synopsis
-    Convert from TD Web API description to PowerShell enum definition
-.DESCRIPTION
-    Convert from TD Web API description to PowerShell enum definition using
-    text or a web page URL as a source.
-.PARAMETER InputText
-    Text from TD Web API web page to be imported. Save web content by cut/paste
-    via Notepad. Use -Raw option on Get-Content to ensure that the data is a
-    single string.
-.PARAMETER URL
-    URL of the TD Web API web page to be imported.
-.PARAMETER EnumName
-    Name of the eunum to be created.
-.EXAMPLE
-    C:\> ConvertFrom-TDWebAPIToEnum -InputText (Get-Content C:\TDText.txt -Raw) -EnumName TeamDynamix_Api_TestEnum
-
-    Converts text from a file (originally drawn from TD's website) into an enum
-    description.
-.EXAMPLE
-    C:\> ConvertFrom-TDWebAPIToEnum -URL 'https://www.teamdynamix.com/TDWebApi/Home/type/TeamDynamix.Api.TestType' -EnumName TeamDynamix_Api_TestEnum
-
-    Converts text from a web page into an enum description.
-#>
 function ConvertFrom-TDWebAPIToEnum
 {
     [CmdletBinding(DefaultParameterSetName='URL')]
@@ -1721,32 +858,6 @@ function ConvertFrom-TDWebAPIToEnum
     }
 }
 
-<#
-.Synopsis
-    Convert from TD Web API description to PowerShell function definition
-.DESCRIPTION
-    Convert from TD Web API description to PowerShell function definition using
-    text or a web page URL as a source.
-.PARAMETER InputData
-    Text from TD Web API web page to be imported. Save web content by cut/paste
-    via Notepad. Use -Raw option on Get-Content to ensure that the data is a
-    single string.
-.PARAMETER URL
-    URL of the TD Web API web page to be imported.
-.PARAMETER FunctionName
-    Name of function to be created.
-.PARAMETER IncludeAll
-    Treat all properties as editable (include all as parameters).
-.EXAMPLE
-    C:\> ConvertFrom-TDWebAPIToFunction -InputText (Get-Content C:\TDText.txt -Raw) -FunctionName Get-TestFunction
-
-    Converts text from a file (originally drawn from TD's website) into an enum
-    description.
-.EXAMPLE
-    C:\> ConvertFrom-TDWebAPIToFunction -URL 'https://www.teamdynamix.com/TDWebApi/Home/type/TeamDynamix.Api.TestType' -FunctionName Get-TestFunction
-
-    Converts text from a web page into an enum description.
-#>
 function ConvertFrom-TDWebAPIToFunction
 {
     [CmdletBinding(DefaultParameterSetName='URL')]
@@ -1926,28 +1037,6 @@ function $FunctionName
     }
 }
 
-<#
-.Synopsis
-   Find changes to TeamDynamix APIs between versions
-.DESCRIPTION
-   Find changes to TeamDynamix APIs between versions. Run while the Preview
-   site is up and compare the current API to the new API. Returns an object
-   containing the name of the class/enum and the added/removed parameters.
-.PARAMETER APIURL
-    URL of the API to compare.
-.PARAMETER All
-    Compare all classes/enums currently in the TeamDynamix module.
-.EXAMPLE
-    C:\> Compare-TDAPIDefinitions -All
-
-    Compares all current TeamDynamix APIs as implemented in this module with
-    the preview APIs.
-.EXAMPLE
-    C:\> Compare-TDAPIDefinitions -APIURL https://api.teamdynamix.com/TDWebApi/Home/type/TeamDynamix.Api.Accounts.Account
-
-    Compare the TeamDynamix API definitions for an account in the preview with
-    the current implementation.
-#>
 function Compare-TDAPIDefinitions
 {
     [CmdletBinding(DefaultParameterSetName='All')]
@@ -1980,7 +1069,7 @@ function Compare-TDAPIDefinitions
                 $APINames = (Get-Module TeamDynamix).ImplementingAssembly.DefinedTypes | Where-Object {$_.IsPublic -eq $true -and $_.Name -notmatch '^TD_'} |Select-Object -ExpandProperty Name | ForEach-Object {$_.Replace('_','.')}
                 Write-ActivityHistory ($APINames | Out-String)
                 # Call this function for each class and enum
-                $APINames | ForEach-Object { "$($TDConfig.DefaultTDBaseURI)/TDWebApi/Home/type/$_" } | Compare-TDAPIDefinitions
+                $APINames | ForEach-Object { "$script:DefaultTDBaseURI)/TDWebApi/Home/type/$_" } | Compare-TDAPIDefinitions
             }
             'URL'
             {
@@ -2042,6 +1131,1462 @@ function Compare-TDAPIDefinitions
                         API       = $APIURL.ToString().split('/')[-1].Replace('.','_')
                         Additions = $Additions
                         Deletions = $Deletions
+                    }
+                }
+            }
+        }
+    }
+}
+
+function Get-TDOpenTicketActivity
+{
+    [CmdletBinding(DefaultParameterSetName='DateRange')]
+    Param
+    (
+        # Technician name
+        [Parameter(Mandatory=$false)]
+        [ValidatePattern('^\w+\.\d+$')]
+        [string[]]
+        $TechnicianName,
+
+        # Client name
+        [Parameter(Mandatory=$false)]
+        [ValidatePattern('^\w+\.\d+$')]
+        [string[]]
+        $ClientName,
+
+        # Days to include in the report
+        [Parameter(Mandatory=$true,
+                   ParameterSetName='Interval')]
+        [int]
+        $ReportInterval,
+
+        # Starting date for tickets to include in the report
+        [Parameter(Mandatory=$false,
+                   ParameterSetName='DateRange')]
+        [ValidateScript({
+            ($_ -lt (Get-Date))})]
+        [datetime]
+        $ReportFrom,
+
+        # Ending date for tickets to include in the report
+        [Parameter(Mandatory=$false,
+                   ParameterSetName='DateRange')]
+        [datetime]
+        $ReportTo = (Get-Date),
+
+        # Sections to include in the report
+        [Parameter(Mandatory=$false)]
+        [ValidateSet('Ticket Counts','Recent Activity','Historical Activity','All')]
+        [string[]]
+        $ReportSection = 'All',
+
+        # Adds special section for tickets with no update during the reporting period
+        [Parameter(Mandatory=$false)]
+        [switch]
+        $NoUpdate,
+
+        # Output file name
+        [Parameter(Mandatory=$false)]
+        [string]
+        $OutputFileName,
+
+        # TeamDynamix authentication token
+        [Parameter(Mandatory=$false)]
+        [hashtable]
+        $AuthenticationToken = $TDAuthentication,
+
+        # TeamDynamix working environment
+        [Parameter(Mandatory=$false)]
+        [EnvironmentChoices]
+        $Environment = $WorkingEnvironment
+    )
+    DynamicParam
+    {
+        #List dynamic parameters
+		$DynamicParameterList = @(
+            @{
+                Name        = 'UnitName'
+                ValidateSet = $TDAccounts.Name
+                HelpText    = 'Name of unit(s)'
+            }
+            @{
+                Name        = 'GroupName'
+                ValidateSet = $TDGroups.Name
+                HelpText    = 'Name of support group(s)'
+            }
+		)
+		$DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
+        return $DynamicParameterDictionary
+    }
+
+    Begin
+    {
+        # Create convenience variables for dynamic parameters
+        $UnitName  = $DynamicParameterDictionary.UnitName.Value
+        $GroupName = $DynamicParameterDictionary.GroupName.Value
+
+        # List of open status names
+        $OpenStatuses = (Get-TDTicketStatus -AuthenticationToken $AuthenticationToken -Environment $Environment | Where-Object StatusClass -in @('New','InProcess','OnHold')).Name
+
+        # List of closed status names
+        $ClosedStatuses = (Get-TDTicketStatus -AuthenticationToken $AuthenticationToken -Environment $Environment | Where-Object StatusClass -in @('Cancelled','Completed')).Name
+
+        function Format-TicketOutputReport
+        {
+            Param
+            (
+                # Selection from tickets
+                [Parameter(Mandatory=$true,
+                           Position=0)]
+                $TicketSelection,
+
+                # Selection from feed
+                [Parameter(Mandatory=$true,
+                           Position=1)]
+                $FeedSelection
+            )
+            # Pretty format for tickets and comments
+            $TicketSelection | Sort-Object -Property CreatedDate -Descending | ForEach-Object {Write-Output "<H2>$($_.Title)</H2>`r`n<H3>`r`n`tTicket ID: $($_.ID)<BR>`r`n`tOpened: $(Get-Date -Date $_.CreatedDate -Format "M/d/yyyy h:mm tt")<BR>`r`n`tRequestor: $($_.RequestorName)<BR>`r`n`tStatus: $($_.StatusName)`r`n</H3>`r`n<H3>Request</H3>`r`n<BLOCKQUOTE>$($_.Description)</BLOCKQUOTE><H3>Updates</H3>"; ($FeedSelection | Where-Object Name -eq $_.ID).Group | Sort-Object -Property CreatedDate -Descending | ForEach-Object {Write-Output "<H4>`r`n`t$(Get-Date -Date $_.CreatedDate -Format "M/d/yyyy h:mm tt")<BR>`r`n`t$($_.CreatedFullName)`r`n</H4>`r`n<BLOCKQUOTE>$($_.Body)`r`n</BLOCKQUOTE>`r`n"}; Write-Output "<HR>`r`n"}
+        }
+        function Format-TicketFeedCommenterCounts
+        {
+            Param
+            (
+                # Selection from feed
+                [Parameter(Mandatory=$false)]
+                $FeedSelection
+            )
+            if ($FeedSelection) {
+                # List commenters, from most frequent to least
+                $CommenterTable = $FeedSelection | Select-Object -ExpandProperty Group | Group-Object -Property CreatedFullName | Sort-Object -Property Count -Descending
+                if ($CommenterTable.Name -ne '') {
+                    Write-Output "<H3>`r`n`tTicket commenters`r`n</H3>`r`n"
+                    Write-Output "<table>`r`n"
+                    Write-Output "<tr><th>Name</th><th>Comment Count</th></tr>`r`n"
+                    $CommenterTable | ForEach-Object {Write-Output "<tr>`r`n`t<td>`r`n`t`t<P ALIGN=Left>$($_.Name)`r`n`t</td>`r`n`t<td>`r`n`t`t<P ALIGN=Right>$($_.Count)`r`n`t</td>`r`n</tr>`r`n"}
+                    Write-Output "</table>`r`n"
+                }
+            }
+            else {
+                # No comments
+                Write-Output "<H3>`r`n`tTicket commenters`r`n</H3>`r`n"
+                Write-Output "No comments`r`n"
+            }
+        }
+        function Format-TicketRequestorCounts
+        {
+            Param
+            (
+                # Selection from tickets
+                [Parameter(Mandatory=$false)]
+                $TicketSelection
+            )
+            if ($TicketSelection) {
+                # List requestors, from most frequent to least
+                $RequestorTable = $TicketSelection | Group-Object -Property RequestorName | Sort-Object -Property Count -Descending
+                if ($CommenterTable.Name -ne '') {
+                    Write-Output "<H3>Ticket requestors</H3>"
+                    Write-Output "<table>"
+                    Write-Output "<tr><th>Name</th><th>Request Count</th></tr>`r`n"
+                    $RequestorTable | ForEach-Object {Write-Output "<tr>`r`n`t<td>`r`n`t`t<P ALIGN=Left>$($_.Name)`r`n`t</td>`r`n`t<td>`r`n`t`t<P ALIGN=Right>$($_.Count)`r`n`t</td>`r`n</tr>`r`n"}
+                    Write-Output "</table>`r`n"
+                }
+            }
+            else {
+                # No new requests
+                Write-Output "<H3>`r`n`tTicket requestors`r`n</H3>`r`n"
+                Write-Output "No requests`r`n"
+            }
+        }
+        function Format-TicketNoUpdate
+        {
+            Param
+            (
+                # Selection from tickets
+                [Parameter(Mandatory=$true)]
+                $TicketSelection
+            )
+            # Build table of clickable stale tickets
+            $TicketAppURI = Get-URI -Environment $Environment -Portal
+            Write-Output "<table class=`"paddedTable`">`r`n"
+            Write-Output "<tr><th>ID</th><th>Last update</th><th>Title</th></tr>`r`n"
+            $TicketSelection | Sort-Object -Property ModifiedDate | ForEach-Object {Write-Output "<tr>`r`n`t<td>`r`n`t`t<P ALIGN=Left><a href=`"$TicketAppURI/Apps/$TicketingAppID/Tickets/TicketDet?TicketID=$($_.ID)`" target=`"_blank`">$($_.ID)</a></td><td><P ALIGN=Left>$(Get-Date -Date $_.ModifiedDate -Format "MM/dd/yyyy h:mm tt")`r`n</td>`r`n`t<td>`r`n`t`t<P ALIGN=Left>$($_.Title)`r`n`t</td>`r`n</tr>`r`n"}
+            Write-Output "</table>`r`n"
+        }
+    }
+    Process
+    {
+        # Check to see if a unit, group, technician, or client has been specified.
+        if (-not $UnitName -and -not $GroupName -and -not $TechnicianName -and -not $ClientName) {
+            throw 'Please specify a unit, group, technician, or client to report on.'
+        }
+
+        # Initialize report sections
+        $ReportHeader     = ''
+        $ReportCounts     = ''
+        $ReportRecent     = ''
+        $ReportHistorical = ''
+
+        # Initialize collections
+        $TicketIDs = @()
+        $ReportNameList = @()
+        $ReportSections = @()
+
+        # Count report parts for progress bar
+        $PartsCount = 3 + $TechnicianName.Count + $ClientName.Count
+        if ($UnitName)  {$PartsCount ++}
+        if ($GroupName) {$PartsCount ++}
+        $PercentComplete = 0
+
+        # Set report dates (skip back through weekends)
+        if ($ReportInterval) {
+            $ReportFrom = Get-WeekdayDate ([datetime]::Today).AddDays(-$ReportInterval)
+            $ReportTo = Get-Date -Format "M/d/yyyy h:mm tt"
+        }
+        # Set format of dates (date only if starting at midnight, otherwise include the time)
+        if ($ReportFrom.TimeOfDay -eq 0) {$ReportFromString = $ReportFrom.ToShortDateString()}
+        else {$ReportFromString = Get-Date -Date $ReportFrom -Format "M/d/yyyy h:mm tt"}
+        if ($ReportTo.TimeOfDay -eq 0 -or $ReportTo.Date -eq (Get-Date).Date) {$ReportToString = $ReportTo.ToShortDateString()}
+        else {$ReportToString = Get-Date -Date $ReportTo -Format "M/d/yyyy h:mm tt"}
+
+        if ($TechnicianName) {
+            $UserIDs = @()
+            foreach ($User in $TechnicianName) {
+                # Get user information
+                Write-Progress -ID 101 -Activity "Technician: $User" -Status 'Retrieving user information' -PercentComplete ($PercentComplete += + (100 / $PartsCount / 3))
+                $TDUser       = Get-TDUser -UserName "$User@osu.edu" -AuthenticationToken $AuthenticationToken -Environment $Environment
+                $UserIDs     += $TDUser.UID
+
+                # Add to report name
+                $ReportNameList += $User
+
+                # Get open tickets
+                Write-Progress -ID 101 -Activity "Technician: $User" -Status 'Retrieving open tickets' -PercentComplete ($PercentComplete += (100 / $PartsCount / 3))
+                $TicketIDs += (Get-TDTicket -UpdatedByUid $TDUser.UID -StatusClassNames New,InProcess,OnHold -CreatedDateTo $ReportTo -AuthenticationToken $AuthenticationToken -Environment $Environment).ID
+
+                # Get tickets that closed during the review interval
+                Write-Progress -ID 101 -Activity "Technician: $User" -Status 'Retrieving closed tickets' -PercentComplete ($PercentComplete += (100 / $PartsCount / 3))
+                $TicketIDs += (Get-TDTicket -UpdatedByUid $TDUser.UID -ClosedDateFrom $ReportFrom -ClosedDateTo $ReportTo -AuthenticationToken $AuthenticationToken -Environment $Environment).ID
+            }
+
+            # Set default report sections
+            if ($ReportSection -eq 'All') {$ReportSections += @('Ticket Counts','Recent activity')}
+            else {$ReportSections = $ReportSection}
+        }
+        if ($ClientName) {
+            $UserIDs = @()
+            foreach ($User in $ClientName) {
+                # Get user information
+                Write-Progress -ID 101 -Activity "Client: $User" -Status 'Retrieving user information' -PercentComplete ($PercentComplete += (100 / $PartsCount / ($Clients.Count + 2)))
+                $TDUser       = Get-TDUser -UserName "$User@osu.edu" -AuthenticationToken $AuthenticationToken -Environment $Environment
+                $UserIDs     += $TDUser.UID
+
+                # Add to report name
+                $ReportNameList += $User
+            }
+            # Get open tickets
+            Write-Progress -ID 101 -Activity "Client(s)" -Status 'Retrieving open tickets' -PercentComplete ($PercentComplete += (100 / $PartsCount / ($Clients.Count + 2)))
+            $TicketIDs += (Get-TDTicket -RequestorUids $UserIDs -StatusClassNames New,InProcess,OnHold -CreatedDateTo $ReportTo -AuthenticationToken $AuthenticationToken -Environment $Environment).ID
+
+            # Get tickets that closed during the review interval
+            Write-Progress -ID 101 -Activity "Client(s)" -Status 'Retrieving closed tickets' -PercentComplete ($PercentComplete += (100 / $PartsCount / ($Clients.Count + 2)))
+            $TicketIDs += (Get-TDTicket -RequestorUids $UserIDs -ClosedDateFrom $ReportFrom -ClosedDateTo $ReportTo -AuthenticationToken $AuthenticationToken -Environment $Environment).ID
+
+            # Set default report sections
+            if ($ReportSection -eq 'All') {$ReportSections += @('Ticket Counts','Recent activity','Historical activity')}
+            else {$ReportSections = $ReportSection}
+        }
+        if ($UnitName) {
+            # Set report name
+            $ReportNameList += $UnitName
+
+            # Get open tickets
+            Write-Progress -ID 101 -Activity "Unit(s)" -Status 'Retrieving open tickets' -PercentComplete ($PercentComplete += (100 / $PartsCount / 2))
+            $TicketIDs += (Get-TDTicket -AccountNames $UnitName -StatusClassNames New,InProcess,OnHold -CreatedDateTo $ReportTo -AuthenticationToken $AuthenticationToken -Environment $Environment).ID
+
+            # Get tickets that closed during the review interval
+            Write-Progress -ID 101 -Activity "Unit(s)" -Status 'Retrieving closed tickets' -PercentComplete ($PercentComplete += (100 / $PartsCount / 2))
+            $TicketIDs += (Get-TDTicket -AccountNames $UnitName -ClosedDateFrom $ReportFrom -ClosedDateTo $ReportTo -AuthenticationToken $AuthenticationToken -Environment $Environment).ID
+
+            # Set default report sections
+            if ($ReportSection -eq 'All') {$ReportSections += @('Ticket Counts','Recent activity','Historical activity')}
+            else {$ReportSections = $ReportSection}
+        }
+        if ($GroupName) {
+            # Set report name
+            $ReportNameList += $GroupName
+
+            # Get open tickets
+            Write-Progress -ID 101 -Activity "Group(s)" -Status 'Retrieving open tickets' -PercentComplete ($PercentComplete += (100 / $PartsCount / 2))
+            $TicketIDs += (Get-TDTicket -ResponsibilityGroupNames $GroupName -StatusClassNames New,InProcess,OnHold -CreatedDateTo $ReportTo -AuthenticationToken $AuthenticationToken -Environment $Environment).ID
+
+            # Get tickets that closed during the review interval
+            Write-Progress -ID 101 -Activity "Group(s)" -Status 'Retrieving open tickets' -PercentComplete ($PercentComplete + (100 / $PartsCount / 2))
+            $TicketIDs += (Get-TDTicket -ResponsibilityGroupNames $GroupName -ClosedDateFrom $ReportFrom -ClosedDateTo $ReportTo -AuthenticationToken $AuthenticationToken -Environment $Environment).ID
+
+            # Set default report sections
+            if ($ReportSection -eq 'All') {$ReportSections += @('Ticket Counts','Recent activity','Historical activity')}
+            else {$ReportSections = $ReportSection}
+
+            # Add counts by unit, counts by tech
+        }
+
+        # Assemble report name
+        $ReportName = $ReportNameList -join ', '
+
+        # Eliminate ticket duplicates and get detailed ticket information
+        $Tickets = $TicketIDs | Select-Object -Unique | ForEach-Object {Write-Progress -ID 101 -Activity 'Ticket data' -Status "Retrieving detailed ticket data for ID $_" -PercentComplete ($PercentComplete += (100 / $PartsCount/ $TicketIDs.Count)); Get-TDTicket -ID $_ -AuthenticationToken $AuthenticationToken -Environment $Environment}
+
+        # Get feed information for open tickets
+        if ($Tickets.ID)
+        {
+            $TicketsFeed = $Tickets.ID | ForEach-Object {Write-Progress -ID 101 -Activity 'Ticket feed' -Status "Retrieving ticket feed data for ID $_" -PercentComplete ($PercentComplete += (100 / $PartsCount / $Tickets.Count)); Get-TDTicketFeed -ID $_ -AuthenticationToken $AuthenticationToken -Environment $Environment}
+            $TicketsFeedReviewDate = $TicketsFeed | Where-Object {$_.CreatedDate -gt $ReportFrom -and $_.CreatedDate -lt $ReportTo} | Group-Object -Property ItemID
+        }
+
+        # Set output file if none is set
+        if ($OutputFileName -eq '') {
+            # Watch for file name too long - use a shorter name if necessary
+            if (("$ReportName.html").Length -le 255) {$OutputFileName = Join-Path ([System.IO.Path]::GetTempPath()) "$ReportName.html"}
+            else {$OutputFileName = Join-Path ([System.IO.Path]::GetTempPath()) "Open Ticket Activity - $(Get-Date -Format "M-d-yyyy").html"}
+        }
+        Write-Progress -ID 101 -Activity "Building report" -Status 'Compiling report data' -PercentComplete 95
+        # Populate report header
+        $ReportHeader  = "<html>`r`n"
+        $ReportHeader += "<head>`r`n"
+        $ReportHeader += "<style>`r`n"
+        $ReportHeader += "`t.paddedTable td`r`n"
+        $ReportHeader += "`t{padding:0 15px 0 0}`r`n"
+        $ReportHeader += "</style>`r`n"
+        $ReportHeader += "</head>`r`n"
+        $ReportHeader += "<body>`r`n"
+        $ReportHeader += "<H1>Ticket info for $ReportName between $ReportFromString and $ReportToString</H1>`r`n"
+        $ReportHeader += "<H2>Navigation</H2>`r`n"
+        $ReportHeader += "<nav>`r`n"
+        if ($ReportSections -contains 'Ticket Counts') {$ReportHeader += '<a href="#Counts">Ticket Counts</a>'}
+        if ($NoUpdate) {
+            if ($ReportHeader.EndsWith('</a>')) {$ReportHeader += ' | '}
+            $ReportHeader += '<a href="#NoUpdate">Stale Tickets</a>'
+        }
+        if ($ReportSections -contains 'Recent Activity') {
+            if ($ReportHeader.EndsWith('</a>')) {$ReportHeader += ' | '}
+            $ReportHeader += '<a href="#Recent">Recent Activity</a>'
+        }
+        if ($ReportSections -contains 'Historical Activity') {
+            if ($ReportHeader.EndsWith('</a>')) {$ReportHeader += ' | '}
+            $ReportHeader += '<a href="#Open">All Open Tickets</a>'
+        }
+        $ReportHeader += "`r`n</nav>`r`n"
+        $ReportHeader += "<HR><HR>`r`n"
+
+        # Populate report footer
+        $ReportFooter  = "</body>`r`n"
+        $ReportFooter += "</html>`r`n"
+
+        # Populate report sections
+        switch ($ReportSections | Select-Object -Unique) {
+            {$_ -contains 'Ticket Counts'} {
+                # Report for ticket counts
+                $ReportCounts  = "<a name=`"Counts`"></a>`r`n"
+                $ReportCounts += "<H1>Ticket counts between $ReportFromString and $ReportToString</H1>`r`n"
+                $ReportCounts += "<table>`r`n"
+                $ReportCounts += "<tr>`r`n`t<td>`r`n`t`t<P ALIGN=Left>New tickets created:`r`n`t</td>`r`n`t<td>`r`n`t`t<P ALIGN=Right>$(($Tickets | Where-Object {$_.CreatedDate -gt $ReportFrom -and $_.CreatedDate -lt $ReportTo}).Count)`r`n`t</td>`r`n</tr>`r`n"
+                $ReportCounts += "<tr>`r`n`t<td>`r`n`t`t<P ALIGN=Left>Tickets closed:     `r`n`t</td>`r`n`t<td>`r`n`t`t<P ALIGN=Right>$(($Tickets | Where-Object StatusName  -in $ClosedStatuses).Count)`r`n`t</td>`r`n</tr>`r`n"
+                if ($TechnicianName) {$ReportCounts += "<tr><td><P ALIGN=Left>Updates by technician:</td><td><P ALIGN=Right>$(($TicketsFeedReviewDate | Select-Object -ExpandProperty Group | Where-Object CreatedUID -in $UserIDs).Count)</td></tr>`r`n"}
+                if (($UnitName -or $GroupName) -and (($Tickets | Where-Object StatusName -in $ClosedStatuses).Count -ne 0)) {
+                    $ReportCounts += "<tr>`r`n`t<td>`r`n`t`t<P ALIGN=Left>Average days to close:`r`n`t</td>`r`n`t<td>`r`n`t`t<P ALIGN=Right>{0:N2}`r`n`t</td>`r`n</tr>`r`n" -f ($Tickets | Where-Object StatusName -in $ClosedStatuses | ForEach-Object {($_.CompletedDate - $_.CreatedDate).Days} | Measure-Object -Average).Average
+                    $ReportCounts += "<tr>`r`n`t<td>`r`n`t`t<P ALIGN=Left>Median days to close: `r`n`t</td>`r`n`t<td>`r`n`t`t<P ALIGN=Right>$(Get-Median ($Tickets | Where-Object StatusName -in $ClosedStatuses | ForEach-Object {($_.CompletedDate - $_.CreatedDate).Days}))`r`n`t</td>`r`n</tr>`r`n"
+                }
+                $ReportCounts +=     "<tr>`r`n`t<td>`r`n`t`t<P ALIGN=Left>Tickets remaining open:`r`n`t</td>`r`n`t<td>`r`n`t`t<P ALIGN=Right>$(($Tickets     | Where-Object StatusName -in $OpenStatuses).Count)`r`n`t</td>`r`n</tr>`r`n"
+                if ($TechnicianName -and -not ($UnitName -or $GroupName -or $ClientName)) {
+                    $ReportCounts += "<tr>`r`n`t<td>`r`n`t`t<P ALIGN=Left>Ticket updates posted: `r`n`t</td>`r`n`t<td>`r`n`t`t<P ALIGN=Right>$(($TicketsFeed | Where-Object CreatedUID -in $UserIDs     ).Count)`r`n`t</td>`r`n</tr>`r`n"
+                }
+                elseif ($UnitName -or $GroupName) {
+                    $ReportCounts += "<tr>`r`n`t<td>`r`n`t`t<P ALIGN=Left>Ticket updates posted:`r`n`t</td>`r`n`t<td>`r`n`t`t<P ALIGN=Right>$(($TicketsFeed | Where-Object {$_.CreatedDate -gt $ReportFrom -and $_.CreatedDate -lt $ReportTo}).Count)`r`n`t</td>`r`n</tr>`r`n"
+                }
+                $ReportCounts += "</table>`r`n"
+                if ($UnitName -or $GroupName) {
+                    $ReportCounts += "<HR>`r`n"
+                    $ReportCounts += Format-TicketRequestorCounts -TicketSelection $Tickets
+                }
+
+                if ($UnitName -or $GroupName) {
+                    $ReportCounts += "<HR>`r`n"
+                    $ReportCounts += Format-TicketFeedCommenterCounts -FeedSelection $TicketsFeedReviewDate
+                }
+                $ReportCounts += "<HR><HR>`r`n"
+            }
+            {$_ -contains 'Recent activity'} {
+                # Report for activity on open tickets since specified date
+                $ReportRecent  = "<a name=`"Recent`"></a>`r`n"
+                $ReportRecent += "<H1>Tickets with activity between $ReportFromString and $ReportToString</H1>`r`n"
+                if ($TicketsFeedReviewDate.Count -eq 0) {
+                    $ReportRecent += "No new activity`r`n"
+                }
+                else {
+                    $ReportRecent += Format-TicketOutputReport -TicketSelection ($Tickets | Where-Object ID -in $TicketsFeedReviewDate.Name) -FeedSelection ($TicketsFeed | Group-Object -Property ItemID)
+                }
+                $ReportRecent += "<HR>`r`n"
+            }
+            {$_ -contains 'Historical activity'} {
+                # Report for open tickets
+                $ReportHistorical  = "<a name=`"Open`"></a>`r`n"
+                $ReportHistorical += "<H1>Tickets open between $ReportFromString and $ReportToString</H1>`r`n"
+                if ($Tickets.Count -eq 0) {
+                    $ReportHistorical += "No tickets open between specified date and report date.`r`n"
+                }
+                else {
+                    $ReportHistorical += Format-TicketOutputReport -TicketSelection $Tickets -FeedSelection ($TicketsFeed | Group-Object -Property ItemID)
+                }
+                $ReportHistorical += "<HR>`r`n"
+            }
+        }
+        if ($NoUpdate) {
+            # Report for open tickets
+            $ReportNoUpdate  = "<a name=`"NoUpdate`"></a>`r`n"
+            $ReportNoUpdate += "<H1>Tickets with no updates between $ReportFromString and $ReportToString</H1>`r`n"
+            # Select tickets with no updates in the reporting period
+            $StaleTickets = $Tickets | Where-Object ModifiedDate -lt $ReportFrom
+            if ($StaleTickets.Count -eq 0) {
+                    $ReportNoUpdate += "No stale tickets.`r`n"
+            }
+            else {
+                $ReportNoUpdate += Format-TicketNoUpdate -TicketSelection $StaleTickets
+            }
+            $ReportNoUpdate += "<HR><HR>`r`n"
+        }
+
+        # Assemble report
+        $ReportHeader     | Out-File $OutputFileName
+        $ReportCounts     | Out-File $OutputFileName -Append
+        $ReportNoUpdate   | Out-File $OutputFileName -Append
+        $ReportRecent     | Out-File $OutputFileName -Append
+        $ReportHistorical | Out-File $OutputFileName -Append
+        $ReportFooter     | Out-File $OutputFileName -Append
+    }
+    End
+    {
+        return $OutputFileName
+    }
+}
+
+function Get-TDTicketActivityCounts
+{
+    [CmdletBinding(DefaultParameterSetName='Date')]
+    Param
+    (
+        # Use GUI to pick dates
+        [Parameter(Mandatory=$true,
+                   ParameterSetName='GUI')]
+        [switch]
+        $GUI,
+
+        # Starting date to get ticket counts
+        [Parameter(Mandatory=$false,
+                   ParameterSetName='Date')]
+        [datetime]
+        $StartDate,
+
+        # Number of days for ticket counts
+        [Parameter(Mandatory=$false,
+                   ParameterSetName='Date')]
+        [int]
+        $Days = 1,
+
+        # Starting date for comparison
+        [Parameter(Mandatory=$false,
+                   ParameterSetName='Date')]
+        [datetime]
+        $CompareDate,
+
+        # Do not output pretty report format
+        [Parameter(Mandatory=$false)]
+        [switch]
+        $NoReport,
+
+        # TeamDynamix authentication token
+        [Parameter(Mandatory=$false)]
+        [hashtable]
+        $AuthenticationToken = $TDAuthentication,
+
+        # TeamDynamix working environment
+        [Parameter(Mandatory=$false)]
+        [EnvironmentChoices]
+        $Environment = $WorkingEnvironment
+    )
+
+    if ($GUI) {
+        # Use GUI to get dates for start, end, and comparison
+        Write-Host 'Select a date range to review'
+        $DateRange = Get-CalendarDateGUI -MaxDates 30
+        # Starts at midnight of selected day
+        $StartDate = $DateRange.Start
+        # Ends at midnight of day after the end of the selection (only includes data through the end of the selection)
+        $EndDate = ($DateRange.End).AddDays(1)
+        # Start date for comparison - must be before $StartDate - will calculate end comparison date based on $StartDate and $EndDate difference
+        do {
+            Write-Host 'Select a prior date for start of comparison data'
+            $CompareDate = (Get-CalendarDateGUI -MaxDates 1).Start
+        }
+        until ($CompareDate -lt $StartDate)
+    }
+    else {
+        # Use command line or defaults to get dates for start, end, and comparison
+        if ($StartDate -gt [datetime]::Today) {
+            throw 'Specify a starting date in the past'
+        }
+        if (-not $StartDate) {$StartDate = Get-WeekdayDate ([datetime]::Today.AddDays(-1))}
+        if (-not $CompareDate) {$CompareDate = $StartDate.AddDays(-7)}
+        if ($CompareDate -ge $StartDate) {
+            throw 'Specify a date prior to the start for comparison data'
+        }
+        $EndDate = $StartDate.AddDays($Days)
+    }
+
+    # Set date string for review interval
+    if ($StartDate -eq ($EndDate).AddDays(-1))
+    {
+        # One day
+        $DateString = $StartDate.ToShortDateString()
+    }
+    else
+    {
+        # Date range
+        $DateString = "from $($StartDate.ToShortDateString()) to $($EndDate.AddDays(-1).ToShortDateString())"
+    }
+
+    # Set date string for history
+    if ((($StartDate - $CompareDate).Days % 7) -eq 0)
+    {
+        $WeeksAgo = ($StartDate - $CompareDate).Days / 7
+        if ($WeeksAgo -eq 1)
+        {
+            $DateStringHistory = "1 week ago"
+        }
+        else
+        {
+            $DateStringHistory = "$WeeksAgo weeks prior"
+        }
+    }
+    else
+    {
+        $DateStringHistory = "$(($StartDate - $CompareDate).Days) days prior"
+    }
+
+    # Retrieve tickets for specified dates
+    $Tickets = [PSCustomObject]@{
+        StartDate     = $StartDate
+        EndDate       = $EndDate
+        CompareDate   = $CompareDate
+        Opened        = Get-TDTicket -CreatedDateFrom $StartDate   -CreatedDateTo $EndDate                                 -AuthenticationToken $AuthenticationToken -Environment $Environment
+        Closed        = Get-TDTicket -ClosedDateFrom  $StartDate   -ClosedDateTo  $EndDate                                 -AuthenticationToken $AuthenticationToken -Environment $Environment
+        OpenedCompare = Get-TDTicket -CreatedDateFrom $CompareDate -CreatedDateTo ($CompareDate + ($EndDate - $StartDate)) -AuthenticationToken $AuthenticationToken -Environment $Environment
+    }
+
+    if ($NoReport) {return $Tickets}
+    else {
+        # Write text to output
+        Write-Output "Tickets Opened $DateString"
+        Write-Output "`tTotal: $($Tickets.Opened.Count)"
+        Write-Output "`tCompare to $($Tickets.OpenedCompare.Count) from $DateStringHistory"
+        $Tickets.Opened | Group-Object ResponsibleGroupName | Sort-Object -Descending Count | Select-Object Count,@{Name="Support Team";Expression={$_.Name}} | Out-String
+        Write-Output "Tickets Closed $DateString"
+        Write-Output "`tTotal: $($Tickets.Closed.Count)"
+        Write-Output "`tTickets opened and closed $($DateString): $(($Tickets.Opened | Where-Object {($_.CreatedDate).DayOfYear -eq ($_.CompletedDate).DayOfYear}).Count)"
+        $Tickets.Closed | Group-Object ResponsibleGroupName | Sort-Object -Descending Count | Select-Object Count,@{Name="Support Team";Expression={$_.Name}} | Out-String
+
+        # Get appropriate URI for the user portal so that selected tickets can be retrieved from the GridView
+        $BaseURI = Get-URI -Environment $Environment -Portal
+        # Pop up grid view of opened tickets for more detailed review
+        $Tickets.Opened.ID | Get-TDTicket | Select-Object ID, Title, ResponsibleGroupName, Description | Out-GridView -OutputMode Multiple | ForEach-Object {Start-Process "$BaseURI/Apps/$TicketingAppID/Tickets/TicketDet?TicketID=$($_.ID)"}
+    }
+}
+
+function Get-TDAssetConsistency
+{
+    [CmdletBinding()]
+    Param
+    (
+        # Return assets with blank serial number
+        [Parameter(Mandatory=$false)]
+        [switch]
+        $SerialNumberBlank,
+
+        # Return assets with duplicate serial number
+        [Parameter(Mandatory=$false)]
+        [switch]
+        $SerialNumberDuplicate,
+
+        # Return assets with duplicate names
+        [Parameter(Mandatory=$false)]
+        [switch]
+        $NameDuplicate,
+
+        # Return assets with duplicate MAC addresses
+        [Parameter(Mandatory=$false)]
+        [switch]
+        $MACDuplicate,
+
+        # Return assets with inconsistent TaG18 data
+        [Parameter(Mandatory=$false)]
+        [switch]
+        $TaG18,
+
+        # Add not checked in days?
+
+        # TeamDynamix authentication token
+        [Parameter(Mandatory=$false)]
+        [hashtable]
+        $AuthenticationToken = $TDAuthentication,
+
+        # TeamDynamix working environment
+        [Parameter(Mandatory=$false)]
+        [EnvironmentChoices]
+        $Environment = $WorkingEnvironment
+    )
+    begin
+    {
+        Write-ActivityHistory "-----`nIn $($MyInvocation.MyCommand.Name)"
+        $Assets = (Get-TDReport -ID $TDConfig.TDAllAssetReportID -WithData -AuthenticationToken $AuthenticationToken -Environment $Environment).DataRows
+        $ValidEncryptionStrings = @(
+                                  'All Partitions Encrypted'
+                                  'C: 1'
+                                  'True'
+                                  )
+        $IgnoreStatuses = @(
+                          'Disposed'
+                          'Lost'
+                          'Retired'
+                          'Waiting for Surplus'
+                          )
+    }
+
+    process
+    {
+        # If no test is specified, run all tests
+        if (-not ($SerialNumberBlank -or $SerialNumberDuplicate -or $NameDuplicate -or $MACDuplicate -or $TaG18))
+        {
+            $SerialNumberBlank     = $true
+            $SerialNumberDuplicate = $true
+            $NameDuplicate         = $true
+            $MACDuplicate          = $true
+            $TaG18                 = $true
+        }
+        $Return = New-Object -TypeName PSObject
+        if ($SerialNumberBlank)
+        {
+            Write-ActivityHistory "Getting assets with blank serial number"
+            $BlankSNAssets = $Assets | Where-Object StatusName -notin $IgnoreStatuses | Group-Object SerialNumber |  Where-Object Name -eq ''
+            $Return | Add-Member -MemberType NoteProperty -Name BlankSN -Value $BlankSNAssets
+        }
+
+        if ($SerialNumberDuplicate)
+        {
+            Write-ActivityHistory "Getting assets with duplicate serial number"
+            $DuplicateSNAssets = $Assets | Where-Object StatusName -notin $IgnoreStatuses | Group-Object SerialNumber | Where-Object Count -gt 1 | Where-Object Name -ne ''
+            $Return | Add-Member -MemberType NoteProperty -Name DuplicateSN -Value $DuplicateSNAssets
+        }
+
+        if ($NameDuplicate)
+        {
+            Write-ActivityHistory "Getting assets with duplicate name"
+            $DuplicateNameAssets = $Assets | Where-Object StatusName -notin $IgnoreStatuses | Group-Object Name | Where-Object Count -gt 1
+            $Return | Add-Member -MemberType NoteProperty -Name DuplicateName -Value $DuplicateNameAssets
+        }
+
+        if ($MACDuplicate)
+        {
+            Write-ActivityHistory "Getting assets with duplicate MAC address"
+            $MACFieldIDs = (Get-TDCustomAttribute -ComponentID Asset -AuthenticationToken $AuthenticationToken -Environment $Environment | Where-Object  name -like 'MAC*').ID
+            [System.Collections.ArrayList]$Collection = @()
+            [System.Collections.ArrayList]$CollectionNames = @()
+            foreach ($Asset in $Assets)
+            {
+                foreach ($MACFieldID in $MACFieldIDs)
+                {
+                    if ($null -ne $Asset.$MACFieldID)
+                    {
+                        if ($Asset.$MACFieldID -in $CollectionNames)
+                        {
+                            $GroupMatch = $Collection | Where-Object Name -eq $Asset.$MACFieldID
+                            $GroupMatch.Group += $Asset
+                            ++$GroupMatch.Count
+                        }
+                        else
+                        {
+                            $Collection += [pscustomobject]@{
+                                Count = 1
+                                Name  = $Asset.$MACFieldID
+                                Group = @($Asset)
+                            }
+                            $CollectionNames.Add($Asset.$MACFieldID) | Out-Null
+                        }
+                    }
+                }
+            }
+            $DuplicateMACAssets = $Collection | Where-Object Count -gt 1
+            $Return | Add-Member -MemberType NoteProperty -Name DuplicateMAC -Value $DuplicateMACAssets
+        }
+
+        if ($TaG18)
+        {
+            Write-ActivityHistory "Getting assets with inconsistent TaG18 information"
+            # Get ID of custom attribute for 'TaG18 Complete' and Value for 'Yes'
+            $TaG18CompleteID        =  (Get-TDCustomAttribute -ComponentID Asset -AuthenticationToken $AuthenticationToken -Environment $Environment | Where-Object Name -eq 'TaG18 Complete'           ).ID
+            $EncryptionStatusID     =  (Get-TDCustomAttribute -ComponentID Asset -AuthenticationToken $AuthenticationToken -Environment $Environment | Where-Object Name -eq 'Encryption Status'        ).ID
+            $LastCheckInID          =  (Get-TDCustomAttribute -ComponentID Asset -AuthenticationToken $AuthenticationToken -Environment $Environment | Where-Object Name -eq 'Last Check-In'            ).ID
+            $OrganizationalUnitID   =  (Get-TDCustomAttribute -ComponentID Asset -AuthenticationToken $AuthenticationToken -Environment $Environment | Where-Object Name -eq 'Organizational Unit'      ).ID
+            $DataClassificationID   =  (Get-TDCustomAttribute -ComponentID Asset -AuthenticationToken $AuthenticationToken -Environment $Environment | Where-Object Name -eq 'Data Classification'      ).ID
+            $AVConsoleCurrentID     =  (Get-TDCustomAttribute -ComponentID Asset -AuthenticationToken $AuthenticationToken -Environment $Environment | Where-Object Name -eq 'Antivirus Console Current').ID
+            $BackupConsoleCurrentID =  (Get-TDCustomAttribute -ComponentID Asset -AuthenticationToken $AuthenticationToken -Environment $Environment | Where-Object Name -eq 'Backup Console Current'   ).ID
+            $DLPConsoleCurrentID    =  (Get-TDCustomAttribute -ComponentID Asset -AuthenticationToken $AuthenticationToken -Environment $Environment | Where-Object Name -eq 'DLP Console Current'      ).ID
+
+            # Retrieve all assets marked as 'TaG18 Complete'
+            $TaG18CompleteAssets = $Assets | Where-Object StatusName -notin $IgnoreStatuses | Where-Object $TaG18CompleteID -eq 'Yes'
+
+            # Set up and clear arrays to hold entries for each type of inconsistency
+            $MissingOSUTag             = @()
+            $MissingSerialNumber       = @()
+            $MissingOwner              = @()
+            $MissingDepartment         = @()
+            $MissingBuilding           = @()
+            $MissingRoom               = @()
+            $NotEncrypted              = @()
+            $NotCheckedIn              = @()
+            $NotInAD                   = @()
+            $MissingDataClassification = @()
+            $NotCurrentAntivirus       = @()
+            $NotCurrentBackup          = @()
+            $NotCurrentDLP             = @()
+
+            # Check each asset
+            foreach ($TaG18ReviewAsset in $TaG18CompleteAssets)
+            {
+                if (-not $TaG18ReviewAsset.SerialNumber)
+                {
+                    $MissingSerialNumber += $TaG18ReviewAsset
+                }
+                if (-not $TaG18ReviewAsset.Tag)
+                {
+                    $MissingOSUTag += $TaG18ReviewAsset
+                }
+                if ((-not $TaG18ReviewAsset.OwningCustomerName) -or ($TaG18ReviewAsset.OwningCustomerName -eq 'None'))
+                {
+                    $MissingOwner += $TaG18ReviewAsset
+                }
+                if ((-not $TaG18ReviewAsset.OwningDepartmentName) -or ($TaG18ReviewAsset.OwningDepartmentName -eq 'None'))
+                {
+                    $MissingDepartment += $TaG18ReviewAsset
+                }
+                if ((-not $TaG18ReviewAsset.LocationName) -or ($TaG18ReviewAsset.LocationName -eq 'None'))
+                {
+                    $MissingBuilding += $TaG18ReviewAsset
+                }
+                if ((-not $TaG18ReviewAsset.LocationRoomName) -or ($TaG18ReviewAsset.LocationRoomName -eq 'None'))
+                {
+                    $MissingRoom += $TaG18ReviewAsset
+                }
+                if (-not ($TaG18ReviewAsset.$EncryptionStatusID -match (($ValidEncryptionStrings | ForEach-Object {$_}) -join '|')))
+                {
+                    $NotEncrypted += $TaG18ReviewAsset
+                }
+                if (-not $TaG18ReviewAsset.$LastCheckInID)
+                {
+                    $NotCheckedIn += $TaG18ReviewAsset
+                }
+                if ((-not $TaG18ReviewAsset.$OrganizationalUnitID) -or ($TaG18ReviewAsset.OrganizationalUnitID -like 'Not in *'))
+                {
+                    $NotInAD += $TaG18ReviewAsset
+                }
+                if (-not $TaG18ReviewAsset.$DataClassificationID)
+                {
+                    $MissingDataClassification += $TaG18ReviewAsset
+                }
+                if ($TaG18ReviewAsset.$AVConsoleCurrentID -ne 'Yes')
+                {
+                    $NotCurrentAntivirus += $TaG18ReviewAsset
+                }
+                if ($TaG18ReviewAsset.$BackupConsoleCurrentID -ne 'Yes')
+                {
+                    $NotCurrentBackup += $TaG18ReviewAsset
+                }
+                if ($TaG18ReviewAsset.$DLPConsoleCurrentID -ne 'Yes')
+                {
+                    $NotCurrentDLP += $TaG18ReviewAsset
+                }
+            }
+            # Create an object from all of the data to return
+            $TaG18Review = New-Object -TypeName PSObject
+            $Tag18Review | Add-Member -MemberType NoteProperty -Name 'MissingOSUTag'             -Value $MissingOSUTag             -PassThru |
+                           Add-Member -MemberType NoteProperty -Name 'MissingOwner'              -Value $MissingOwner              -PassThru |
+                           Add-Member -MemberType NoteProperty -Name 'MissingDepartment'         -Value $MissingDepartment         -PassThru |
+                           Add-Member -MemberType NoteProperty -Name 'MissingBuilding'           -Value $MissingBuilding           -PassThru |
+                           Add-Member -MemberType NoteProperty -Name 'MissingRoom'               -Value $MissingRoom               -PassThru |
+                           Add-Member -MemberType NoteProperty -Name 'NotEncrypted'              -Value $NotEncrypted              -PassThru |
+                           Add-Member -MemberType NoteProperty -Name 'NotCheckedIn'              -Value $NotCheckedIn              -PassThru |
+                           Add-Member -MemberType NoteProperty -Name 'NotInAD'                   -Value $NotInAD                   -PassThru |
+                           Add-Member -MemberType NoteProperty -Name 'MissingDataClassification' -Value $MissingDataClassification -PassThru |
+                           Add-Member -MemberType NoteProperty -Name 'NotCurrentAntivirus'       -Value $NotCurrentAntivirus       -PassThru |
+                           Add-Member -MemberType NoteProperty -Name 'NotCurrentBackup'          -Value $NotCurrentBackup          -PassThru |
+                           Add-Member -MemberType NoteProperty -Name 'NotCurrentDLP'             -Value $NotCurrentDLP
+            $Return | Add-Member -MemberType NoteProperty -Name TaG18Inconsistent -Value $TaG18Review
+        }
+        $Return
+    }
+}
+
+function Restore-AssetErasedDataError
+{
+    [CmdletBinding()]
+    Param
+    (
+        # Feed entry object
+        [Parameter(Mandatory=$true,
+                   ValueFromPipeline=$true,
+                   Position=0)]
+        [psobject[]]
+        $FeedEntry
+    )
+
+    Begin
+    {
+        Write-ActivityHistory "-----`nIn $($MyInvocation.MyCommand.Name)"
+        $AllAssetAttributes = Get-TDCustomAttribute -ComponentID Asset -AuthenticationToken $AuthenticationToken -Environment $Environment
+    }
+    Process
+    {
+        # Machine name is in ItemTitle, find matching machine
+        foreach ($Entry in $FeedEntry)
+        {
+            $AssetFound = $false
+            $AssetSearch = Get-TDAsset -SearchText $Entry.ItemTitle -AuthenticationToken $AuthenticationToken -Environment $Environment
+            foreach ($Asset in $AssetSearch)
+            {
+                if ($Asset.Name -match $Entry.ItemTitle)
+                {
+                    $AssetFound = $true
+                    # Get asset with full detail
+                    $Asset = Get-TDAsset -ID $Asset.ID -AuthenticationToken $AuthenticationToken -Environment $Environment
+                    break
+                }
+            }
+            if ($AssetFound)
+            {
+                Write-Host $Asset.Name
+                $Changes = @()
+                $BodyLines = $Entry.body -split '<br/>'
+                foreach ($BodyLine in $BodyLines)
+                {
+                    $IsChange = $BodyLine -match '^Changed (.*) from "(.*)" to "(.*)"\.$'
+                    if ($IsChange)
+                    {
+                        if ($Matches.Count -ne 4)
+                        {
+                            Write-ActivityHistory -MessageChannel 'Error' -ThrowError -Message 'Bad match'
+                        }
+                        $Attribute     = $Matches[1]
+                        $OriginalValue = $Matches[2]
+                        # Current value is $Matches[3], in case that's interesting
+                        if ($Matches[3] -eq 'Nothing')
+                        {
+                            Write-Host "`tFix $Attribute by replacing with $OriginalValue"
+                            $Changes += @{$Attribute = $OriginalValue}
+                        }
+                    }
+                }
+                $ModifiedAttributes = @()
+                foreach ($Change in $Changes)
+                {
+                    # Check to see if the change is to a property or an attribute
+                    if ($Change.Keys[0] -in $Asset.psobject.Properties.Name) # Property
+                    {
+                        $Asset.$($Change.Keys[0]) = $Change.Values[0]
+                    }
+                    else # Attribute
+                    {
+                        $ChangeAttribute = $AllAssetAttributes | Where-Object Name -Match $Change.Keys[0]
+                        if ($ChangeAttribute.Choices)
+                        {
+                            $ChangeAttributeChoice = $ChangeAttribute.Choices | Where-Object Name -Match $Change.Values[0]
+                            $ModifiedAttributes += @{ID=$ChangeAttribute.ID; Value=$ChangeAttributeChoice.ID}
+                        }
+                        else
+                        {
+                            $ModifiedAttributes += @{ID=$ChangeAttribute.ID; Value=$Change.Values[0]}
+                        }
+                    }
+                }
+                $AddAttributes = @()
+                # Check list of attributes currently in TD asset to see if it is being replaced
+                foreach ($Attribute in $Asset.Attributes)
+                {
+                    if ($Attribute.ID -notin $ModifiedAttributes.ID) # Not being replaced, add it to the list
+                    {
+                        $AddAttributes += $Attribute
+                    }
+                }
+                # Add existing attributes to new attributes
+                $AddAttributes += $ModifiedAttributes
+                # Replace existing attributes on asset with new ones
+                $Asset.Attributes = $AddAttributes
+                Write-ActivityHistory ($Asset | Out-String)
+                Write-ActivityHistory ($asset.Attributes | ConvertTo-Json -Depth 10)
+                return $Asset
+            }
+            else
+            {
+                Write-ActivityHistory -MessageChannel 'Error' -Message "Asset, $($Entry.ItemTitle), not found."
+            }
+            Write-Host ""
+        }
+    }
+}
+
+function Get-TDDataConnector
+{
+    Param
+    (
+        # Return active connectors
+        [Parameter(Mandatory=$false)]
+        [system.nullable[boolean]]
+        $IsActive
+    )
+    DynamicParam
+    {
+        #List dynamic parameters
+        $DynamicParameterList = @(
+            @{
+                Name        = 'Name'
+                ValidateSet = $TDConfig.DataConnectors.Name
+                Type        = 'string'
+                HelpText    = 'Name of data connector'
+            }
+        )
+        $DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
+        return $DynamicParameterDictionary
+    }
+
+    process
+    {
+        if ($DynamicParameterDictionary.Name.Value)
+        {
+            # Only named connector
+            $Connectors = $TDConfig.DataConnectors | Where-Object Name -eq $DynamicParameterDictionary.Name.Value
+        }
+        else
+        {
+            # No name, all connectors
+            $Connectors = $TDConfig.DataConnectors
+        }
+        # If IsActive is set, only return connectors with specified IsActive state
+        if ($null -ne $IsActive)
+        {
+            $Connectors = $Connectors | Where-Object IsActive -eq $IsActive
+        }
+        # Add AppClass
+        foreach ($Connector in $Connectors)
+        {
+            $Connector.AppClass = ($TDApplications | Where-Object Name -eq $Connector.Application).AppClass
+        }
+        # Convert to an object on return - helps with formatting
+        return $Connectors | ForEach-Object {[pscustomobject]$_}
+    }
+}
+#endregion
+
+#region Private functions
+# Functions necessary to parse JSON output from .NET serializer to PowerShell Objects
+function ParseItem
+{
+    [CmdletBinding()]
+    Param
+    (
+        # Item to be parsed
+        [Parameter(Mandatory=$true,
+                   ValueFromPipeline=$true)]
+        $JsonItem
+    )
+
+    Write-ActivityHistory "-----"
+    Write-ActivityHistory "In $($MyInvocation.MyCommand.Name)"
+    if ($JsonItem.PSObject.TypeNames -match "Array")
+    {
+        return ParseJsonArray($JsonItem)
+    }
+    elseif ($JsonItem.PSObject.TypeNames -match "Dictionary")
+    {
+        return ParseJsonObject([HashTable]$JsonItem)
+    }
+    else
+    {
+        return $JsonItem
+    }
+}
+
+function ParseJsonObject
+{
+    [CmdletBinding()]
+    Param
+    (
+        # JSON object to be parsed into a Powershell object
+        [Parameter(Mandatory=$true,
+                   ValueFromPipeline=$true)]
+        $JsonObject
+    )
+
+    Write-ActivityHistory "-----"
+    Write-ActivityHistory "In $($MyInvocation.MyCommand.Name)"
+    $result = New-Object -TypeName PSCustomObject
+    foreach ($Key in $JsonObject.Keys)
+    {
+        $Item = $JsonObject[$Key]
+        if ($Item)
+        {
+            $ParsedItem = ParseItem $Item
+        }
+        else
+        {
+            $ParsedItem = $null
+        }
+        $Result | Add-Member -MemberType NoteProperty -Name $Key -Value $ParsedItem
+    }
+    return $Result
+}
+
+function ParseJsonArray
+{
+    [CmdletBinding()]
+    Param
+    (
+        # Array to be parsed
+        [Parameter(Mandatory=$true,
+                   ValueFromPipeline=$true)]
+        [array]$JsonArray
+    )
+
+    Write-ActivityHistory "-----"
+    Write-ActivityHistory "In $($MyInvocation.MyCommand.Name)"
+    $Result = @()
+    $ProgressCount = 0
+    foreach ($JsonItem in $JsonArray)
+    {
+        $ProgressCount++
+        Write-Progress -Activity 'Converting JSON result into PowerShell object' -PercentComplete ($ProgressCount / $JsonArray.Count * 100)
+        $Parsed = New-Object psobject -Property $JsonItem
+        $Result += $Parsed
+    }
+    return $Result
+}
+
+function ParseJsonString
+{
+    [CmdletBinding()]
+    Param
+    (
+        # JSON string to be parsed
+        [Parameter(Mandatory=$true,
+                   ValueFromPipeline=$true)]
+        [string]$JsonString
+    )
+
+    Write-ActivityHistory "-----"
+    Write-ActivityHistory "In $($MyInvocation.MyCommand.Name)"
+    [void][System.Reflection.Assembly]::LoadWithPartialName("System.Web.Extensions")
+    $JsonSerializer = New-Object -TypeName System.Web.Script.Serialization.JavaScriptSerializer
+    $JsonSerializer.MaxJsonLength = [System.Int32]::MaxValue
+
+    ParseItem($JsonSerializer.DeserializeObject($JsonString))
+}
+
+<#
+.Synopsis
+   Requests a REST API call.
+.DESCRIPTION
+   Requests a REST API call. This function ensures that if a call receives an
+   error, it will be retried until it is successful or receives a fatal error.
+   The hint regarding the number of calls assists in optimizing the backoff
+   algorithm.
+.PARAMETER URI
+    The REST API endpoint.
+.PARAMETER ContentType
+    The REST API content type.
+.PARAMETER Headers
+    The REST API headers.
+.PARAMETER Body
+    The REST API body.
+.EXAMPLE
+   C:\>Invoke-RESTCall -URI 'https://rest.domain.com/endpoint/json' -ContentType 'charset=utf-8' -Headers @{User='username';Password='password'} -Body (ConvertTo-Json @{data='input'} -Depth 10)
+
+   Requests a REST API call which has a maximum number of 60 calls per minute
+   permitted.
+#>
+function Invoke-RESTCall
+{
+    [CmdletBinding()]
+    Param
+    (
+        # REST API endpoint
+        [Parameter(Mandatory=$true,
+                   ValueFromPipelineByPropertyName=$true,
+                   Position=0)]
+        [string]
+        $URI,
+
+        # REST API content type
+        [Parameter(Mandatory=$true,
+                   ValueFromPipelineByPropertyName=$true,
+                   Position=1)]
+        [string]
+        $ContentType,
+
+        # REST API method
+        [Parameter(Mandatory=$true,
+                   ValueFromPipelineByPropertyName=$true,
+                   Position=2)]
+        [ValidateSet('GET','POST','PATCH','PUT','DELETE')]
+        [string]
+        $Method,
+
+        # REST API headers
+        [Parameter(Mandatory=$false,
+                   ValueFromPipelineByPropertyName=$true,
+                   Position=3)]
+        [psobject]
+        $Headers = $null,
+
+        # REST API body
+        [Parameter(Mandatory=$false,
+                   ValueFromPipelineByPropertyName=$true,
+                   Position=4)]
+        [psobject]
+        $Body = $null
+    )
+
+    begin
+    {
+        Write-ActivityHistory "-----`nIn $($MyInvocation.MyCommand.Name)"
+        # Force TLS 1.2
+        [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+    }
+    process
+    {
+        Write-ActivityHistory "Calling REST API $URI, using method $Method"
+        Write-ActivityHistory (Get-PSCallStack | Out-String)
+        $Retries = 0
+        do
+        {
+            if ($Retries -gt 0)
+            {
+                Write-ActivityHistory "Retry. Try number $Retries"
+            }
+            try
+            {
+                $Return = Invoke-RestMethod -Uri $URI -ContentType $ContentType -Method $Method -Headers $Headers -Body $Body -ErrorAction Stop
+                $Retry = $false
+            }
+            catch
+            {
+                if (($_.Exception.GetType().Fullname -eq 'Microsoft.PowerShell.Commands.HttpResponseException') -or ($_.Exception.GetType().Fullname -eq 'System.Net.WebException'))
+                {
+                    # Too many requests
+                    if ($_.Exception.Response.StatusCode.Value__ -eq '429')
+                    {
+                        # Extract rate limit reset time and current time from exception and wait until that time (plus 2 seconds to allow for small mayhem)
+                        $RateLimitResetTime   = $_.Exception.Response.Headers.GetValues('X-RateLimit-Reset') | Get-Date
+                        $APIEndpointTime      = $_.Exception.Response.Headers.GetValues('Date')              | Get-Date
+                        $WaitTime = (New-TimeSpan -Start ($APIEndpointTime) -End ($RateLimitResetTime).AddSeconds(2)).TotalSeconds
+                        Write-ActivityHistory "Waiting $WaitTime seconds to make next TD request. Waiting until $RateLimitResetTime"
+                        # Wait time should never be more than 60 seconds - cap it at 60 seconds in case of unforseen date calculation error
+                        if ($WaitTime -gt 60)
+                        {
+                            $WaitTime = 60
+                            Write-ActivityHistory "Wait time adjusted to $WaitTime"
+                        }
+                        # Wait time should never be negative, and small numbers are dangerous - set to one second to avoid an error on Start-Sleep
+                        # Small, and even negative, values could occur when reset is very close to current time
+                        if ($WaitTime -lt 1)
+                        {
+                            $WaitTime = 1
+                            Write-ActivityHistory "Wait time adjusted to $WaitTime"
+                        }
+                        Start-Sleep -Seconds $WaitTime
+                        $Retry = $true
+                    }
+                    # Unauthorized
+                    elseif ($_.Exception.Response.StatusCode.Value__ -eq '401')
+                    {
+                        Write-ActivityHistory -MessageChannel 'Error' -ThrowError -Message 'TeamDynamix authentication token is invalid or has expired. Tokens expire 24 hours.'
+                        $Retry = $false
+                    }
+                    # Not found
+                    elseif ($_.Exception.Response.StatusCode.Value__ -eq '404')
+                    {
+                        Write-ActivityHistory -MessageChannel 'Error' -Message 'Item not found in TeamDynamix.'
+                        $Retry = $false
+                    }
+                    # Bad request
+                    elseif ($_.Exception.Response.StatusCode.Value__ -eq '400')
+                    {
+                        Write-ActivityHistory -ErrorRecord $_ -ErrorMessage 'TeamDynamix has rejected the request.'
+                        $Retry = $false
+                    }
+                    # Fobidden
+                    elseif ($_.Exception.Response.StatusCode.Value__ -eq '403')
+                    {
+                        if ($_.Exception.Message -eq $script:TDLoginFailureText)
+                        {
+                            Write-ActivityHistory -MessageChannel 'Error' -ThrowError -Message $script:TDLoginFailureText
+                        }
+                        else
+                        {
+                            Write-ActivityHistory -MessageChannel 'Error' -ThrowError -Message $_.Exception.Message
+                        }
+                        $Retry = $false
+                    }
+                    # Other error
+                    else
+                    {
+                        Write-ActivityHistory -ErrorRecord $_ -ErrorMessage "Fatal $($_.Exception.GetType().Fullname) calling URI, $URI, with method $Method. - $_.Exception.Message"
+                        $Retry = $false
+                    }
+                }
+                elseif ($_.Exception.GetType().Fullname -eq 'System.Net.Http.HttpRequestException')
+                {
+                    Write-ActivityHistory -MessageChannel 'Verbose' -Message $_.Exception.InnerException.Message
+                    $Retry = $true
+                }
+                else
+                {
+                    $Retry = $false
+                    Write-ActivityHistory -ErrorRecord $_ -ThrowError -ErrorMessage "Fatal unknown error calling URI, $URI, with method $Method."
+                }
+            }
+            $Retries++
+        }
+        while ($Retry -and ($Retries -lt 10))
+        if ($Retries -ge 10)
+        {
+            Write-ActivityHistory -MessageChannel 'Error' -ThrowError -Message 'API call failed due to excessive retries.'
+        }
+
+        # If returned data is larger than 4MB PowerShell's default JSON
+        # serializer/deserializer will return a string rather than an object.
+        if (($Return -and $Return.GetType().Name -eq 'string') -and ($Return.Length -gt 4096))
+        {
+            Write-ActivityHistory 'A large result was returned, requiring special processing. Stand by.'
+            if ($PSVersionTable.PSVersion.Major -ge 7)
+            {
+                $Return = ConvertFrom-Json -AsHashtable -InputObject $Return
+            }
+            else
+            {
+                # No AsHashtable option prior to PowerShell Core
+                $Return = ParseJsonString($Return)
+            }
+            Write-ActivityHistory 'Processing complete.'
+        }
+        return $Return
+    }
+    end
+    {
+        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
+    }
+}
+function New-SimplePassword
+{
+    Write-ActivityHistory "-----"
+    Write-ActivityHistory "In $($MyInvocation.MyCommand.Name)"
+    $lower = 'abcdefghijklmnopqrstuvwxyz'
+    $upper = $lower.ToUpper()
+    $numbers = '0123456789'
+
+    $a = (Get-Random -Count 5 -InputObject $lower.ToCharArray()) -join ''
+    $b = (Get-Random -Count 5 -InputObject $upper.ToCharArray()) -join ''
+    $c = (Get-Random -Count 5 -InputObject $numbers.ToCharArray()) -join ''
+
+    $pool = $a + $b + $c
+    $i = Get-Random -Count 14 -InputObject (0..14)
+    $password = $pool[$i] -join ''
+
+    return $password
+}
+
+<#
+.Synopsis
+   Update the properties of an object
+.DESCRIPTION
+   Update the properties of an object using the command-line and default
+   parameters, ignoring parameters as directed. This is a service routine,
+   intended to reduce the volume of code and ease maintenance.
+.PARAMETER InputObject
+    Object to be updated.
+.PARAMETER ParameterList
+    List of properties in the invoking function.
+.PARAMETER BoundParameterList
+    List of bound properties from the invoking function.
+.PARAMETER IgnoreList
+    A list of properties in the ParameterList that should be ignored, usually
+    because there is no corresponding property in the InputObject.
+.PARAMETER AuthenticationToken
+    Hashtable with one key: "Authorization" and value of "Bearer" followed
+    by the JSON bearer web token. See Set-TDAuthentication.
+.PARAMETER Environment
+    Execute the commands on the specified TeamDynamix site. Valid options are
+    "Production", "Sandbox", and "Preview". Default is the site selected when
+    the module was loaded.
+.EXAMPLE
+   C:\>Update-Object -InputObject $NewAsset -ParameterList $Parameters -IgnoreList ($LocalIgnoreParameters + $GlobalIgnoreParameters)
+
+   Return the NewAsset object, updated by "Parameters", ignoring the local and global ignore parameters.
+#>
+function Update-Object
+{
+    [CmdletBinding()]
+    Param
+    (
+        # Object to be updated
+        [Parameter(Mandatory=$true,
+                   Position=0)]
+        $InputObject,
+
+        # Full list of properties for the invoking function
+        [Parameter(Mandatory=$true,
+                   Position=1)]
+        $ParameterList,
+
+        # List of bound properties from the invoking function
+        [Parameter(Mandatory=$true,
+                   Position=1)]
+        $BoundParameterList,
+
+        # Properties to be ignored in the update
+        [Parameter(Mandatory=$true,
+                   Position=2)]
+        $IgnoreList,
+
+        # TeamDynamix authentication token
+        [Parameter(Mandatory=$false)]
+        [hashtable]
+        $AuthenticationToken = $TDAuthentication,
+
+        # TeamDynamix working environment
+        [Parameter(Mandatory=$false)]
+        [EnvironmentChoices]
+        $Environment = $WorkingEnvironment
+    )
+
+    Write-ActivityHistory "-----"
+    Write-ActivityHistory "In $($MyInvocation.MyCommand.Name)"
+    Write-ActivityHistory (Get-PSCallStack | Out-String)
+    $IgnoreList += @('Attributes','CustomAttributes','OrgApplications')
+    foreach ($Parameter in $ParameterList)
+    {
+        # Set parameter values
+        # Ignore items from ignore list
+        if ($Parameter -notin $IgnoreList)
+        {
+            # Only update items that are on the bound parameter list, or which are not either null or empty
+            if (($Parameter -in $BoundParameterList) -or (-not (($null -eq (Get-Variable -Name $Parameter).Value) -or ((Get-Variable -Name $Parameter).Value -eq ''))))
+            {
+                Write-ActivityHistory "$($Parameter): $((Get-Variable -Name $Parameter).Value)"
+                $InputObject.$Parameter = (Get-Variable -Name $Parameter).Value
+            }
+        }
+    }
+    # Check if there is there an OrgApplications parameter
+    # Special handling for OrgApplications is required since the input is an array and an array can't be assigned to the object
+    if ($ParameterList -contains 'OrgApplications')
+    {
+        # Replaces existing OrgApplications list with updated items, if none, current list is cleared
+        if ($null -ne $OrgApplications)
+        {
+            $InputObject.OrgApplications = @()
+            foreach ($OrgApplication in $OrgApplications)
+            {
+                $InputObject.OrgApplications += $OrgApplication
+            }
+        }
+        # If OrgApplications is set to null, remove all OrgApplications
+        #  Must return an empty array to clear all items
+        else
+        {
+            $InputObject.OrgApplications = @()
+        }
+    }
+    # Check if there is there an Attributes parameter
+    # Special handling for Attributes is largely to cover input checking and handling of names of the attributes instead of ID numbers
+    if (($ParameterList -contains 'Attributes') -or ($ParameterList -contains 'CustomAttributes'))
+    {
+        # Some functions refer to Attributes as CustomAttributes, but they never appear together
+        if ($ParameterList -contains 'CustomAttributes')
+        {
+            $Attributes = $CustomAttributes
+        }
+        # Check if Attributes parameter is populated
+        if ($Attributes.Count -gt 0)
+        {
+            # Check to see if the attributes are already in TD format
+            if ($Attributes.GetType().Name -eq 'TeamDynamix_Api_CustomAttributes_CustomAttribute[]')
+            {
+                # No special action required, attributes are already properly formatted. This usually happens when passing an object back from TD.
+                $InputObject.AddCustomAttribute($Attributes,$true)
+            }
+            else # Not in TD format
+            {
+                # Verify that input is either a hashtable, an array of paired strings, or an array of an array of paired strings or paired ID number and string
+                $AttributesTypeName = ($Attributes | Get-Member).TypeName[0]
+                switch ($AttributesTypeName)
+                {
+                    'System.Collections.Hashtable'
+                    {
+                        # Add hashtable directly, overwriting existing attributes
+                        $InputObject.AddCustomAttribute($Attributes,$true)
+                    }
+                    'System.String'
+                    {
+                        if ($Attributes.Count -eq 2)
+                        {
+                            $InputObject.AddCustomAttribute($Attributes[0],$Attributes[1],$true,$AuthenticationToken,$Environment)
+                        }
+                        else
+                        {
+                            Write-ActivityHistory -MessageChannel 'Error' -ThrowError -Message 'Input string should be a paired attribute name and value.'
+                        }
+                    }
+                    'System.Object[]'
+                    {
+                        #  Check for attribute value (attributeset[1]) being a string of integers when there are choices
+                        foreach ($AttributeSet in $Attributes)
+                        {
+                            if ((($AttributeSet | Get-Member).TypeName[0] -eq 'System.String') -and ($AttributeSet.Count -eq 2))
+                            {
+                                $InputObject.AddCustomAttribute($AttributeSet[0],$AttributeSet[1],$true,$AuthenticationToken,$Environment)
+                            }
+                            elseif ((($AttributeSet | Get-Member).TypeName[0] -eq 'System.Int32') -and ($AttributeSet.Count -eq 2))
+                            {
+                                $InputObject.AddCustomAttribute($AttributeSet[0],$AttributeSet[1],$true)
+                            }
+                            else
+                            {
+                                Write-ActivityHistory -MessageChannel 'Error' -ThrowError -Message 'Input string should be sets of paired attribute names and values, or ID numbers and values.'
+                            }
+                        }
+                    }
+                    'System.Int32'
+                    {
+                        if ($Attributes.Count -eq 2)
+                        {
+                            $InputObject.AddCustomAttribute($Attributes[0],$Attributes[1],$true)
+                        }
+                        else
+                        {
+                            Write-ActivityHistory -MessageChannel 'Error' -ThrowError -Message 'Input string should be a paired attribute ID and value.'
+                        }
+                    }
+                    default
+                    {
+                        Write-ActivityHistory -MessageChannel 'Error' -ThrowError -Message 'Bad custom attributes submitted. Ensure that the input is either a paired attribute name and value, or a hashtable containing the attribute ID and value ID.'
                     }
                 }
             }
@@ -3170,53 +3715,6 @@ function Get-Params
 
 <#
 .Synopsis
-    Create a group application object locally for use with TeamDynamix.
-.DESCRIPTION
-    Create a local group application object. This is used when creating or
-    modifying group application assignments in TeamDynamix. This does not
-    create an object on TeamDynamix.
-.PARAMETER AppID
-    The platform application that is associated with the group.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-    C:\>New-TDGroupApplication -GroupID 744 -AppID 5904
-
-    Returns an object for the specified group and application, suitable for use with New-TDGroup or Set-TDGroup's
-    PlatformApplications parameter.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
-
-function New-TDGroupApplication
-{
-    [CmdletBinding()]
-    param
-    (
-        # ID of the platform application.
-        [Parameter(Mandatory=$true)]
-        [int]
-        $AppID
-    )
-    Begin
-    {
-        Write-ActivityHistory "-----`nIn $($MyInvocation.MyCommand.Name)"
-    }
-    Process
-    {
-        $GroupApplication = [TeamDynamix_Api_Users.GroupApplication]::new()
-        $GroupApplication.AppID = $AppID
-        return $UserApplication
-    }
-}
-
-<#
-.Synopsis
     Builds the appropriate URI for contacting TeamDynamix.
 .DESCRIPTION
     Convenience function for building the appropriate URI for contacting
@@ -3253,7 +3751,7 @@ function Get-URI {
             }
             else
             {
-                $BaseURI = "$($TDConfig.DefaultTDBaseURI)$($TDConfig.DefaultTDTargetURI)"
+                $BaseURI = "$($script:DefaultTDBaseURI)$script:DefaultTDTargetURI"
             }
         }
         Preview {
@@ -3263,7 +3761,7 @@ function Get-URI {
             }
             else
             {
-                $BaseURI = "$($TDConfig.DefaultTDPreviewBaseURI)$($TDConfig.DefaultTDTargetURI)"
+                $BaseURI = "$($script:DefaultTDPreviewBaseURI)$script:DefaultTDTargetURI"
             }
         }
         Sandbox {
@@ -3273,7 +3771,7 @@ function Get-URI {
             }
             else
             {
-                $BaseURI = "$($TDConfig.DefaultTDBaseURI)$($TDConfig.DefaultTDSandboxTargetURI)"
+                $BaseURI = "$($script:DefaultTDBaseURI)$script:DefaultTDSandboxTargetURI"
             }
         }
     }
@@ -3783,79 +4281,6 @@ function New-Logfile ([string]$FullPath)
 
 <#
 .Synopsis
-   Gets list of data connectors.
-.DESCRIPTION
-   Returns a list of data connectors. Return all data connectors, specify a
-   single connector by name, or request connectors by their IsActive status.
-.PARAMETER Active
-    Return connectors matching by status. Returns active connectors on $true,
-    inactive connectors on $false, and all connectors on $null (default).
-.EXAMPLE
-   C:\>Get-DataConnector
-
-   Returns a list of all data connectors.
-.EXAMPLE
-   C:\>Get-DataConnector -IsActive:$true
-
-   Returns a list of active data connectors.
-.EXAMPLE
-   C:\>Get-DataConnector -Name 'Connector 1'
-
-   Returns data connector named "Connector 1".
-#>
-function Get-TDDataConnector
-{
-    Param
-    (
-        # Return active connectors
-        [Parameter(Mandatory=$false)]
-        [system.nullable[boolean]]
-        $IsActive
-    )
-    DynamicParam
-    {
-        #List dynamic parameters
-        $DynamicParameterList = @(
-            @{
-                Name        = 'Name'
-                ValidateSet = $TDConfig.DataConnectors.Name
-                Type        = 'string'
-                HelpText    = 'Name of data connector'
-            }
-        )
-        $DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
-        return $DynamicParameterDictionary
-    }
-
-    process
-    {
-        if ($DynamicParameterDictionary.Name.Value)
-        {
-            # Only named connector
-            $Connectors = $TDConfig.DataConnectors | Where-Object Name -eq $DynamicParameterDictionary.Name.Value
-        }
-        else
-        {
-            # No name, all connectors
-            $Connectors = $TDConfig.DataConnectors
-        }
-        # If IsActive is set, only return connectors with specified IsActive state
-        if ($null -ne $IsActive)
-        {
-            $Connectors = $Connectors | Where-Object IsActive -eq $IsActive
-        }
-        # Add AppClass
-        foreach ($Connector in $Connectors)
-        {
-            $Connector.AppClass = ($TDApplications | Where-Object Name -eq $Connector.Application).AppClass
-        }
-        # Convert to an object on return - helps with formatting
-        return $Connectors | ForEach-Object {[pscustomobject]$_}
-    }
-}
-
-<#
-.Synopsis
     Get serial number from an asset drawn from the management consoles
 .DESCRIPTION
     Internal function.
@@ -4039,1103 +4464,4 @@ function Get-OrgAppsByRoleName {
         Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
     }
 }
-
-<#
-.Synopsis
-    Get ticket activity for tickets open during a specified time period.
-.DESCRIPTION
-    Get ticket activity for tickets open during a specified time period.
-    Organized by requesting unit, ASCTech group, or by ASCTech employee.
-    Specify which sections of the report are desired: ticket counts, recent
-    activity, or all activity on tickets open during the specified time
-    period.
-.PARAMETER TechnicianName
-    The name.n of technicians whose activity is desired. Specify as "name.n".
-.PARAMETER ClientName
-    The name.n of clients whose activity is desired. Specify as "name.n".
-.PARAMETER ReportInterval
-    The number of days to look back for the report data. If the first day is a
-    weekend, the report will back up to the previous Friday. The default is one
-    day, so if run on a Monday, it will include the previous business day
-    (Friday) automatically. Alternative: -ReportFrom.
-.PARAMETER ReportFrom
-    The date and time to start the reporting period. Alternative:
-    -ReportInterval.
-.PARAMETER ReportTo
-    The date and time to end the reporting period. Optional, defaults to
-    current date and time.
-.PARAMETER ReportSection
-    The sections of the report to include. Sections are "Ticket Counts", which
-    are counts of open/closed tickets, as well as closure rates for units and
-    groups; "Recent activity", which includes all updates that occurred within
-    the reporting period; and "Historical activity", which lists all updates
-    that occurred for tickets that were open during the reporting period. The
-    default is "All".
-.PARAMETER NoUpdate
-    Creates a special section for tickets not updated during the reporting
-    period.
-.PARAMETER OutputFileName
-    The filename for the report. The default is
-    "C:\Temp\(user|group|unit).html".
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-    C:\Get-TDOpenTicketActivity -GroupName 'ASCTech A&H Support' -ReportSection 'Ticket Counts','Recent activity' -ReportInterval 5
-
-    Returns a report, "C:\Temp\ASCTech A&H Support.html", containing ticket
-    counts and recent activity for the last five days.
-#>
-function Get-TDOpenTicketActivity
-{
-    [CmdletBinding(DefaultParameterSetName='DateRange')]
-    Param
-    (
-        # Technician name
-        [Parameter(Mandatory=$false)]
-        [ValidatePattern('^\w+\.\d+$')]
-        [string[]]
-        $TechnicianName,
-
-        # Client name
-        [Parameter(Mandatory=$false)]
-        [ValidatePattern('^\w+\.\d+$')]
-        [string[]]
-        $ClientName,
-
-        # Days to include in the report
-        [Parameter(Mandatory=$true,
-                   ParameterSetName='Interval')]
-        [int]
-        $ReportInterval,
-
-        # Starting date for tickets to include in the report
-        [Parameter(Mandatory=$false,
-                   ParameterSetName='DateRange')]
-        [ValidateScript({
-            ($_ -lt (Get-Date))})]
-        [datetime]
-        $ReportFrom,
-
-        # Ending date for tickets to include in the report
-        [Parameter(Mandatory=$false,
-                   ParameterSetName='DateRange')]
-        [datetime]
-        $ReportTo = (Get-Date),
-
-        # Sections to include in the report
-        [Parameter(Mandatory=$false)]
-        [ValidateSet('Ticket Counts','Recent Activity','Historical Activity','All')]
-        [string[]]
-        $ReportSection = 'All',
-
-        # Adds special section for tickets with no update during the reporting period
-        [Parameter(Mandatory=$false)]
-        [switch]
-        $NoUpdate,
-
-        # Output file name
-        [Parameter(Mandatory=$false)]
-        [string]
-        $OutputFileName,
-
-        # TeamDynamix authentication token
-        [Parameter(Mandatory=$false)]
-        [hashtable]
-        $AuthenticationToken = $TDAuthentication,
-
-        # TeamDynamix working environment
-        [Parameter(Mandatory=$false)]
-        [EnvironmentChoices]
-        $Environment = $WorkingEnvironment
-    )
-    DynamicParam
-    {
-        #List dynamic parameters
-		$DynamicParameterList = @(
-            @{
-                Name        = 'UnitName'
-                ValidateSet = $TDAccounts.Name
-                HelpText    = 'Name of unit(s)'
-            }
-            @{
-                Name        = 'GroupName'
-                ValidateSet = $TDGroups.Name
-                HelpText    = 'Name of support group(s)'
-            }
-		)
-		$DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
-        return $DynamicParameterDictionary
-    }
-
-    Begin
-    {
-        # Create convenience variables for dynamic parameters
-        $UnitName  = $DynamicParameterDictionary.UnitName.Value
-        $GroupName = $DynamicParameterDictionary.GroupName.Value
-
-        # List of open status names
-        $OpenStatuses = (Get-TDTicketStatus -AuthenticationToken $AuthenticationToken -Environment $Environment | Where-Object StatusClass -in @('New','InProcess','OnHold')).Name
-
-        # List of closed status names
-        $ClosedStatuses = (Get-TDTicketStatus -AuthenticationToken $AuthenticationToken -Environment $Environment | Where-Object StatusClass -in @('Cancelled','Completed')).Name
-
-        function Format-TicketOutputReport
-        {
-            Param
-            (
-                # Selection from tickets
-                [Parameter(Mandatory=$true,
-                           Position=0)]
-                $TicketSelection,
-
-                # Selection from feed
-                [Parameter(Mandatory=$true,
-                           Position=1)]
-                $FeedSelection
-            )
-            # Pretty format for tickets and comments
-            $TicketSelection | Sort-Object -Property CreatedDate -Descending | ForEach-Object {Write-Output "<H2>$($_.Title)</H2>`r`n<H3>`r`n`tTicket ID: $($_.ID)<BR>`r`n`tOpened: $(Get-Date -Date $_.CreatedDate -Format "M/d/yyyy h:mm tt")<BR>`r`n`tRequestor: $($_.RequestorName)<BR>`r`n`tStatus: $($_.StatusName)`r`n</H3>`r`n<H3>Request</H3>`r`n<BLOCKQUOTE>$($_.Description)</BLOCKQUOTE><H3>Updates</H3>"; ($FeedSelection | Where-Object Name -eq $_.ID).Group | Sort-Object -Property CreatedDate -Descending | ForEach-Object {Write-Output "<H4>`r`n`t$(Get-Date -Date $_.CreatedDate -Format "M/d/yyyy h:mm tt")<BR>`r`n`t$($_.CreatedFullName)`r`n</H4>`r`n<BLOCKQUOTE>$($_.Body)`r`n</BLOCKQUOTE>`r`n"}; Write-Output "<HR>`r`n"}
-        }
-        function Format-TicketFeedCommenterCounts
-        {
-            Param
-            (
-                # Selection from feed
-                [Parameter(Mandatory=$false)]
-                $FeedSelection
-            )
-            if ($FeedSelection) {
-                # List commenters, from most frequent to least
-                $CommenterTable = $FeedSelection | Select-Object -ExpandProperty Group | Group-Object -Property CreatedFullName | Sort-Object -Property Count -Descending
-                if ($CommenterTable.Name -ne '') {
-                    Write-Output "<H3>`r`n`tTicket commenters`r`n</H3>`r`n"
-                    Write-Output "<table>`r`n"
-                    Write-Output "<tr><th>Name</th><th>Comment Count</th></tr>`r`n"
-                    $CommenterTable | ForEach-Object {Write-Output "<tr>`r`n`t<td>`r`n`t`t<P ALIGN=Left>$($_.Name)`r`n`t</td>`r`n`t<td>`r`n`t`t<P ALIGN=Right>$($_.Count)`r`n`t</td>`r`n</tr>`r`n"}
-                    Write-Output "</table>`r`n"
-                }
-            }
-            else {
-                # No comments
-                Write-Output "<H3>`r`n`tTicket commenters`r`n</H3>`r`n"
-                Write-Output "No comments`r`n"
-            }
-        }
-        function Format-TicketRequestorCounts
-        {
-            Param
-            (
-                # Selection from tickets
-                [Parameter(Mandatory=$false)]
-                $TicketSelection
-            )
-            if ($TicketSelection) {
-                # List requestors, from most frequent to least
-                $RequestorTable = $TicketSelection | Group-Object -Property RequestorName | Sort-Object -Property Count -Descending
-                if ($CommenterTable.Name -ne '') {
-                    Write-Output "<H3>Ticket requestors</H3>"
-                    Write-Output "<table>"
-                    Write-Output "<tr><th>Name</th><th>Request Count</th></tr>`r`n"
-                    $RequestorTable | ForEach-Object {Write-Output "<tr>`r`n`t<td>`r`n`t`t<P ALIGN=Left>$($_.Name)`r`n`t</td>`r`n`t<td>`r`n`t`t<P ALIGN=Right>$($_.Count)`r`n`t</td>`r`n</tr>`r`n"}
-                    Write-Output "</table>`r`n"
-                }
-            }
-            else {
-                # No new requests
-                Write-Output "<H3>`r`n`tTicket requestors`r`n</H3>`r`n"
-                Write-Output "No requests`r`n"
-            }
-        }
-        function Format-TicketNoUpdate
-        {
-            Param
-            (
-                # Selection from tickets
-                [Parameter(Mandatory=$true)]
-                $TicketSelection
-            )
-            # Build table of clickable stale tickets
-            $TicketAppURI = Get-URI -Environment $Environment -Portal
-            Write-Output "<table class=`"paddedTable`">`r`n"
-            Write-Output "<tr><th>ID</th><th>Last update</th><th>Title</th></tr>`r`n"
-            $TicketSelection | Sort-Object -Property ModifiedDate | ForEach-Object {Write-Output "<tr>`r`n`t<td>`r`n`t`t<P ALIGN=Left><a href=`"$TicketAppURI/Apps/$TicketingAppID/Tickets/TicketDet?TicketID=$($_.ID)`" target=`"_blank`">$($_.ID)</a></td><td><P ALIGN=Left>$(Get-Date -Date $_.ModifiedDate -Format "MM/dd/yyyy h:mm tt")`r`n</td>`r`n`t<td>`r`n`t`t<P ALIGN=Left>$($_.Title)`r`n`t</td>`r`n</tr>`r`n"}
-            Write-Output "</table>`r`n"
-        }
-    }
-    Process
-    {
-        # Check to see if a unit, group, technician, or client has been specified.
-        if (-not $UnitName -and -not $GroupName -and -not $TechnicianName -and -not $ClientName) {
-            throw 'Please specify a unit, group, technician, or client to report on.'
-        }
-
-        # Initialize report sections
-        $ReportHeader     = ''
-        $ReportCounts     = ''
-        $ReportRecent     = ''
-        $ReportHistorical = ''
-
-        # Initialize collections
-        $TicketIDs = @()
-        $ReportNameList = @()
-        $ReportSections = @()
-
-        # Count report parts for progress bar
-        $PartsCount = 3 + $TechnicianName.Count + $ClientName.Count
-        if ($UnitName)  {$PartsCount ++}
-        if ($GroupName) {$PartsCount ++}
-        $PercentComplete = 0
-
-        # Set report dates (skip back through weekends)
-        if ($ReportInterval) {
-            $ReportFrom = Get-WeekdayDate ([datetime]::Today).AddDays(-$ReportInterval)
-            $ReportTo = Get-Date -Format "M/d/yyyy h:mm tt"
-        }
-        # Set format of dates (date only if starting at midnight, otherwise include the time)
-        if ($ReportFrom.TimeOfDay -eq 0) {$ReportFromString = $ReportFrom.ToShortDateString()}
-        else {$ReportFromString = Get-Date -Date $ReportFrom -Format "M/d/yyyy h:mm tt"}
-        if ($ReportTo.TimeOfDay -eq 0 -or $ReportTo.Date -eq (Get-Date).Date) {$ReportToString = $ReportTo.ToShortDateString()}
-        else {$ReportToString = Get-Date -Date $ReportTo -Format "M/d/yyyy h:mm tt"}
-
-        if ($TechnicianName) {
-            $UserIDs = @()
-            foreach ($User in $TechnicianName) {
-                # Get user information
-                Write-Progress -ID 101 -Activity "Technician: $User" -Status 'Retrieving user information' -PercentComplete ($PercentComplete += + (100 / $PartsCount / 3))
-                $TDUser       = Get-TDUser -UserName "$User@osu.edu" -AuthenticationToken $AuthenticationToken -Environment $Environment
-                $UserIDs     += $TDUser.UID
-
-                # Add to report name
-                $ReportNameList += $User
-
-                # Get open tickets
-                Write-Progress -ID 101 -Activity "Technician: $User" -Status 'Retrieving open tickets' -PercentComplete ($PercentComplete += (100 / $PartsCount / 3))
-                $TicketIDs += (Get-TDTicket -UpdatedByUid $TDUser.UID -StatusClassNames New,InProcess,OnHold -CreatedDateTo $ReportTo -AuthenticationToken $AuthenticationToken -Environment $Environment).ID
-
-                # Get tickets that closed during the review interval
-                Write-Progress -ID 101 -Activity "Technician: $User" -Status 'Retrieving closed tickets' -PercentComplete ($PercentComplete += (100 / $PartsCount / 3))
-                $TicketIDs += (Get-TDTicket -UpdatedByUid $TDUser.UID -ClosedDateFrom $ReportFrom -ClosedDateTo $ReportTo -AuthenticationToken $AuthenticationToken -Environment $Environment).ID
-            }
-
-            # Set default report sections
-            if ($ReportSection -eq 'All') {$ReportSections += @('Ticket Counts','Recent activity')}
-            else {$ReportSections = $ReportSection}
-        }
-        if ($ClientName) {
-            $UserIDs = @()
-            foreach ($User in $ClientName) {
-                # Get user information
-                Write-Progress -ID 101 -Activity "Client: $User" -Status 'Retrieving user information' -PercentComplete ($PercentComplete += (100 / $PartsCount / ($Clients.Count + 2)))
-                $TDUser       = Get-TDUser -UserName "$User@osu.edu" -AuthenticationToken $AuthenticationToken -Environment $Environment
-                $UserIDs     += $TDUser.UID
-
-                # Add to report name
-                $ReportNameList += $User
-            }
-            # Get open tickets
-            Write-Progress -ID 101 -Activity "Client(s)" -Status 'Retrieving open tickets' -PercentComplete ($PercentComplete += (100 / $PartsCount / ($Clients.Count + 2)))
-            $TicketIDs += (Get-TDTicket -RequestorUids $UserIDs -StatusClassNames New,InProcess,OnHold -CreatedDateTo $ReportTo -AuthenticationToken $AuthenticationToken -Environment $Environment).ID
-
-            # Get tickets that closed during the review interval
-            Write-Progress -ID 101 -Activity "Client(s)" -Status 'Retrieving closed tickets' -PercentComplete ($PercentComplete += (100 / $PartsCount / ($Clients.Count + 2)))
-            $TicketIDs += (Get-TDTicket -RequestorUids $UserIDs -ClosedDateFrom $ReportFrom -ClosedDateTo $ReportTo -AuthenticationToken $AuthenticationToken -Environment $Environment).ID
-
-            # Set default report sections
-            if ($ReportSection -eq 'All') {$ReportSections += @('Ticket Counts','Recent activity','Historical activity')}
-            else {$ReportSections = $ReportSection}
-        }
-        if ($UnitName) {
-            # Set report name
-            $ReportNameList += $UnitName
-
-            # Get open tickets
-            Write-Progress -ID 101 -Activity "Unit(s)" -Status 'Retrieving open tickets' -PercentComplete ($PercentComplete += (100 / $PartsCount / 2))
-            $TicketIDs += (Get-TDTicket -AccountNames $UnitName -StatusClassNames New,InProcess,OnHold -CreatedDateTo $ReportTo -AuthenticationToken $AuthenticationToken -Environment $Environment).ID
-
-            # Get tickets that closed during the review interval
-            Write-Progress -ID 101 -Activity "Unit(s)" -Status 'Retrieving closed tickets' -PercentComplete ($PercentComplete += (100 / $PartsCount / 2))
-            $TicketIDs += (Get-TDTicket -AccountNames $UnitName -ClosedDateFrom $ReportFrom -ClosedDateTo $ReportTo -AuthenticationToken $AuthenticationToken -Environment $Environment).ID
-
-            # Set default report sections
-            if ($ReportSection -eq 'All') {$ReportSections += @('Ticket Counts','Recent activity','Historical activity')}
-            else {$ReportSections = $ReportSection}
-        }
-        if ($GroupName) {
-            # Set report name
-            $ReportNameList += $GroupName
-
-            # Get open tickets
-            Write-Progress -ID 101 -Activity "Group(s)" -Status 'Retrieving open tickets' -PercentComplete ($PercentComplete += (100 / $PartsCount / 2))
-            $TicketIDs += (Get-TDTicket -ResponsibilityGroupNames $GroupName -StatusClassNames New,InProcess,OnHold -CreatedDateTo $ReportTo -AuthenticationToken $AuthenticationToken -Environment $Environment).ID
-
-            # Get tickets that closed during the review interval
-            Write-Progress -ID 101 -Activity "Group(s)" -Status 'Retrieving open tickets' -PercentComplete ($PercentComplete + (100 / $PartsCount / 2))
-            $TicketIDs += (Get-TDTicket -ResponsibilityGroupNames $GroupName -ClosedDateFrom $ReportFrom -ClosedDateTo $ReportTo -AuthenticationToken $AuthenticationToken -Environment $Environment).ID
-
-            # Set default report sections
-            if ($ReportSection -eq 'All') {$ReportSections += @('Ticket Counts','Recent activity','Historical activity')}
-            else {$ReportSections = $ReportSection}
-
-            # Add counts by unit, counts by tech
-        }
-
-        # Assemble report name
-        $ReportName = $ReportNameList -join ', '
-
-        # Eliminate ticket duplicates and get detailed ticket information
-        $Tickets = $TicketIDs | Select-Object -Unique | ForEach-Object {Write-Progress -ID 101 -Activity 'Ticket data' -Status "Retrieving detailed ticket data for ID $_" -PercentComplete ($PercentComplete += (100 / $PartsCount/ $TicketIDs.Count)); Get-TDTicket -ID $_ -AuthenticationToken $AuthenticationToken -Environment $Environment}
-
-        # Get feed information for open tickets
-        if ($Tickets.ID)
-        {
-            $TicketsFeed = $Tickets.ID | ForEach-Object {Write-Progress -ID 101 -Activity 'Ticket feed' -Status "Retrieving ticket feed data for ID $_" -PercentComplete ($PercentComplete += (100 / $PartsCount / $Tickets.Count)); Get-TDTicketFeed -ID $_ -AuthenticationToken $AuthenticationToken -Environment $Environment}
-            $TicketsFeedReviewDate = $TicketsFeed | Where-Object {$_.CreatedDate -gt $ReportFrom -and $_.CreatedDate -lt $ReportTo} | Group-Object -Property ItemID
-        }
-
-        # Set output file if none is set
-        if ($OutputFileName -eq '') {
-            # Watch for file name too long - use a shorter name if necessary
-            if (("$ReportName.html").Length -le 255) {$OutputFileName = Join-Path ([System.IO.Path]::GetTempPath()) "$ReportName.html"}
-            else {$OutputFileName = Join-Path ([System.IO.Path]::GetTempPath()) "Open Ticket Activity - $(Get-Date -Format "M-d-yyyy").html"}
-        }
-        Write-Progress -ID 101 -Activity "Building report" -Status 'Compiling report data' -PercentComplete 95
-        # Populate report header
-        $ReportHeader  = "<html>`r`n"
-        $ReportHeader += "<head>`r`n"
-        $ReportHeader += "<style>`r`n"
-        $ReportHeader += "`t.paddedTable td`r`n"
-        $ReportHeader += "`t{padding:0 15px 0 0}`r`n"
-        $ReportHeader += "</style>`r`n"
-        $ReportHeader += "</head>`r`n"
-        $ReportHeader += "<body>`r`n"
-        $ReportHeader += "<H1>Ticket info for $ReportName between $ReportFromString and $ReportToString</H1>`r`n"
-        $ReportHeader += "<H2>Navigation</H2>`r`n"
-        $ReportHeader += "<nav>`r`n"
-        if ($ReportSections -contains 'Ticket Counts') {$ReportHeader += '<a href="#Counts">Ticket Counts</a>'}
-        if ($NoUpdate) {
-            if ($ReportHeader.EndsWith('</a>')) {$ReportHeader += ' | '}
-            $ReportHeader += '<a href="#NoUpdate">Stale Tickets</a>'
-        }
-        if ($ReportSections -contains 'Recent Activity') {
-            if ($ReportHeader.EndsWith('</a>')) {$ReportHeader += ' | '}
-            $ReportHeader += '<a href="#Recent">Recent Activity</a>'
-        }
-        if ($ReportSections -contains 'Historical Activity') {
-            if ($ReportHeader.EndsWith('</a>')) {$ReportHeader += ' | '}
-            $ReportHeader += '<a href="#Open">All Open Tickets</a>'
-        }
-        $ReportHeader += "`r`n</nav>`r`n"
-        $ReportHeader += "<HR><HR>`r`n"
-
-        # Populate report footer
-        $ReportFooter  = "</body>`r`n"
-        $ReportFooter += "</html>`r`n"
-
-        # Populate report sections
-        switch ($ReportSections | Select-Object -Unique) {
-            {$_ -contains 'Ticket Counts'} {
-                # Report for ticket counts
-                $ReportCounts  = "<a name=`"Counts`"></a>`r`n"
-                $ReportCounts += "<H1>Ticket counts between $ReportFromString and $ReportToString</H1>`r`n"
-                $ReportCounts += "<table>`r`n"
-                $ReportCounts += "<tr>`r`n`t<td>`r`n`t`t<P ALIGN=Left>New tickets created:`r`n`t</td>`r`n`t<td>`r`n`t`t<P ALIGN=Right>$(($Tickets | Where-Object {$_.CreatedDate -gt $ReportFrom -and $_.CreatedDate -lt $ReportTo}).Count)`r`n`t</td>`r`n</tr>`r`n"
-                $ReportCounts += "<tr>`r`n`t<td>`r`n`t`t<P ALIGN=Left>Tickets closed:     `r`n`t</td>`r`n`t<td>`r`n`t`t<P ALIGN=Right>$(($Tickets | Where-Object StatusName  -in $ClosedStatuses).Count)`r`n`t</td>`r`n</tr>`r`n"
-                if ($TechnicianName) {$ReportCounts += "<tr><td><P ALIGN=Left>Updates by technician:</td><td><P ALIGN=Right>$(($TicketsFeedReviewDate | Select-Object -ExpandProperty Group | Where-Object CreatedUID -in $UserIDs).Count)</td></tr>`r`n"}
-                if (($UnitName -or $GroupName) -and (($Tickets | Where-Object StatusName -in $ClosedStatuses).Count -ne 0)) {
-                    $ReportCounts += "<tr>`r`n`t<td>`r`n`t`t<P ALIGN=Left>Average days to close:`r`n`t</td>`r`n`t<td>`r`n`t`t<P ALIGN=Right>{0:N2}`r`n`t</td>`r`n</tr>`r`n" -f ($Tickets | Where-Object StatusName -in $ClosedStatuses | ForEach-Object {($_.CompletedDate - $_.CreatedDate).Days} | Measure-Object -Average).Average
-                    $ReportCounts += "<tr>`r`n`t<td>`r`n`t`t<P ALIGN=Left>Median days to close: `r`n`t</td>`r`n`t<td>`r`n`t`t<P ALIGN=Right>$(Get-Median ($Tickets | Where-Object StatusName -in $ClosedStatuses | ForEach-Object {($_.CompletedDate - $_.CreatedDate).Days}))`r`n`t</td>`r`n</tr>`r`n"
-                }
-                $ReportCounts +=     "<tr>`r`n`t<td>`r`n`t`t<P ALIGN=Left>Tickets remaining open:`r`n`t</td>`r`n`t<td>`r`n`t`t<P ALIGN=Right>$(($Tickets     | Where-Object StatusName -in $OpenStatuses).Count)`r`n`t</td>`r`n</tr>`r`n"
-                if ($TechnicianName -and -not ($UnitName -or $GroupName -or $ClientName)) {
-                    $ReportCounts += "<tr>`r`n`t<td>`r`n`t`t<P ALIGN=Left>Ticket updates posted: `r`n`t</td>`r`n`t<td>`r`n`t`t<P ALIGN=Right>$(($TicketsFeed | Where-Object CreatedUID -in $UserIDs     ).Count)`r`n`t</td>`r`n</tr>`r`n"
-                }
-                elseif ($UnitName -or $GroupName) {
-                    $ReportCounts += "<tr>`r`n`t<td>`r`n`t`t<P ALIGN=Left>Ticket updates posted:`r`n`t</td>`r`n`t<td>`r`n`t`t<P ALIGN=Right>$(($TicketsFeed | Where-Object {$_.CreatedDate -gt $ReportFrom -and $_.CreatedDate -lt $ReportTo}).Count)`r`n`t</td>`r`n</tr>`r`n"
-                }
-                $ReportCounts += "</table>`r`n"
-                if ($UnitName -or $GroupName) {
-                    $ReportCounts += "<HR>`r`n"
-                    $ReportCounts += Format-TicketRequestorCounts -TicketSelection $Tickets
-                }
-
-                if ($UnitName -or $GroupName) {
-                    $ReportCounts += "<HR>`r`n"
-                    $ReportCounts += Format-TicketFeedCommenterCounts -FeedSelection $TicketsFeedReviewDate
-                }
-                $ReportCounts += "<HR><HR>`r`n"
-            }
-            {$_ -contains 'Recent activity'} {
-                # Report for activity on open tickets since specified date
-                $ReportRecent  = "<a name=`"Recent`"></a>`r`n"
-                $ReportRecent += "<H1>Tickets with activity between $ReportFromString and $ReportToString</H1>`r`n"
-                if ($TicketsFeedReviewDate.Count -eq 0) {
-                    $ReportRecent += "No new activity`r`n"
-                }
-                else {
-                    $ReportRecent += Format-TicketOutputReport -TicketSelection ($Tickets | Where-Object ID -in $TicketsFeedReviewDate.Name) -FeedSelection ($TicketsFeed | Group-Object -Property ItemID)
-                }
-                $ReportRecent += "<HR>`r`n"
-            }
-            {$_ -contains 'Historical activity'} {
-                # Report for open tickets
-                $ReportHistorical  = "<a name=`"Open`"></a>`r`n"
-                $ReportHistorical += "<H1>Tickets open between $ReportFromString and $ReportToString</H1>`r`n"
-                if ($Tickets.Count -eq 0) {
-                    $ReportHistorical += "No tickets open between specified date and report date.`r`n"
-                }
-                else {
-                    $ReportHistorical += Format-TicketOutputReport -TicketSelection $Tickets -FeedSelection ($TicketsFeed | Group-Object -Property ItemID)
-                }
-                $ReportHistorical += "<HR>`r`n"
-            }
-        }
-        if ($NoUpdate) {
-            # Report for open tickets
-            $ReportNoUpdate  = "<a name=`"NoUpdate`"></a>`r`n"
-            $ReportNoUpdate += "<H1>Tickets with no updates between $ReportFromString and $ReportToString</H1>`r`n"
-            # Select tickets with no updates in the reporting period
-            $StaleTickets = $Tickets | Where-Object ModifiedDate -lt $ReportFrom
-            if ($StaleTickets.Count -eq 0) {
-                    $ReportNoUpdate += "No stale tickets.`r`n"
-            }
-            else {
-                $ReportNoUpdate += Format-TicketNoUpdate -TicketSelection $StaleTickets
-            }
-            $ReportNoUpdate += "<HR><HR>`r`n"
-        }
-
-        # Assemble report
-        $ReportHeader     | Out-File $OutputFileName
-        $ReportCounts     | Out-File $OutputFileName -Append
-        $ReportNoUpdate   | Out-File $OutputFileName -Append
-        $ReportRecent     | Out-File $OutputFileName -Append
-        $ReportHistorical | Out-File $OutputFileName -Append
-        $ReportFooter     | Out-File $OutputFileName -Append
-    }
-    End
-    {
-        return $OutputFileName
-    }
-}
-
-<#
-.Synopsis
-    Get ticket activity counts for tickets opened during a specified time
-    period.
-.DESCRIPTION
-    Get ticket activity counts for tickets opened during a specified time
-    period. Also provides comparison data from an earlier time period. Can
-    return a formatted report or just the raw data. The formatted report
-    includes counts of tickets opened during the report time period, closed
-    during the report time period, a count of tickets that were both opened and
-    closed during the report time period, as well as a count of tickets opened
-    during the comparison time period. It also includes a breakdown of tickets
-    opened/closed by support unit during the report time period.
-.PARAMETER GUI
-    Use a GUI date picker to specify the dates for the report and comparison.
-.PARAMETER StartDate
-    The start date for the report time period. Default is the previous weekday.
-.PARAMETER Days
-    The number of days from the start date to include in the report time
-    period. The default is one day.
-.PARAMETER CompareDate
-    The start date for the comparison time period. The default is one week
-    before StartDate. The comparison time period will be the same number of
-    days as the report time period.
-.PARAMETER NoReport
-    Do not produce a pretty-formatted report. Only returns the raw data,
-    including the start and end dates of the report time period, the start of
-    the comparison time period, and all tickets opened or closed in the report
-    time period, as well as all tickets opened in the comparison time period.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-    C:\Get-TDTicketActivityCounts
-
-    Returns a formatted text report with counts of tickets opened/closed
-    during the previous day, as well as a count of tickets opened a week ago.
-.EXAMPLE
-    C:\Get-TDTicketActivityCounts -GUI
-
-    Use a GUI date picker to select the start date, end date, and comparison
-    date for a formatted text report with counts of tickets opened/closed
-    during the selected interval, as well as a count of tickets opened on the
-    date selected.
-.EXAMPLE
-    C:\Get-TDTicketActivityCounts -NoReport
-
-    Returns raw data listing tickets opened/closed during the previous day, as
-    well as tickets opened a week ago.
-.EXAMPLE
-    C:\Get-TDTicketActivityCounts -StartDate 10/1/2020 -Days 1 -CompareDate 9/22/2020
-
-    Produces a formatted text report with counts of tickets opened/closed on
-    October 1, 2020, as well as a count of tickets opened on September 22, 2020.
-#>
-function Get-TDTicketActivityCounts
-{
-    [CmdletBinding(DefaultParameterSetName='Date')]
-    Param
-    (
-        # Use GUI to pick dates
-        [Parameter(Mandatory=$true,
-                   ParameterSetName='GUI')]
-        [switch]
-        $GUI,
-
-        # Starting date to get ticket counts
-        [Parameter(Mandatory=$false,
-                   ParameterSetName='Date')]
-        [datetime]
-        $StartDate,
-
-        # Number of days for ticket counts
-        [Parameter(Mandatory=$false,
-                   ParameterSetName='Date')]
-        [int]
-        $Days = 1,
-
-        # Starting date for comparison
-        [Parameter(Mandatory=$false,
-                   ParameterSetName='Date')]
-        [datetime]
-        $CompareDate,
-
-        # Do not output pretty report format
-        [Parameter(Mandatory=$false)]
-        [switch]
-        $NoReport,
-
-        # TeamDynamix authentication token
-        [Parameter(Mandatory=$false)]
-        [hashtable]
-        $AuthenticationToken = $TDAuthentication,
-
-        # TeamDynamix working environment
-        [Parameter(Mandatory=$false)]
-        [EnvironmentChoices]
-        $Environment = $WorkingEnvironment
-    )
-
-    if ($GUI) {
-        # Use GUI to get dates for start, end, and comparison
-        Write-Host 'Select a date range to review'
-        $DateRange = Get-CalendarDateGUI -MaxDates 30
-        # Starts at midnight of selected day
-        $StartDate = $DateRange.Start
-        # Ends at midnight of day after the end of the selection (only includes data through the end of the selection)
-        $EndDate = ($DateRange.End).AddDays(1)
-        # Start date for comparison - must be before $StartDate - will calculate end comparison date based on $StartDate and $EndDate difference
-        do {
-            Write-Host 'Select a prior date for start of comparison data'
-            $CompareDate = (Get-CalendarDateGUI -MaxDates 1).Start
-        }
-        until ($CompareDate -lt $StartDate)
-    }
-    else {
-        # Use command line or defaults to get dates for start, end, and comparison
-        if ($StartDate -gt [datetime]::Today) {
-            throw 'Specify a starting date in the past'
-        }
-        if (-not $StartDate) {$StartDate = Get-WeekdayDate ([datetime]::Today.AddDays(-1))}
-        if (-not $CompareDate) {$CompareDate = $StartDate.AddDays(-7)}
-        if ($CompareDate -ge $StartDate) {
-            throw 'Specify a date prior to the start for comparison data'
-        }
-        $EndDate = $StartDate.AddDays($Days)
-    }
-
-    # Set date string for review interval
-    if ($StartDate -eq ($EndDate).AddDays(-1))
-    {
-        # One day
-        $DateString = $StartDate.ToShortDateString()
-    }
-    else
-    {
-        # Date range
-        $DateString = "from $($StartDate.ToShortDateString()) to $($EndDate.AddDays(-1).ToShortDateString())"
-    }
-
-    # Set date string for history
-    if ((($StartDate - $CompareDate).Days % 7) -eq 0)
-    {
-        $WeeksAgo = ($StartDate - $CompareDate).Days / 7
-        if ($WeeksAgo -eq 1)
-        {
-            $DateStringHistory = "1 week ago"
-        }
-        else
-        {
-            $DateStringHistory = "$WeeksAgo weeks prior"
-        }
-    }
-    else
-    {
-        $DateStringHistory = "$(($StartDate - $CompareDate).Days) days prior"
-    }
-
-    # Retrieve tickets for specified dates
-    $Tickets = [PSCustomObject]@{
-        StartDate     = $StartDate
-        EndDate       = $EndDate
-        CompareDate   = $CompareDate
-        Opened        = Get-TDTicket -CreatedDateFrom $StartDate   -CreatedDateTo $EndDate                                 -AuthenticationToken $AuthenticationToken -Environment $Environment
-        Closed        = Get-TDTicket -ClosedDateFrom  $StartDate   -ClosedDateTo  $EndDate                                 -AuthenticationToken $AuthenticationToken -Environment $Environment
-        OpenedCompare = Get-TDTicket -CreatedDateFrom $CompareDate -CreatedDateTo ($CompareDate + ($EndDate - $StartDate)) -AuthenticationToken $AuthenticationToken -Environment $Environment
-    }
-
-    if ($NoReport) {return $Tickets}
-    else {
-        # Write text to output
-        Write-Output "Tickets Opened $DateString"
-        Write-Output "`tTotal: $($Tickets.Opened.Count)"
-        Write-Output "`tCompare to $($Tickets.OpenedCompare.Count) from $DateStringHistory"
-        $Tickets.Opened | Group-Object ResponsibleGroupName | Sort-Object -Descending Count | Select-Object Count,@{Name="Support Team";Expression={$_.Name}} | Out-String
-        Write-Output "Tickets Closed $DateString"
-        Write-Output "`tTotal: $($Tickets.Closed.Count)"
-        Write-Output "`tTickets opened and closed $($DateString): $(($Tickets.Opened | Where-Object {($_.CreatedDate).DayOfYear -eq ($_.CompletedDate).DayOfYear}).Count)"
-        $Tickets.Closed | Group-Object ResponsibleGroupName | Sort-Object -Descending Count | Select-Object Count,@{Name="Support Team";Expression={$_.Name}} | Out-String
-
-        # Get appropriate URI for the user portal so that selected tickets can be retrieved from the GridView
-        $BaseURI = Get-URI -Environment $Environment -Portal
-        # Pop up grid view of opened tickets for more detailed review
-        $Tickets.Opened.ID | Get-TDTicket | Select-Object ID, Title, ResponsibleGroupName, Description | Out-GridView -OutputMode Multiple | ForEach-Object {Start-Process "$BaseURI/Apps/$TicketingAppID/Tickets/TicketDet?TicketID=$($_.ID)"}
-    }
-}
-
-<#
-.Synopsis
-    Get information about TeamDynamix assets that may be inconsistent.
-.DESCRIPTION
-    OSU-specific function.
-    Convenience function to obtain information about TeamDynamix assets that
-    may be inconsistent. Such as assets with duplicate names or serial numbers,
-    assets with no serial number, or assets whose 'Three and Green in 2018'
-    information is not complete but the asset is marked as complete. By
-    default, return all consistency information.
-.PARAMETER SerialNumberBlank
-    Return assets whose serial number is blank.
-.PARAMETER SerialNumberDuplicate
-    Return assets with duplicate serial numbers.
-.PARAMETER NameDuplicate
-    Return assets with duplicate names. May be slow to process.
-.PARAMETER MACDuplicate
-    Return assets with duplicate MAC addresses. Slow to process.
-.PARAMETER TaG18
-    Return assets with incomplete TaG18 information, but where the asset is
-    marked as complete. Slow to process.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-    C:\>Get-TDAssetConsistency
-
-    Returns all available consistency information.
-.EXAMPLE
-    C:\>Get-TDAssetConsistency -SerialNumberBlank
-
-    Returns assets whose serial number is blank.
-.EXAMPLE
-    C:\>$Assets = Get-TDAssetConsistency -SerialNumberBlank -NameDuplicate
-    C:\>$Assets.DuplicateName | Group-Object Name | Select Name
-
-    Returns assets whose serial number is blank, as well as assets with
-    duplicate names. Then, outputs a list of the names that are duplicated.
-.EXAMPLE
-    C:\>$TaG18 = Get-TDAssetConsistency -TaG18
-    C:\>$TaG18.TaG18Inconsistent.NotEncrypted | Format-Table ID, Name, @{e={$_.Attributes.Where{$_.Name -eq 'Encryption Status'}.ValueText};n='Encryption Status'} -AutoSize
-
-    Returns TaG18 inconsistencies for all assets flagged as TaG18 Complete, but
-    are not encrypted, then formats the result as a table with columns for ID,
-    Name, and Encryption Status.
-.NOTES
-    OSU-specific function.
-    Author: Brian Keller <keller.4@osu.edu>
-#>
-function Get-TDAssetConsistency
-{
-    [CmdletBinding()]
-    Param
-    (
-        # Return assets with blank serial number
-        [Parameter(Mandatory=$false)]
-        [switch]
-        $SerialNumberBlank,
-
-        # Return assets with duplicate serial number
-        [Parameter(Mandatory=$false)]
-        [switch]
-        $SerialNumberDuplicate,
-
-        # Return assets with duplicate names
-        [Parameter(Mandatory=$false)]
-        [switch]
-        $NameDuplicate,
-
-        # Return assets with duplicate MAC addresses
-        [Parameter(Mandatory=$false)]
-        [switch]
-        $MACDuplicate,
-
-        # Return assets with inconsistent TaG18 data
-        [Parameter(Mandatory=$false)]
-        [switch]
-        $TaG18,
-
-        # Add not checked in days?
-
-        # TeamDynamix authentication token
-        [Parameter(Mandatory=$false)]
-        [hashtable]
-        $AuthenticationToken = $TDAuthentication,
-
-        # TeamDynamix working environment
-        [Parameter(Mandatory=$false)]
-        [EnvironmentChoices]
-        $Environment = $WorkingEnvironment
-    )
-    begin
-    {
-        Write-ActivityHistory "-----`nIn $($MyInvocation.MyCommand.Name)"
-        $Assets = (Get-TDReport -ID $TDConfig.TDAllAssetReportID -WithData -AuthenticationToken $AuthenticationToken -Environment $Environment).DataRows
-        $ValidEncryptionStrings = @(
-                                  'All Partitions Encrypted'
-                                  'C: 1'
-                                  'True'
-                                  )
-        $IgnoreStatuses = @(
-                          'Disposed'
-                          'Lost'
-                          'Retired'
-                          'Waiting for Surplus'
-                          )
-    }
-
-    process
-    {
-        # If no test is specified, run all tests
-        if (-not ($SerialNumberBlank -or $SerialNumberDuplicate -or $NameDuplicate -or $MACDuplicate -or $TaG18))
-        {
-            $SerialNumberBlank     = $true
-            $SerialNumberDuplicate = $true
-            $NameDuplicate         = $true
-            $MACDuplicate          = $true
-            $TaG18                 = $true
-        }
-        $Return = New-Object -TypeName PSObject
-        if ($SerialNumberBlank)
-        {
-            Write-ActivityHistory "Getting assets with blank serial number"
-            $BlankSNAssets = $Assets | Where-Object StatusName -notin $IgnoreStatuses | Group-Object SerialNumber |  Where-Object Name -eq ''
-            $Return | Add-Member -MemberType NoteProperty -Name BlankSN -Value $BlankSNAssets
-        }
-
-        if ($SerialNumberDuplicate)
-        {
-            Write-ActivityHistory "Getting assets with duplicate serial number"
-            $DuplicateSNAssets = $Assets | Where-Object StatusName -notin $IgnoreStatuses | Group-Object SerialNumber | Where-Object Count -gt 1 | Where-Object Name -ne ''
-            $Return | Add-Member -MemberType NoteProperty -Name DuplicateSN -Value $DuplicateSNAssets
-        }
-
-        if ($NameDuplicate)
-        {
-            Write-ActivityHistory "Getting assets with duplicate name"
-            $DuplicateNameAssets = $Assets | Where-Object StatusName -notin $IgnoreStatuses | Group-Object Name | Where-Object Count -gt 1
-            $Return | Add-Member -MemberType NoteProperty -Name DuplicateName -Value $DuplicateNameAssets
-        }
-
-        if ($MACDuplicate)
-        {
-            Write-ActivityHistory "Getting assets with duplicate MAC address"
-            $MACFieldIDs = (Get-TDCustomAttribute -ComponentID Asset -AuthenticationToken $AuthenticationToken -Environment $Environment | Where-Object  name -like 'MAC*').ID
-            [System.Collections.ArrayList]$Collection = @()
-            [System.Collections.ArrayList]$CollectionNames = @()
-            foreach ($Asset in $Assets)
-            {
-                foreach ($MACFieldID in $MACFieldIDs)
-                {
-                    if ($null -ne $Asset.$MACFieldID)
-                    {
-                        if ($Asset.$MACFieldID -in $CollectionNames)
-                        {
-                            $GroupMatch = $Collection | Where-Object Name -eq $Asset.$MACFieldID
-                            $GroupMatch.Group += $Asset
-                            ++$GroupMatch.Count
-                        }
-                        else
-                        {
-                            $Collection += [pscustomobject]@{
-                                Count = 1
-                                Name  = $Asset.$MACFieldID
-                                Group = @($Asset)
-                            }
-                            $CollectionNames.Add($Asset.$MACFieldID) | Out-Null
-                        }
-                    }
-                }
-            }
-            $DuplicateMACAssets = $Collection | Where-Object Count -gt 1
-            $Return | Add-Member -MemberType NoteProperty -Name DuplicateMAC -Value $DuplicateMACAssets
-        }
-
-        if ($TaG18)
-        {
-            Write-ActivityHistory "Getting assets with inconsistent TaG18 information"
-            # Get ID of custom attribute for 'TaG18 Complete' and Value for 'Yes'
-            $TaG18CompleteID        =  (Get-TDCustomAttribute -ComponentID Asset -AuthenticationToken $AuthenticationToken -Environment $Environment | Where-Object Name -eq 'TaG18 Complete'           ).ID
-            $EncryptionStatusID     =  (Get-TDCustomAttribute -ComponentID Asset -AuthenticationToken $AuthenticationToken -Environment $Environment | Where-Object Name -eq 'Encryption Status'        ).ID
-            $LastCheckInID          =  (Get-TDCustomAttribute -ComponentID Asset -AuthenticationToken $AuthenticationToken -Environment $Environment | Where-Object Name -eq 'Last Check-In'            ).ID
-            $OrganizationalUnitID   =  (Get-TDCustomAttribute -ComponentID Asset -AuthenticationToken $AuthenticationToken -Environment $Environment | Where-Object Name -eq 'Organizational Unit'      ).ID
-            $DataClassificationID   =  (Get-TDCustomAttribute -ComponentID Asset -AuthenticationToken $AuthenticationToken -Environment $Environment | Where-Object Name -eq 'Data Classification'      ).ID
-            $AVConsoleCurrentID     =  (Get-TDCustomAttribute -ComponentID Asset -AuthenticationToken $AuthenticationToken -Environment $Environment | Where-Object Name -eq 'Antivirus Console Current').ID
-            $BackupConsoleCurrentID =  (Get-TDCustomAttribute -ComponentID Asset -AuthenticationToken $AuthenticationToken -Environment $Environment | Where-Object Name -eq 'Backup Console Current'   ).ID
-            $DLPConsoleCurrentID    =  (Get-TDCustomAttribute -ComponentID Asset -AuthenticationToken $AuthenticationToken -Environment $Environment | Where-Object Name -eq 'DLP Console Current'      ).ID
-
-            # Retrieve all assets marked as 'TaG18 Complete'
-            $TaG18CompleteAssets = $Assets | Where-Object StatusName -notin $IgnoreStatuses | Where-Object $TaG18CompleteID -eq 'Yes'
-
-            # Set up and clear arrays to hold entries for each type of inconsistency
-            $MissingOSUTag             = @()
-            $MissingSerialNumber       = @()
-            $MissingOwner              = @()
-            $MissingDepartment         = @()
-            $MissingBuilding           = @()
-            $MissingRoom               = @()
-            $NotEncrypted              = @()
-            $NotCheckedIn              = @()
-            $NotInAD                   = @()
-            $MissingDataClassification = @()
-            $NotCurrentAntivirus       = @()
-            $NotCurrentBackup          = @()
-            $NotCurrentDLP             = @()
-
-            # Check each asset
-            foreach ($TaG18ReviewAsset in $TaG18CompleteAssets)
-            {
-                if (-not $TaG18ReviewAsset.SerialNumber)
-                {
-                    $MissingSerialNumber += $TaG18ReviewAsset
-                }
-                if (-not $TaG18ReviewAsset.Tag)
-                {
-                    $MissingOSUTag += $TaG18ReviewAsset
-                }
-                if ((-not $TaG18ReviewAsset.OwningCustomerName) -or ($TaG18ReviewAsset.OwningCustomerName -eq 'None'))
-                {
-                    $MissingOwner += $TaG18ReviewAsset
-                }
-                if ((-not $TaG18ReviewAsset.OwningDepartmentName) -or ($TaG18ReviewAsset.OwningDepartmentName -eq 'None'))
-                {
-                    $MissingDepartment += $TaG18ReviewAsset
-                }
-                if ((-not $TaG18ReviewAsset.LocationName) -or ($TaG18ReviewAsset.LocationName -eq 'None'))
-                {
-                    $MissingBuilding += $TaG18ReviewAsset
-                }
-                if ((-not $TaG18ReviewAsset.LocationRoomName) -or ($TaG18ReviewAsset.LocationRoomName -eq 'None'))
-                {
-                    $MissingRoom += $TaG18ReviewAsset
-                }
-                if (-not ($TaG18ReviewAsset.$EncryptionStatusID -match (($ValidEncryptionStrings | ForEach-Object {$_}) -join '|')))
-                {
-                    $NotEncrypted += $TaG18ReviewAsset
-                }
-                if (-not $TaG18ReviewAsset.$LastCheckInID)
-                {
-                    $NotCheckedIn += $TaG18ReviewAsset
-                }
-                if ((-not $TaG18ReviewAsset.$OrganizationalUnitID) -or ($TaG18ReviewAsset.OrganizationalUnitID -like 'Not in *'))
-                {
-                    $NotInAD += $TaG18ReviewAsset
-                }
-                if (-not $TaG18ReviewAsset.$DataClassificationID)
-                {
-                    $MissingDataClassification += $TaG18ReviewAsset
-                }
-                if ($TaG18ReviewAsset.$AVConsoleCurrentID -ne 'Yes')
-                {
-                    $NotCurrentAntivirus += $TaG18ReviewAsset
-                }
-                if ($TaG18ReviewAsset.$BackupConsoleCurrentID -ne 'Yes')
-                {
-                    $NotCurrentBackup += $TaG18ReviewAsset
-                }
-                if ($TaG18ReviewAsset.$DLPConsoleCurrentID -ne 'Yes')
-                {
-                    $NotCurrentDLP += $TaG18ReviewAsset
-                }
-            }
-            # Create an object from all of the data to return
-            $TaG18Review = New-Object -TypeName PSObject
-            $Tag18Review | Add-Member -MemberType NoteProperty -Name 'MissingOSUTag'             -Value $MissingOSUTag             -PassThru |
-                           Add-Member -MemberType NoteProperty -Name 'MissingOwner'              -Value $MissingOwner              -PassThru |
-                           Add-Member -MemberType NoteProperty -Name 'MissingDepartment'         -Value $MissingDepartment         -PassThru |
-                           Add-Member -MemberType NoteProperty -Name 'MissingBuilding'           -Value $MissingBuilding           -PassThru |
-                           Add-Member -MemberType NoteProperty -Name 'MissingRoom'               -Value $MissingRoom               -PassThru |
-                           Add-Member -MemberType NoteProperty -Name 'NotEncrypted'              -Value $NotEncrypted              -PassThru |
-                           Add-Member -MemberType NoteProperty -Name 'NotCheckedIn'              -Value $NotCheckedIn              -PassThru |
-                           Add-Member -MemberType NoteProperty -Name 'NotInAD'                   -Value $NotInAD                   -PassThru |
-                           Add-Member -MemberType NoteProperty -Name 'MissingDataClassification' -Value $MissingDataClassification -PassThru |
-                           Add-Member -MemberType NoteProperty -Name 'NotCurrentAntivirus'       -Value $NotCurrentAntivirus       -PassThru |
-                           Add-Member -MemberType NoteProperty -Name 'NotCurrentBackup'          -Value $NotCurrentBackup          -PassThru |
-                           Add-Member -MemberType NoteProperty -Name 'NotCurrentDLP'             -Value $NotCurrentDLP
-            $Return | Add-Member -MemberType NoteProperty -Name TaG18Inconsistent -Value $TaG18Review
-        }
-        $Return
-    }
-}
-
-<#
-.Synopsis
-   Fix errors on assets related to erased data
-.DESCRIPTION
-   Uses the asset feed to find data that was erased from the asset record (set
-   to "Nothing") and restore it. Use cautiously and test on the sandbox site
-   first to ensure proper results.
-.EXAMPLE
-   C:\> $AssetChanges = Get-TDAssetFeed -DateFrom 11-2-2018 -DateTo 11-1-2018 -ReturnCount 10000
-   C:\> $AssetChanges | Restore-AssetErasedDataError
-
-   Retrieves 10,000 changes to assets from November 1, 2018 and finds data that
-   has been erased. Restores that data to the asset records.
-#>
-function Restore-AssetErasedDataError
-{
-    [CmdletBinding()]
-    Param
-    (
-        # Feed entry object
-        [Parameter(Mandatory=$true,
-                   ValueFromPipeline=$true,
-                   Position=0)]
-        [psobject[]]
-        $FeedEntry
-    )
-
-    Begin
-    {
-        Write-ActivityHistory "-----`nIn $($MyInvocation.MyCommand.Name)"
-        $AllAssetAttributes = Get-TDCustomAttribute -ComponentID Asset -AuthenticationToken $AuthenticationToken -Environment $Environment
-    }
-    Process
-    {
-        # Machine name is in ItemTitle, find matching machine
-        foreach ($Entry in $FeedEntry)
-        {
-            $AssetFound = $false
-            $AssetSearch = Get-TDAsset -SearchText $Entry.ItemTitle -AuthenticationToken $AuthenticationToken -Environment $Environment
-            foreach ($Asset in $AssetSearch)
-            {
-                if ($Asset.Name -match $Entry.ItemTitle)
-                {
-                    $AssetFound = $true
-                    # Get asset with full detail
-                    $Asset = Get-TDAsset -ID $Asset.ID -AuthenticationToken $AuthenticationToken -Environment $Environment
-                    break
-                }
-            }
-            if ($AssetFound)
-            {
-                Write-Host $Asset.Name
-                $Changes = @()
-                $BodyLines = $Entry.body -split '<br/>'
-                foreach ($BodyLine in $BodyLines)
-                {
-                    $IsChange = $BodyLine -match '^Changed (.*) from "(.*)" to "(.*)"\.$'
-                    if ($IsChange)
-                    {
-                        if ($Matches.Count -ne 4)
-                        {
-                            Write-ActivityHistory -MessageChannel 'Error' -ThrowError -Message 'Bad match'
-                        }
-                        $Attribute     = $Matches[1]
-                        $OriginalValue = $Matches[2]
-                        # Current value is $Matches[3], in case that's interesting
-                        if ($Matches[3] -eq 'Nothing')
-                        {
-                            Write-Host "`tFix $Attribute by replacing with $OriginalValue"
-                            $Changes += @{$Attribute = $OriginalValue}
-                        }
-                    }
-                }
-                $ModifiedAttributes = @()
-                foreach ($Change in $Changes)
-                {
-                    # Check to see if the change is to a property or an attribute
-                    if ($Change.Keys[0] -in $Asset.psobject.Properties.Name) # Property
-                    {
-                        $Asset.$($Change.Keys[0]) = $Change.Values[0]
-                    }
-                    else # Attribute
-                    {
-                        $ChangeAttribute = $AllAssetAttributes | Where-Object Name -Match $Change.Keys[0]
-                        if ($ChangeAttribute.Choices)
-                        {
-                            $ChangeAttributeChoice = $ChangeAttribute.Choices | Where-Object Name -Match $Change.Values[0]
-                            $ModifiedAttributes += @{ID=$ChangeAttribute.ID; Value=$ChangeAttributeChoice.ID}
-                        }
-                        else
-                        {
-                            $ModifiedAttributes += @{ID=$ChangeAttribute.ID; Value=$Change.Values[0]}
-                        }
-                    }
-                }
-                $AddAttributes = @()
-                # Check list of attributes currently in TD asset to see if it is being replaced
-                foreach ($Attribute in $Asset.Attributes)
-                {
-                    if ($Attribute.ID -notin $ModifiedAttributes.ID) # Not being replaced, add it to the list
-                    {
-                        $AddAttributes += $Attribute
-                    }
-                }
-                # Add existing attributes to new attributes
-                $AddAttributes += $ModifiedAttributes
-                # Replace existing attributes on asset with new ones
-                $Asset.Attributes = $AddAttributes
-                Write-ActivityHistory ($Asset | Out-String)
-                Write-ActivityHistory ($asset.Attributes | ConvertTo-Json -Depth 10)
-                return $Asset
-            }
-            else
-            {
-                Write-ActivityHistory -MessageChannel 'Error' -Message "Asset, $($Entry.ItemTitle), not found."
-            }
-            Write-Host ""
-        }
-    }
-}
-
-<# Set
-$InvokeParams = [pscustomobject]@{
-    # Configurable parameters
-    RetrievalCommand = "Get-TDAsset -ID $ID -AppID $AppID"
-    ObjectType = 'TeamDynamix_Api_Assets_Asset'
-    Endpoint   = "$AppID/assets/$ID"
-    AppID      = $AppID
-    DynamicParameterDictionary = $DynamicParameterDictionary
-    # Fixed parameters
-    ParameterSetName    = $pscmdlet.ParameterSetName
-    BoundParameters     = $MyInvocation.BoundParameters.Keys
-    Environment         = $Environment
-    AuthenticationToken = $AuthenticationToken
-}
-$Return = $InvokeParams | Invoke-New
-return $Return
-
-#>
+#endregion

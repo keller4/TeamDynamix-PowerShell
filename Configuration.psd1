@@ -12,12 +12,6 @@
             DefaultTicketingApp = 'Tickets'
             DefaultPortalApp    = 'Client Portal'
 
-            # TeamDynamix API target
-            DefaultTDBaseURI          = 'https://api.teamdynamix.com'
-            DefaultTDPreviewBaseURI   = 'https://api.teamdynamixpreview.com'
-            DefaultTDSandboxTargetURI = '/SBTDWebApi/api'
-            DefaultTDTargetURI        = '/TDWebApi/api'
-
             # TeamDynamix portal target
             DefaultTDPortalBaseURI          = 'https://osuasc.teamdynamix.com'
             DefaultTDPortalPreviewBaseURI   = 'https://osuasc.teamdynamixpreview.com'

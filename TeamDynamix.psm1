@@ -77,6 +77,12 @@ $script:TimeZoneIDReference = [ordered]@{
     44 = 'Pakistan Time(GMT+05:00)'
     62 = 'Afghanistan Time(GMT+04:30)'}
 
+# TeamDynamix API target
+$script:DefaultTDBaseURI          = 'https://api.teamdynamix.com'
+$script:DefaultTDPreviewBaseURI   = 'https://api.teamdynamixpreview.com'
+$script:DefaultTDSandboxTargetURI = '/SBTDWebApi/api'
+$script:DefaultTDTargetURI        = '/TDWebApi/api'
+
 # PowerShell and TeamDynamix standard parameters to be ignored (use carefully, parameters inside TD's API that match these names will never be updated)
 $script:GlobalIgnoreParameters = @(
     'AuthenticationToken'

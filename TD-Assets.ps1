@@ -1,144 +1,5 @@
 ﻿### Assets
 
-<#
-.Synopsis
-    Get an asset in TeamDynamix
-.DESCRIPTION
-    Get an asset in TeamDynamix. Specify the asset ID number
-    or search using the text of the asset tag, serial number, supplier name,
-    product model name, or manufacturer name.
-.PARAMETER ID
-    Asset ID to retrieve from TeamDynamix. Always returns full detail. No
-    other search options return full detail without setting -Detail.
-.PARAMETER SearchText
-    Text to search for in assets. Searches the text of the asset tag, serial
-    number, supplier name, product model name, or manufacturer name.
-.PARAMETER SerialLike
-    LIKE search for asset serial number and tag.
-.PARAMETER Detail
-    Return full detail for asset. Default searches return partial detail.
-.PARAMETER Exact
-    Return only the asset that exactly matches the name (SearchText) or the
-    serial number (SerialLike). Searches that don't include SearchText or
-    SerialLike will ignore this setting.
-.PARAMETER SavedSearchID
-    Retrieve assets with specific saved search ID.
-.PARAMETER StatusIDs
-    Retrieve assets with specific status IDs.
-.PARAMETER ExternalIDs
-    Retreive assets with specific external IDs.
-.PARAMETER IsInService
-    Retrieve only assets that are in/out of service.
-.PARAMETER StatusIDsPast
-    Retrieve only assets with specific past status IDs.
-.PARAMETER SupplierIDs
-    Retrieve assets with specified supplier IDs.
-.PARAMETER ManufacturerIDs
-    Retrieve assets with specified manufacturer IDs.
-.PARAMETER LocationIDs
-    Retrieve assets with specified location IDs.
-.PARAMETER LocationLike
-    Retrieve assets from locations with names like the one specified.
-.PARAMETER RoomID
-    Retrieve assets with specific room ID.
-.PARAMETER RoomLike
-    Retrieve assets from rooms with names like the one specified.
-.PARAMETER ExactLocation
-    When using LocationLike and RoomLike searches, only return results that
-    match the query exactly.
-.PARAMETER ParentIDs
-    Retrieve assets with specified parent asset IDs.
-.PARAMETER ContractIDs
-    Retrieve assets with specified contract IDs.
-.PARAMETER ExcludeContractIDs
-    Retrieve assets with contract IDs not specified.
-.PARAMETER TicketIDs
-    Retrieve assets with specified ticket IDs.
-.PARAMETER FormIDs
-    Retrieve assets with specified form IDs.
-.PARAMETER ExcludeTicketIDs
-    Retrieve assets with ticket IDs not specified.
-.PARAMETER ProductModelIDs
-    Retrieve assets with specified product model IDs.
-.PARAMETER MaintenanceScheduleIDs
-    Retrieve assets with specified maintenance schedule IDs.
-.PARAMETER UsingDepartmentIDs
-    Retrieve assets with specified using-department IDs.
-.PARAMETER RequestingDepartmentIDs
-    Retrieve assets with specified requesting-department IDs.
-.PARAMETER OwningDepartmentIDs
-    Retrieve assets with specified owning-department IDs.
-.PARAMETER OwningDepartmentIDsPast
-    Retrieve assets with specified past owning-department IDs.
-.PARAMETER UsingCustomerIDs
-    Retrieve assets with specified using-customer IDs.
-.PARAMETER RequestingCustomerIDs
-    Retrieve assets with specified requesting-customer IDs.
-.PARAMETER OwningCustomerIDs
-    Retrieve assets with specified owning-customer IDs.
-.PARAMETER OwningCustomerIDsPast
-    Retrieve assets with specified past owning-customer IDs.
-.PARAMETER Attributes
-    Retrieve assets with specified custom attributes.
-.PARAMETER PurchaseCostFrom
-    Retrieve assets with minimum purchase cost.
-.PARAMETER PurchaseCostTo
-    Retrieve assets with maximum purchase cost.
-.PARAMETER ContractProviderID
-    Retrieve assets with specific contract provider ID.
-.PARAMETER AcquisitionDateFrom
-    Retreive assets acquired no earlier than specific date.
-.PARAMETER AcquisitionDateTo
-    Retrieve assets acquired no later than specific date.
-.PARAMETER ExpectedReplacementDateFrom
-    Retreive assets expected to be replaced no earlier than specific date.
-.PARAMETER ExpectedReplacementDateTo
-    Retreive assets expected to be replaced no later than specific date.
-.PARAMETER ContractEndDateFrom
-    Retreive assets with contracts ending no earlier than specific date.
-.PARAMETER ContractEndDateTo
-    Retreive assets with contracts ending no later than specific date.
-.PARAMETER OnlyParentAssets
-    Retrieve only assets that have child assets
-.PARAMETER MaxResults
-    Maximum number of assets to return. Default 50.
-.PARAMETER AppID
-    Application ID for the asset.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-    C:\>Get-TDAsset -AuthenticationToken $Authentication
-
-    Retrieves all assets from TeamDynamix.
-.EXAMPLE
-    C:\>Get-TDAsset -ID 1752 -AuthenticationToken $Authentication
-
-    Retrieves asset number 1752 from TeamDynamix with full detail.
-.EXAMPLE
-    C:\>Get-TDAsset -SearchText cisco -Detail -AuthenticationToken $Authentication
-
-    Retrieves first 50 assets containing the text "cisco" from TeamDynamix,
-    with full detail.
-.EXAMPLE
-    C:\>$TaG18Complete = @('TaG18 Complete','Yes')
-    C:\>Get-TDAsset -Attributes $TaG18Complete
-
-    Retrieves assets whose 'TaG18 Complete' status is 'Yes', with minimal
-    detail.
-.EXAMPLE
-    C:\>Get-TDAsset -SearchText 'Team5Laptop1' -Exact -AuthenticationToken $Authentication
-
-    Retrieves only assets whose name matches "Team5Laptop1", if any, from
-    TeamDynamix, with minimal detail.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
-function Get-TDAsset
 {
     [CmdletBinding(DefaultParameterSetName='Search')]
     Param
@@ -631,30 +492,6 @@ function Get-TDAsset
     }
 }
 
-<#
-.Synopsis
-    Get list of users/departments attached to an asset from TeamDynamix
-.DESCRIPTION
-    Get list of users/departments attached to an asset from TeamDynamix.
-.PARAMETER ID
-    ID of asset whose attached users/departments will be retrieved.
-.PARAMETER AppID
-    Application ID for the asset.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-    C:\>Get-TDAssetResource -ID 1055 -AuthenticationToken $Authentication
-
-    Retrieves list of all users/departments attatched to asset ID 1055 from
-    TeamDynamix.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function Get-TDAssetResource
 {
     [CmdletBinding(DefaultParameterSetName='ID')]
@@ -726,82 +563,6 @@ function Get-TDAssetResource
     }
 }
 
-<#
-.Synopsis
-    Create an asset in TeamDynamix
-.DESCRIPTION
-    Create a new asset in TeamDynamix. Status ID and serial number are
-    required. Get list of valid status IDs from Get-TDAssetStatus.
-.PARAMETER SerialNumber
-    Serial number of asset to add to TeamDynamix.
-.PARAMETER StatusID
-    Status ID for new asset in TeamDynamix. Get list of valid statuses from
-    Get-AssetStatus.
-.PARAMETER FormID
-    Form ID for new asset in TeamDynamix. Get a list of valid forms from
-    Get-TDAssetForm.
-.PARAMETER LocationID
-    Location ID for new asset in TeamDynamix.
-.PARAMETER LocationRoomID
-    Room ID for new asset in TeamDynamix.
-.PARAMETER LocationName
-    Location name for asset in TeamDynamix.
-.PARAMETER LocationRoomName
-    Room name for asset in TeamDynamix.
-.PARAMETER ParentID
-    Parent ID for new asset in TeamDynamix.
-.PARAMETER ProductModelID
-    Product model ID for new asset in TeamDynamix.
-.PARAMETER MaintenanceScheduleID
-    Maintenance schedule ID for new asset in TeamDynamix.
-.PARAMETER OwningDepartmentID
-    Owning department ID for new asset in TeamDynamix.
-.PARAMETER PurchaseCost
-    Purchase cost of new asset in TeamDynamix.
-.PARAMETER Tag
-    Asset tag number for new asset in TeamDynamix.
-.PARAMETER RequestingCustomerID
-    Requesting customer ID for new asset in TeamDynamix.
-.PARAMETER OwningCustomerID
-    Owning customer ID for new asset in TeamDynamix.
-.PARAMETER RequestingDepartmentID
-    Requesting department ID for new asset in TeamDynamix.
-.PARAMETER Attributes
-    Custom attributes for new asset in TeamDynamix. Format as hashtable.
-.PARAMETER AcquisitionDate
-    Purchase date of new asset in TeamDynamix.
-.PARAMETER ExpectedReplacementDate
-    Expected replacement date of new asset in TeamDynamix.
-.PARAMETER ExternalID
-    Local ID number for new asset in TeamDynamix.
-.PARAMETER AppID
-    Application ID for the asset.
-.PARAMETER Passthru
-    Return newly created asset as an object.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-    C:\>New-TDAsset -SerialNumber 1055 - StatusID 3042 -AuthenticationToken $Authentication
-
-    Creates a new asset in TeamDynamix.
-.EXAMPLE
-    C:\>$Asset1 | New-TDAsset -AuthenticationToken $Authentication
-
-    Using an object, create a new asset from the pipeline in TeamDynamix.
-.EXAMPLE
-    C:\>$ExceptionFiledID = (Get-TDCustomAttribute -ComponentID Asset | Where-Object Name -eq 'ExceptionFiled').ID
-    C:\>$ExceptionFiledYesID = ((Get-TDCustomAttribute -ComponentID Asset | Where-Object Name -eq 'ExceptionFiled').Choices | Where-Object Name -eq 'Yes').ID
-    C:\>New-TDAsset -SerialNumber 1055 - StatusID 3042 -Attributes @{ID=$ExceptionFiledID;Value=$ExceptionFiledYesID}
-
-    Creates a new asset in TeamDynamix with a custom attribute.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function New-TDAsset
 {
     [CmdletBinding(SupportsShouldProcess=$true)]
@@ -1121,113 +882,6 @@ function New-TDAsset
     }
 }
 
-<#
-.Synopsis
-    Modify an asset or assets in TeamDynamix
-.DESCRIPTION
-    Modify properties of a single asset or process bulk asset updates in
-    TeamDynamix. Bulk updates handle up to 1,000 assets at a time. For bulk
-    updates, use the CreateItems and UpdateItems parameters to specify if
-    updates should create new items as necessary and/or update existing items.
-    By default, both CreateItems and UpdateItems are set to create and/or
-    update as necessary.
-.PARAMETER ID
-    ID number of the asset to modify in TeamDynamix.
-.PARAMETER SerialNumber
-    New serial number of asset in TeamDynamix.
-.PARAMETER StatusID
-    New status ID for asset in TeamDynamix. Get list of valid statuses from
-    Get-TDAssetStatus.
-.PARAMETER FormID
-    New form ID for asset in TeamDynamix. Get list of valid forms from
-    Get-TDAssetForm
-.PARAMETER LocationID
-    New location ID for asset in TeamDynamix.
-.PARAMETER LocationRoomID
-    New room ID for asset in TeamDynamix.
-.PARAMETER LocationName
-    New location name for asset in TeamDynamix.
-.PARAMETER LocationRoomName
-    New room name for asset in TeamDynamix.
-.PARAMETER ParentID
-    New parent ID for asset in TeamDynamix.
-.PARAMETER ProductModelID
-    New product model ID for asset in TeamDynamix.
-.PARAMETER MaintenanceScheduleID
-    New maintenance schedule ID for asset in TeamDynamix.
-.PARAMETER OwningDepartmentID
-    New owning department ID for asset in TeamDynamix.
-.PARAMETER PurchaseCost
-    New purchase cost of asset in TeamDynamix.
-.PARAMETER Tag
-    New asset tag number for asset in TeamDynamix.
-.PARAMETER RequestingCustomerID
-    New requesting customer ID for asset in TeamDynamix.
-.PARAMETER OwningCustomerID
-    New Owning customer ID for asset in TeamDynamix.
-.PARAMETER RequestingDepartmentID
-    New requesting department ID for asset in TeamDynamix.
-.PARAMETER Attributes
-    New custom attributes for asset in TeamDynamix. Format as hashtable.
-.PARAMETER AcquisitionDate
-    New purchase date of asset in TeamDynamix.
-.PARAMETER ExpectedReplacementDate
-    Expected replacement date of asset in TeamDynamix.
-.PARAMETER ExternalID
-    New local ID number for asset in TeamDynamix.
-.PARAMETER AppID
-    Application ID for the asset.
-.PARAMETER RemoveAttributes
-    Names of custom attributes that should be removed from the asset.
-.PARAMETER Bulk
-    Indicates that this will be a bulk update. Bulk updates require input data
-    in form of an array of TeamDynamix.Api.Assets.Asset.
-.PARAMETER Items
-    Bulk asset update data. Maximum of 1,000 items at a time.
-.PARAMETER CreateItems
-    Create new items as part of bulk update.
-.PARAMETER UpdateItems
-    Update existing items as part of bulk update
-.PARAMETER Passthru
-    Return updated asset as an object.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-    C:\>Set-TDAsset -ID 5504 - StatusID 3042 -AuthenticationToken $Authentication
-
-    Set new status ID for asset ID 5504 in TeamDynamix.
-.EXAMPLE
-    C:\>$Asset1 | Set-TDAsset -AuthenticationToken $Authentication
-
-    Using an object, modify existing asset from the pipeline in TeamDynamix.
-.EXAMPLE
-    C:\>$ExceptionFiledID = (Get-TDCustomAttribute -ComponentID Asset | Where-Object Name -eq 'Exception Filed').ID
-    C:\>$ExceptionFiledYesID = ((Get-TDCustomAttribute -ComponentID Asset | Where-Object Name -eq 'Exception Filed').Choices | Where-Object Name -eq 'Yes').ID
-    C:\>Set-TDAsset -ID 5504 -Attributes @{ID=$ExceptionFiledID;Value=$ExceptionFiledYesID}
-
-    Adds or sets a custom attribute on an asset in TeamDynamix.
-.EXAMPLE
-    C:\>Set-TDAsset -ID 5504 -Attributes @(@('Encryption Status','Encrypted'),@('Exception Filed','Yes'))
-
-    Adds or sets two custom attributes on an asset in TeamDynamix.
-.EXAMPLE
-    C:\>Set-TDAsset -ID 5504 -RemoveAttributes ('Encryption Status','Exception Filed')
-
-    Removes two specified custom attributes to an asset in TeamDynamix.
-.EXAMPLE
-    C:\>Set-TDAsset -ID 5504 -Attributes @('Multi-Select','FirstChoice,ThirdChoice')
-
-    Adds specified custom attribute that offers multiple choices to an asset in
-    TeamDynamix. Use a comma-separated string for the choices.
-
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function Set-TDAsset
 {
     [CmdletBinding(SupportsShouldProcess=$true,
@@ -1653,47 +1307,6 @@ function Set-TDAsset
     }
 }
 
-<#
-.Synopsis
-    Get asset statuses from TeamDynamix
-.DESCRIPTION
-    Get asset statuses from TeamDynamix. Retrieve asset status by ID, search by
-    text, or whether the asset status is active or out of service. Includes
-    statuses such as "In Use" and "Retired".
-.PARAMETER ID
-    ID of the asset status to retrieve.
-.PARAMETER SearchText
-    Text to search for in the asset status. "Filter" may be used instead of
-    "SearchText".
-.PARAMETER IsActive
-    Sets whether the asset status is active for the search.
-.PARAMETER IsOutOfService
-    Sets whether the asset status is out of service for the search.
-.PARAMETER AppID
-    Application ID for the asset status.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-    C:\>Get-TDAssetStatus -AuthenticationToken $Authentication
-
-    Retrieves the list of all asset statuses from TeamDynamix.
-.EXAMPLE
-    C:\Get-TDAssetStatus -ID 2377 -AuthenticationToken $Authentication
-
-    Retrieves asset status with ID 2377 from TeamDynamix.
-.EXAMPLE
-    C:\Get-TDAssetStatus -SearchText 'Use' -IsActive $false -IsOutOfService $true
-
-    Retrieves asset statuses containing the word "Use", which are not active
-    and which are out of service.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function Get-TDAssetStatus
 {
     [CmdletBinding(DefaultParameterSetName='Search')]
@@ -1789,39 +1402,6 @@ function Get-TDAssetStatus
     }
 }
 
-<#
-.Synopsis
-    Create a new asset status in TeamDynamix
-.DESCRIPTION
-    Creates a new asset status in TeamDynamix.
-.PARAMETER Name
-    Name of the new asset status to create.
-.PARAMETER Description
-    Description of the new asset status to create.
-.PARAMETER Order
-    The order of the new asset status in lists.
-.PARAMETER IsActive
-    Sets whether the asset status is active. Default: true.
-.PARAMETER IsOutOfService
-    Sets whether the asset status is out of service. Default: false.
-.PARAMETER AppID
-    Application ID for the asset status.
-.PARAMETER Passthru
-    Return newly created asset as an object.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-    C:\>New-TDAssetStatus -Name 'New Status' -Description 'New asset status' -AuthenticationToken $Authentication
-
-    Creates a new active asset statuses in TeamDynamix.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function New-TDAssetStatus
 {
     [CmdletBinding(SupportsShouldProcess=$true,
@@ -1921,39 +1501,6 @@ function New-TDAssetStatus
     }
 }
 
-<#
-.Synopsis
-    Modify an asset status in TeamDynamix
-.DESCRIPTION
-    Modifies an asset status in TeamDynamix.
-.PARAMETER ID
-    ID of the asset status to modify
-.PARAMETER Name
-    New name of the asset status.
-.PARAMETER Description
-    New description of the asset status.
-.PARAMETER Order
-    New order of the asset status in lists.
-.PARAMETER IsActive
-    Set whether the asset status is active.
-.PARAMETER IsOutOfService
-    Set whether the asset status is out of service.
-.PARAMETER AppID
-    Application ID for the asset status.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-    C:\>Set-TDAssetStatus -AuthenticationToken $Authentication
-
-    Retrieves the list of all asset statuses from TeamDynamix.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function Set-TDAssetStatus
 {
     [CmdletBinding(SupportsShouldProcess=$true,
@@ -2055,55 +1602,6 @@ function Set-TDAssetStatus
     }
 }
 
-<#
-.Synopsis
-    Get asset maintenance windows from TeamDynamix
-.DESCRIPTION
-    Gets a specific maintenance window or searches for matching windows
-    from TeamDynamix. Get a list of all active maintenance windows, or use the
-    -filter option to match on a substring from the schedule name. Maintenance
-    windows are specific to the asset application.
-.PARAMETER ID
-    ID of maintenance window to get.
-.PARAMETER NameLike
-    Substring search filter. May also use "Filter" instead of "NameLike".
-.PARAMETER IsActive
-    Boolean to limit return set to active maintenance windows ($true), inactive
-    maintenance windows ($false), or all ($null).
-.PARAMETER AppID
-    Application ID for the maintenance window.
-.PARAMETER Exact
-    Return only a single unambiguous match for NameLike searches. If search
-    was ambiguous, that is, matched more than one location or room, return no
-    result at all.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-   C:\>Get-TDMaintenanceWindow -ID 6331 -AuthenticationToken $Authentication
-
-   Returns a maintenance window with ID 6331.
-.EXAMPLE
-   C:\>Get-TDMaintenanceWindow -AuthenticationToken $Authentication
-
-   Returns a list of all active maintenance windows.
-.EXAMPLE
-   C:\>Get-TDMaintenanceWindow -IsActive $null -AuthenticationToken $Authentication
-
-   Returns a list of all maintenance windows, including active and inactive
-   windows.
-.EXAMPLE
-   C:\>Get-TDMaintenanceWindow -Filter Cisco -AuthenticationToken $Authentication -IsActive $false
-
-   Returns list of inactive maintenance windows with the word, "Cisco" in
-   the name in the of the schedule.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function Get-TDMaintenanceWindow
 {
     [CmdletBinding(DefaultParameterSetName='Search')]
@@ -2201,38 +1699,6 @@ function Get-TDMaintenanceWindow
     }
 }
 
-<#
-.Synopsis
-    Create a new maintenance window in TeamDynamix
-.DESCRIPTION
-    Creates a new maintenance window in TeamDynamix. Maintenance windows are
-    specific to the asset application.
-.PARAMETER Name
-    Name of maintenance window.
-.PARAMETER Description
-    Description of maintenance window.
-.PARAMETER TimeZoneID
-    ID number of Time Zone.
-.PARAMETER IsActive
-    Set whether maintenance window is active or not. Default: true.
-.PARAMETER AppID
-    Application ID for the maintenance window.
-.PARAMETER Passthru
-    Return newly created asset as an object.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-   C:\>New-TDMaintenanceWindow -Name 'New maintenance window' -Description 'Maintenance window for assets' -AuthenticationToken $Authentication
-
-   Creates a new active maintenance window named, "New maintenance window".
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function New-TDMaintenanceWindow
 {
     [CmdletBinding(SupportsShouldProcess=$true,
@@ -2334,37 +1800,6 @@ function New-TDMaintenanceWindow
     }
 }
 
-<#
-.Synopsis
-    Modify a maintenance window in TeamDynamix
-.DESCRIPTION
-    Modifies a maintenance window in TeamDynamix.
-.PARAMETER ID
-    ID of mainteance window to modify in TeamDynamix.
-.PARAMETER Name
-    Name of maintenance window.
-.PARAMETER Description
-    Description of maintenance window.
-.PARAMETER TimeZoneID
-    ID number of Time Zone.
-.PARAMETER IsActive
-    Set whether maintenance windows is active or not.
-.PARAMETER AppID
-    Application ID for the maintenance window.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-   C:\>New-TDMaintenanceWindow -Name 'New maintenance window' -Description 'Maintenance window for assets' -AuthenticationToken $Authentication
-
-   Creates a new active maintenance window named, "New maintenance window".
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function Set-TDMaintenanceWindow
 {
     [CmdletBinding(SupportsShouldProcess=$true,
@@ -2468,60 +1903,6 @@ function Set-TDMaintenanceWindow
     }
 }
 
-<#
-.Synopsis
-    Get asset vendor from TeamDynamix
-.DESCRIPTION
-    Gets a specific vendor or searches for matching vendors
-    from TeamDynamix. Get a list of all active vendors, or use the -SearchText
-    option to match on a substring from the vendors name, description, account
-    number, or primary contact name. Or use the -NameLike option to match on a
-    vendor name (optionally add -Exact to only match the vendor name exactly).
-.PARAMETER ID
-    Search for a specific vendor ID.
-.PARAMETER SearchText
-    Substring search filter on name, description, and primary contact name.
-.PARAMETER NameLike
-    Filter on vendor name only.
-.PARAMETER IsActive
-    Boolean to limit return set to active users ($true), or inactive users
-    ($false).
-.PARAMETER OnlyManufacturers
-    Boolean to limit to vendors who are manufacturers, or not.
-.PARAMETER OnlySuppliers
-    Boolean to limit to vendors who are suppliers, or not.
-.PARAMETER OnlyContractProviders
-    Boolean to limit to vendors who are contract providers, or not.
-.PARAMETER CustomAttributes
-    Custom attributes to filter on.
-.PARAMETER AppID
-    Application ID for the vendor.
-.PARAMETER Exact
-    Return only a single unambiguous match for NameLike searches. If search
-    was ambiguous, that is, matched more than one location or room, return no
-    result at all.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-   C:\>Get-TDVendor -IsActive $Null -AuthenticationToken $Authentication
-
-   Returns a list of all active vendors, including inactive vendors.
-.EXAMPLE
-   C:\>Get-TDVendor -AuthenticationToken $Authentication
-
-   Returns a list of all active vendors.
-.EXAMPLE
-   C:\>Get-TDVendor -filter Cisco -AuthenticationToken $Authentication -IsActive $false
-
-   Returns list of vendors with the word, "Cisco" in the name.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function Get-TDVendor
 {
     [CmdletBinding(DefaultParameterSetName='Search')]
@@ -2649,61 +2030,6 @@ function Get-TDVendor
     }
 }
 
-<#
-.Synopsis
-    Get the list of all product models from TeamDynamix
-.DESCRIPTION
-    Get the list of all product models from TeamDynamix.
-.PARAMETER ID
-    Product model ID to retrieve from TeamDynamix.
-.PARAMETER SearchText
-    Substring search filter.
-.PARAMETER ManufacturerID
-    Filter product model based on manufacturer ID.
-.PARAMETER ProductTypeID
-    Filter product model based on product type ID.
-.PARAMETER IsActive
-    Boolean to limit return set to active configuration item types ($true),
-    inactive configuration item types ($false), or all ($null). Default is all.
-.PARAMETER Attributes
-    Array of custom attributes to filter configuration items returned.
-.PARAMETER AppID
-    Application ID for the product type.
-.PARAMETER Detail
-    Return full detail for product model.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-    C:\>Get-TDProductModel -AuthenticationToken $Authentication
-
-    Retrieves the list of all active product models from TeamDynamix.
-.EXAMPLE
-    C:\>Get-TDProductModel -ID 5564 -AuthenticationToken $Authentication
-
-    Retrieves product model ID 5564 from TeamDynamix.
-.EXAMPLE
-    C:\>$ExceptionFiledID = (Get-TDCustomAttribute -ComponentID Asset | Where-Object Name -eq 'Exception Filed').ID
-    C:\>$ExceptionFiledYesID = ((Get-TDCustomAttribute -ComponentID Asset | Where-Object Name -eq 'Exception Filed').Choices | Where-Object Name -eq 'Yes').ID
-    C:\>Get-TDProductModel -ID 5504 -Attributes @($ExceptionFiledID,$ExceptionFiledYesID)
-
-    Retrieves a product model using a custom attribute in TeamDynamix.
-.EXAMPLE
-    C:\>Get-TDProductModel -ID 5504 -Attributes @(@('Encryption Status','Encrypted'),@('Exception Filed','Yes'))
-
-    Retrieves a product model using two custom attributes in TeamDynamix.
-.EXAMPLE
-    C:\>Get-TDProductModel -SearchText "Laptop" -Detail -AuthenticationToken $Authentication
-
-    Retrieves the full detail for product models with a name like "Laptop" from
-    TeamDynamix.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function Get-TDProductModel
 {
     [CmdletBinding(DefaultParameterSetName='Search')]
@@ -2836,37 +2162,6 @@ function Get-TDProductModel
     }
 }
 
-<#
-.Synopsis
-    Adds a comment to the asset feed for an asset in TeamDynamix
-.DESCRIPTION
-    Adds a comment to the asset feed for an asset in TeamDynamix.
-.PARAMETER ID
-    ID of asset whose feed will be updated.
-.PARAMETER Comments
-    Comment to be added to asset feed.
-.PARAMETER Notify
-    Email addresses of individuals to notify with the comment.
-.PARAMETER IsPrivate
-    Switch to indicate if the comment should be flagged as private. Default is
-    "not private".
-.PARAMETER AppID
-    Application ID for the asset.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-    C:\>Add-TDAssetComment -ID 1055 -Comment "Don't update this system without consult." -AuthenticationToken $Authentication
-
-    Adds the comment to not update the system without consultation to asset
-    ID 1055 in TeamDynamix.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function Add-TDAssetComment
 {
     [CmdletBinding()]
@@ -2955,33 +2250,6 @@ function Add-TDAssetComment
     }
 }
 
-<#
-.Synopsis
-    Add a file attachment to an asset in TeamDynamix
-.DESCRIPTION
-    Add a file attachment to an asset in TeamDynamix. Returns
-    information regarding the attachment of the form
-    TeamDynamix.Api.Attachments.Attachment.
-.PARAMETER ID
-    ID number of the asset the attachment will be added to in TeamDynamix.
-.PARAMETER FilePath
-    The full path and filename of the file to be added as an attachment.
-.PARAMETER AppID
-    Application ID for the asset.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-    C:\> Add-TDAssetAttachment -ID 111 -FilePath C:\temp\1.jpg -AuthenticationToken $Authentication
-
-    Attaches the file c:\temp\1.jpg to asset ID 111 in TeamDynamix.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>function Add-TDAssetAttachment
 {
     [CmdletBinding(SupportsShouldProcess=$true)]
     Param
@@ -3071,31 +2339,6 @@ function Add-TDAssetComment
     }
 }
 
-<#
-.Synopsis
-    Adds a resource to an asset in TeamDynamix
-.DESCRIPTION
-    Adds a resource (user or group) to an assetin TeamDynamix.
-.PARAMETER ID
-    ID of asset to which the resource will be added.
-.PARAMETER ResourceID
-    Resource ID to be added to the asset.
-.PARAMETER AppID
-    Application ID for the asset.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-    C:\>Add-TDAssetResource -ID 1055 -ResourceID 5039 -AuthenticationToken $Authentication
-
-    Adds resource 5039 to asset ID 1055in TeamDynamix.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function Add-TDAssetResource
 {
     [CmdletBinding()]
@@ -3173,31 +2416,6 @@ function Add-TDAssetResource
     }
 }
 
-<#
-.Synopsis
-    Removes a resource from an asset in TeamDynamix
-.DESCRIPTION
-    Removes a resource (user or group) from an asset in TeamDynamix.
-.PARAMETER ID
-    ID of asset to be removed from the resource.
-.PARAMETER ResourceID
-    Resource ID from which the asset will be removed.
-.PARAMETER AppID
-    Application ID for the asset.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-    C:\>Remove-TDAssetResource -ID 1055 -ResourceID 5039 -AuthenticationToken $Authentication
-
-    Removes asset ID 1055 from resource ID 5039 in TeamDynamix.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function Remove-TDAssetResource
 {
     [CmdletBinding()]
@@ -3275,31 +2493,6 @@ function Remove-TDAssetResource
     }
 }
 
-<#
-.Synopsis
-    Gets list of custom attributes from TeamDynamix
-.DESCRIPTION
-    Gets a list of custom attributes for a specific component from TeamDynamix.
-.PARAMETER ComponentID
-    ID/Name of component whose custom attributes are to be retrieved.
-.PARAMETER AssociatedTypeName
-    Name of ticket type whose custom attributes are to be retrieved.
-.PARAMETER AppID
-    ID of application whose custom attributes are to be retrieved.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-    C:\>Get-TDCustomAttribute -ComponentID Person -AuthenticationToken $Authentication
-
-    Retrieves all custom attributes for users from TeamDynamix.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function Get-TDCustomAttribute
 {
     [CmdletBinding()]
@@ -3395,27 +2588,6 @@ function Get-TDCustomAttribute
     }
 }
 
-<#
-.Synopsis
-    Gets list of choices for specified custom attribute from TeamDynamix
-.DESCRIPTION
-    Gets list of choices for specified custom attribute from TeamDynamix.
-.PARAMETER ID
-    ID of the custom attributes whose choices are to be retrieved.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-    C:\>Get-TDCustomAttributeChoice -ID 1057 -AuthenticationToken $Authentication
-
-    Retrieves valid choices for custom attributes ID 1057 from TeamDynamix.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function Get-TDCustomAttributeChoice
 {
     [CmdletBinding(DefaultParameterSetName='ID')]
@@ -3465,34 +2637,6 @@ function Get-TDCustomAttributeChoice
     }
 }
 
-<#
-.Synopsis
-    Add a choice to the specified custom attribute in TeamDynamix
-.DESCRIPTION
-    Add a choice to the specified custom attribute in TeamDynamix.
-.PARAMETER ID
-    ID of the custom attribute to add a new choice to.
-.PARAMETER Name
-    Name of the new choice.
-.PARAMETER IsActive
-    Sets whether the choice is active. Default: is active.
-.PARAMETER Order
-    Sets the order of the choice in the list. Choices are sorted by Order,
-    then by name, in ascending order. Default: 0.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-    C:\>Add-TDCustomAttributeChoice -ID 365 -Name 'Choice 1' -AuthenticationToken $Authentication
-
-    Adds a choice, "Choice 1" to custom attribute ID 365 in TeamDynamix.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function Add-TDCustomAttributeChoice
 {
     [CmdletBinding(SupportsShouldProcess=$true)]
@@ -3563,29 +2707,6 @@ function Add-TDCustomAttributeChoice
     }
 }
 
-<#
-.Synopsis
-    Removes a choice from the specified custom attribute in TeamDynamix
-.DESCRIPTION
-    Removes a choice from the specified custom attribute in TeamDynamix.
-.PARAMETER ID
-    ID of the custom attribute to remove the choice from.
-.PARAMETER ChoiceID
-    ID of the choice to remove.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-    C:\>Remove-TDCustomAttributeChoice -ID 1057 -ChoiceID 67034 -AuthenticationToken $Authentication
-
-    Removes choice 67034 from custom attribute ID 1057 in TeamDynamix.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function Remove-TDCustomAttributeChoice
 {
     [CmdletBinding(SupportsShouldProcess=$true)]
@@ -3642,37 +2763,6 @@ function Remove-TDCustomAttributeChoice
     }
 }
 
-<#
-.Synopsis
-    Edits a choice for the specified custom attribute in TeamDynamix
-.DESCRIPTION
-     Edits a choice for the specified custom attribute in TeamDynamix.
-.PARAMETER ID
-    ID of the custom attribute whose choice will be edited.
-.PARAMETER ChoiceID
-    ID of the choice to be edited
-.PARAMETER Name
-    Name of the new choice.
-.PARAMETER IsActive
-    Sets whether the choice is active. Default: is active.
-.PARAMETER Order
-    Sets the order of the choice in the list. Choices are sorted by Order,
-    then by name, in ascending order. Default: 0.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-    C:\>Set-TDCustomAttributeChoice -ID 54465 -ChoiceID 3442 -IsActive $false -AuthenticationToken $Authentication
-
-    Sets choice ID 3442 for custom attribute ID 54465 to inactive in
-    TeamDynamix.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function Set-TDCustomAttributeChoice
 {
     [CmdletBinding(SupportsShouldProcess=$true)]
@@ -3760,54 +2850,6 @@ function Set-TDCustomAttributeChoice
     }
 }
 
-<#
-.Synopsis
-    Get configuration item types from TeamDynamix
-.DESCRIPTION
-    Gets a specific configuration item type or searches for matching
-    configuration item types from TeamDynamix. Get a list of all configuration
-    item types, or use the -filter option to match on a substring from the type
-    name.
-.PARAMETER ID
-    ID of configuration item type to get.
-.PARAMETER SearchText
-    Substring search filter.
-.PARAMETER IsActive
-    Boolean to limit return set to active configuration item types ($true),
-    inactive configuration item types ($false), or all ($null).
-.PARAMETER IsOrganizationallyDefined
-    Boolean to limit return set to configuration item types that are
-    organizationally defined.
-.PARAMETER AppID
-    Application ID for the configuration item type.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-   C:\>Get-TDConfigurationItemType -ID 6331 -AuthenticationToken $Authentication
-
-   Returns a configuration item type with ID 6331.
-.EXAMPLE
-   C:\>Get-TDConfigurationItemType -AuthenticationToken $Authentication
-
-   Returns a list of all active configuration item types.
-.EXAMPLE
-   C:\>Get-TDConfigurationItemType -IsActive $null -AuthenticationToken $Authentication
-
-   Returns a list of all configuration item types, including active and
-   inactive types.
-.EXAMPLE
-   C:\>Get-TDConfigurationItemType -Filter Grad -IsActive $false -AuthenticationToken $Authentication
-
-   Returns list of inactive configuration item types with the word, "Grad" in
-   the name in the of the configuration item type.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function Get-TDConfigurationItemType
 {
     [CmdletBinding(DefaultParameterSetName='Search')]
@@ -3899,34 +2941,6 @@ function Get-TDConfigurationItemType
     }
 }
 
-<#
-.Synopsis
-    Create a new configuration item type in TeamDynamix
-.DESCRIPTION
-    Creates a new configuration item type in TeamDynamix.
-.PARAMETER Name
-    Name of configuration item type.
-.PARAMETER IsActive
-    Set whether configuration item type is active or not. Default: true.
-.PARAMETER AppID
-    Application ID for the configuration item type.
-.PARAMETER Passthru
-    Return newly created asset as an object.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-   C:\>New-TDConfigurationItemType -Name 'New configuration item type' -AuthenticationToken $Authentication
-
-   Creates a new active configuration item type named, "New configuration item
-   type".
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function New-TDConfigurationItemType
 {
     [CmdletBinding(SupportsShouldProcess=$true,
@@ -4008,33 +3022,6 @@ function New-TDConfigurationItemType
     }
 }
 
-<#
-.Synopsis
-    Modify a configuration item type in TeamDynamix
-.DESCRIPTION
-    Modifies a configuration item type in TeamDynamix.
-.PARAMETER ID
-    ID of configuration item type to modify in TeamDynamix.
-.PARAMETER Name
-    Name of configuration item type.
-.PARAMETER IsActive
-    Set whether configuration item type is active or not.
-.PARAMETER AppID
-    Application ID for the configuration item type.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-   C:\>Set-TDConfigurationItemType -ID 4531 -Name 'Modified configuration item type' -AuthenticationToken $Authentication
-
-   Modifies configuration item type with ID 4531, to have a new name.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function Set-TDConfigurationItemType
 {
     [CmdletBinding(SupportsShouldProcess=$true,
@@ -4118,50 +3105,6 @@ function Set-TDConfigurationItemType
     }
 }
 
-<#
-.Synopsis
-    Gets a configuration item from TeamDynamix
-.DESCRIPTION
-    Gets the specified configuration item from TeamDynamix.
-.PARAMETER ID
-    ID of the configuration item to be retrieved.
-.PARAMETER AppID
-    Application ID for the configuration item.
-.PARAMETER NameLike
-    Filter configuration items by name.
-.PARAMETER IsActive
-    Boolean to limit return set to active configuration items ($true), or
-    inactive configuation items ($false).
-.PARAMETER TypeIDs
-    List of configuration type IDs whose configuration items are to be
-    retrieved.
-.PARAMETER MaintenanceScheduleIDs
-    List of maintenance schedule IDs whose configuration items are to be
-    retrieved.
-.PARAMETER CustomAttributes
-    Array of custom attributes to filter configuration items returned.
-.PARAMETER Exact
-    Return only a single unambiguous match for NameLike searches. If search
-    was ambiguous, that is, matched more than one location or room, return no
-    result at all.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-    C:\>Get-TDConfigurationItem -AuthenticationToken $Authentication
-
-    Retrieves all active configuration items from TeamDynamix.
-.EXAMPLE
-    C:\>Get-TDConfigurationItem -ID 1057 -AuthenticationToken $Authentication
-
-    Retrieves configuration item with ID 1057 from TeamDynamix.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function Get-TDConfigurationItem
 {
     [CmdletBinding(DefaultParameterSetName='ID')]
@@ -4283,60 +3226,6 @@ function Get-TDConfigurationItem
     }
 }
 
-<#
-.Synopsis
-    Create a configuration item in TeamDynamix
-.DESCRIPTION
-    Create a new configuration item in TeamDynamix. Name and type ID are
-    required. Get list of valid type IDs from Get-TDConfigurationItemType.
-.PARAMETER Name
-    Name of the configuration item.
-.PARAMETER TypeID
-    Type ID of the configuration item. See Get-TDConfigurationItemType for
-    valid type IDs.
-.PARAMETER FormID
-    ID of form to use for the configuration item.
-.PARAMETER AppID
-    Application ID where the configuration item will be created.
-.PARAMETER LocationID
-    Location ID for new configuration item in TeamDynamix.
-.PARAMETER LocationRoomID
-    Room ID for new configuration item in TeamDynamix.
-.PARAMETER OwningDepartmentID
-    Owning department ID for new configuration item in TeamDynamix.
-.PARAMETER OwnerUID
-    Owner ID for new configuration item in TeamDynamix.
-.PARAMETER OwningGroupID
-    Owning group ID number for new configuration item in TeamDynamix.
-.PARAMETER IsActive
-    Set configuration item active/inactive in TeamDynamix.
-.PARAMETER ExternalID
-    Local ID number for new configuration item in TeamDynamix.
-.PARAMETER ExternalSourceID
-    Local ID number for source of new configuration item in TeamDynamix.
-.PARAMETER Attributes
-    Custom attributes for new configuration item in TeamDynamix. Format as
-    hashtable.
-.PARAMETER Passthru
-    Return newly created asset as an object.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-    C:\>New-TDConfigurationItem -Name 'Configuration Item 1' -TypeID 3042 -AuthenticationToken $Authentication
-
-    Creates a new asset in TeamDynamix.
-.EXAMPLE
-    C:\>$CI | New-TDConfigurationItem -AuthenticationToken $Authentication
-
-    Using an object, create a new asset from the pipeline in TeamDynamix.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function New-TDConfigurationItem
 {
     [CmdletBinding(SupportsShouldProcess=$true)]
@@ -4515,54 +3404,6 @@ function New-TDConfigurationItem
     }
 }
 
-<#
-.Synopsis
-    Edit a configuration item in TeamDynamix
-.DESCRIPTION
-    Edit a new configuration item in TeamDynamix. Name and type ID are
-    required. Get list of valid type IDs from Get-TDConfigurationItemType.
-.PARAMETER Name
-    Name of the configuration item.
-.PARAMETER TypeID
-    Type ID of the configuration item. See Get-TDConfigurationItemType for
-    valid type IDs.
-.PARAMETER LocationID
-    Location ID for new configuration item in TeamDynamix.
-.PARAMETER LocationRoomID
-    Room ID for new configuration item in TeamDynamix.
-.PARAMETER OwningDepartmentID
-    Owning department ID for new configuration item in TeamDynamix.
-.PARAMETER OwnerID
-    Owner ID for new configuration item in TeamDynamix.
-.PARAMETER OwningGroupID
-    Owning group ID number for new configuration item in TeamDynamix.
-.PARAMETER IsActive
-    Set configuration item active/inactive in TeamDynamix.
-.PARAMETER ExternalID
-    Local ID number for new configuration item in TeamDynamix.
-.PARAMETER ExternalSourceID
-    Local ID number for source of new configuration item in TeamDynamix.
-.PARAMETER Attributes
-    Custom attributes for new configuration item in TeamDynamix. Format as
-    hashtable.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-    C:\>Set-TDConfigurationItem -Name 'Configuration Item 1' -TypeID 3042 -AuthenticationToken $Authentication
-
-    Creates a new asset in TeamDynamix.
-.EXAMPLE
-    C:\>$CI | Set-TDConfigurationItem -AuthenticationToken $Authentication
-
-    Using an object, create a new asset from the pipeline in TeamDynamix.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function Set-TDConfigurationItem
 {
     [CmdletBinding(SupportsShouldProcess=$true)]
@@ -4721,25 +3562,6 @@ function Set-TDConfigurationItem
     }
 }
 
-<#
-.Synopsis
-    Gets list of active configuration relationship types from TeamDynamix
-.DESCRIPTION
-    Gets list of active configuration relationship types from TeamDynamix.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-    C:\>Get-TDConfigurationRelationshipType -AuthenticationToken $Authentication
-
-    Retrieves list of active configuration relationship types from TeamDynamix.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function Get-TDConfigurationRelationshipType
 {
     [CmdletBinding(DefaultParameterSetName='ID')]
@@ -4804,28 +3626,6 @@ function Get-TDConfigurationRelationshipType
     }
 }
 
-<#
-.Synopsis
-    Gets list of relationships for a configuration item from TeamDynamix
-.DESCRIPTION
-    Gets list of relationships for a configuration item from TeamDynamix.
-.PARAMETER ID
-    ID of configuration item.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-    C:\>Get-TDConfigurationItemRelationship -ID 4056 -AuthenticationToken $Authentication
-
-    Retrieves list of relationships for configuration item ID 4056 from
-    TeamDynamix.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function Get-TDConfigurationItemRelationship
 {
     [CmdletBinding(DefaultParameterSetName='ID')]
@@ -4897,32 +3697,6 @@ function Get-TDConfigurationItemRelationship
     }
 }
 
-<#
-.Synopsis
-    Removes relationship from a configuration item in TeamDynamix
-.DESCRIPTION
-    Removes relationship from a configuration item in TeamDynamix.
-.PARAMETER ID
-    ID of configuration item whose relationship is to be removed.
-.PARAMETER RelationshipID
-    Relationship ID to remove from the configuration item.
-.PARAMETER AppID
-    Application ID for the configuration item.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-    C:\>Remove-TDConfigurationItemRelationship -ID 1055 -RelationshipID 5039 -AuthenticationToken $Authentication
-
-    Removes relationship ID 5039 from configuration item ID 1055 in
-    TeamDynamix.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function Remove-TDConfigurationItemRelationship
 {
     [CmdletBinding()]
@@ -5002,35 +3776,7 @@ function Remove-TDConfigurationItemRelationship
     }
 }
 
-<#
-.Synopsis
-    Add a file attachment to an configuration item in TeamDynamix
-.DESCRIPTION
-    Add a file attachment to an configuration item in TeamDynamix. Returns
-    information regarding the attachment of the form
-    TeamDynamix.Api.Attachments.Attachment.
-.PARAMETER ID
-    ID number of the configuration item the attachment will be added to in
-    TeamDynamix.
-.PARAMETER FilePath
-    The full path and filename of the file to be added as an attachment.
-.PARAMETER AppID
-    Application ID for the configuration item.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-    C:\> Add-TDConfigurationItemAttachment -ID 111 -FilePath C:\temp\1.jpg -AuthenticationToken $Authentication
-
-    Attaches the file c:\temp\1.jpg to configuration item ID 111 in
-    TeamDynamix.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>function Add-TDConfigurationItemAttachment
+function Add-TDConfigurationItemAttachment
 {
     [CmdletBinding(SupportsShouldProcess=$true)]
     Param
@@ -5124,41 +3870,6 @@ function Remove-TDConfigurationItemRelationship
     }
 }
 
-<#
-.Synopsis
-    Adds a relationship between a configuration item and another item in
-    TeamDynamix
-.DESCRIPTION
-    Adds a relationship between a configuration item and another item in
-    TeamDynamix.
-.PARAMETER ID
-    ID of configuration item whose relationship will be updated.
-.PARAMETER OtherItemID
-    Other item to be added with a relationship to configuration item.
-.PARAMETER TypeID
-    Type ID of associated relationship type.
-.PARAMETER isParent
-    If true, the configuration item specified by ID will be the parent, if
-    false, the other item specified by OtherItemID will be the parent.
-.PARAMETER RemoveExisting
-    If true, remove existing type ID and parent combinations. Default is false.
-.PARAMETER AppID
-    Application ID for the configuration item.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-    C:\>Add-TDConfigurationItemRelationship -ID 1055 -TypeID 9945 -OtherItemID 7010 -AuthenticationToken $Authentication
-
-    Adds a relationship of type with ID 9945 between configuration item ID 9945
-    and other item ID 1055 in TeamDynamix.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function Add-TDConfigurationItemRelationship
 {
     [CmdletBinding()]
@@ -5251,50 +3962,6 @@ function Add-TDConfigurationItemRelationship
     }
 }
 
-<#
-.Synopsis
-    Create a product model in TeamDynamix
-.DESCRIPTION
-    Create a new product model in TeamDynamix. Name, product type ID, and
-    manufacturer ID are required.
-.PARAMETER Name
-    Name of the product model.
-.PARAMETER Description
-    Description of the product model.
-.PARAMETER IsActive
-    Set configuration item active/inactive in TeamDynamix. Default is true.
-.PARAMETER ManufacturerID
-    Manufacturer ID for the product model.
-.PARAMETER ProductTypeID
-    Product type ID of the product model.
-.PARAMETER PartNumber
-    Part number for the product model.
-.PARAMETER Attributes
-    Custom attributes for new product model in TeamDynamix. Format as
-    hashtable.
-.PARAMETER AppID
-    Application ID where the product model will be created.
-.PARAMETER Passthru
-    Return newly created asset as an object.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-    C:\>New-TDProductModel -Name 'Product Name 1' -ManufacturerID 3042 -ProductTypeID 7740 -AuthenticationToken $Authentication
-
-    Creates a new product model in TeamDynamix.
-.EXAMPLE
-    C:\>$ProductModel | New-TDProductModel -AuthenticationToken $Authentication
-
-    Using an object, create a new product model from the pipeline in
-    TeamDynamix.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function New-TDProductModel
 {
     [CmdletBinding(SupportsShouldProcess=$true)]
@@ -5421,55 +4088,6 @@ function New-TDProductModel
     }
 }
 
-<#
-.Synopsis
-    Edit a product model in TeamDynamix
-.DESCRIPTION
-    Edit a new product model in TeamDynamix.
-.PARAMETER ID
-    ID of product model to modify in TeamDynamix.
-.PARAMETER Name
-    Name of the product model item.
-.PARAMETER Description
-    Description of the product model.
-.PARAMETER IsActive
-    Set configuration item active/inactive in TeamDynamix. Default is true.
-.PARAMETER ManufacturerID
-    Manufacturer ID for the product model.
-.PARAMETER ProductTypeID
-    Product type ID of the product model.
-.PARAMETER PartNumber
-    Part number for the product model.
-.PARAMETER Attributes
-    Custom attributes for new configuration item in TeamDynamix. Format as
-    hashtable.
-.PARAMETER AppID
-    Application ID where the product model will be created.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-    C:\>Set-TDProductModel -ID 3462 -Name 'Product Name 2' -AuthenticationToken $Authentication
-
-    Creates a new product model in TeamDynamix.
-.EXAMPLE
-    C:\>$ProductModel | Set-TDProductModel -AuthenticationToken $Authentication
-
-    Using an object, create a new product model from the pipeline in
-    TeamDynamix.
-.EXAMPLE
-    C:\>$OutOfSupportID = (Get-TDCustomAttribute -ComponentID ProductModel | Where-Object Name -eq 'OutOfSupport').ID
-    C:\>$OutOfSupportYesID = ((Get-TDCustomAttribute -ComponentID ProductModel | Where-Object Name -eq 'OutOfSupport').Choices | Where-Object Name -eq 'Yes').ID
-    C:\>Set-TDProductModel -ID 71292 -Attributes @{ID=$OutOfSupportID;Value=$OutOfSupportYesID}
-
-    Set the OutOfSupport custom attribute to "Yes" for product model ID 71292.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function Set-TDProductModel
 {
     [CmdletBinding(SupportsShouldProcess=$true)]
@@ -5599,46 +4217,6 @@ function Set-TDProductModel
     }
 }
 
-<#
-.Synopsis
-    Get product types from TeamDynamix
-.DESCRIPTION
-    Get product types from TeamDynamix. By default, returns top-level types.
-    Use ID parameter to specify an individual product type, or search for a
-    product type. To return all types, use Get-TDProductType -IsTopLevel $null.
-.PARAMETER ID
-    Product type ID to retrieve from TeamDynamix.
-.PARAMETER SearchText
-    Substring search filter.
-.PARAMETER IsActive
-    Boolean to limit return set to active configuration item types ($true),
-    inactive configuration item types ($false), or all ($null). Default is to
-    show active configuration item types.
-.PARAMETER IsTopLevel
-    Boolean to limit return set to top-level product types ($true), child
-    product types ($false), or all ($null). Default is $true.
-.PARAMETER ParentProductTypeID
-    Limit return set product types with the specified parent product type ID.
-.PARAMETER AppID
-    Application ID for the product type.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-    C:\>Get-TDProductType -AuthenticationToken $Authentication
-
-    Retrieves the list of all product types from TeamDynamix.
-.EXAMPLE
-    C:\>Get-TDProductType -ID 5564 -AuthenticationToken $Authentication
-
-    Retrieves product type ID 5564 from TeamDynamix
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function Get-TDProductType
 {
     [CmdletBinding(DefaultParameterSetName='Search')]
@@ -5744,29 +4322,6 @@ function Get-TDProductType
     }
 }
 
-<#
-.Synopsis
-    Internal function to obtain the list of product types.
-.DESCRIPTION
-    Internal service function to obtain the list of product types for the
-    dynamic parameter on Get-TDProductType. Self-references in dynamic
-    parameters produce an infinite loop.
-.PARAMETER AppID
-    Application ID for the product type.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-    C:\>Get-TDProductTypeInt -AuthenticationToken $Authentication
-
-    Retrieves the list of all active product types from TeamDynamix.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function Get-TDProductTypeInt
 {
     [CmdletBinding()]
@@ -5802,45 +4357,6 @@ function Get-TDProductTypeInt
     }
 }
 
-<#
-.Synopsis
-    Create a product type in TeamDynamix
-.DESCRIPTION
-    Create a new product type in TeamDynamix. Name and
-    Order are required.
-.PARAMETER Name
-    Name of the product type.
-.PARAMETER Description
-    Description of the product type.
-.PARAMETER IsActive
-    Set product type active/inactive in TeamDynamix. Default is true.
-.PARAMETER Order
-    Order of the product type among its siblings.
-.PARAMETER ParentID
-    Parent ID of the product type. Set to 0 for a root-level type.
-.PARAMETER AppID
-    Application ID where the product model will be created.
-.PARAMETER Passthru
-    Return newly created asset as an object.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-    C:\>New-TDProductType -Name 'Product Name 1' -Order 3 -AuthenticationToken $Authentication
-
-    Creates a new product type in TeamDynamix.
-.EXAMPLE
-    C:\>$ProductType | New-TDProductType -AuthenticationToken $Authentication
-
-    Using an object, create a new product type from the pipeline in
-    TeamDynamix.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function New-TDProductType
 {
     [CmdletBinding(SupportsShouldProcess=$true)]
@@ -5948,43 +4464,6 @@ function New-TDProductType
     }
 }
 
-<#
-.Synopsis
-    Edits a product type in TeamDynamix
-.DESCRIPTION
-    Edits a product type in TeamDynamix.
-.PARAMETER ID
-    ID of the product type to edit.
-.PARAMETER Name
-    Name of the product type.
-.PARAMETER Description
-    Description of the product type.
-.PARAMETER IsActive
-    Set product type active/inactive in TeamDynamix. Default is true.
-.PARAMETER Order
-    Order of the product type among its siblings.
-.PARAMETER ParentID
-    Parent ID of the product type. Set to 0 for a root-level type.
-.PARAMETER AppID
-    Application ID where the product model will be created.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-    C:\>Set-TDProductType -ID 5599 -Name 'Product Name 2' -AuthenticationToken $Authentication
-
-    Edits a new product type in TeamDynamix.
-.EXAMPLE
-    C:\>$ProductType | Set-TDProductType -AuthenticationToken $Authentication
-
-    Using an object, edits product type from the pipeline in TeamDynamix.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function Set-TDProductType
 {
     [CmdletBinding(SupportsShouldProcess=$true)]
@@ -6109,64 +4588,6 @@ function Set-TDProductType
     }
 }
 
-<#
-.Synopsis
-    Create a new vendor in TeamDynamix
-.DESCRIPTION
-    Create a new vendor in TeamDynamix. The vendor name is required.
-.PARAMETER Name
-    Vendor name.
-.PARAMETER Description
-    Vendor description.
-.PARAMETER IsActive
-    Set whether the vendor is currently active.
-.PARAMETER AccountNumber
-    Vendor account number.
-.PARAMETER IsContractProvider
-    Set whether the vendor is a contract provider.
-.PARAMETER IsManufacturer
-    Set whether the vendor is a manufacturer.
-.PARAMETER IsSupplier
-    Set whether the vendor is a supplier.
-.PARAMETER CompanyInformation
-    Contact information for the vendor. Format as hashtable. See
-    TeamDynamix.Api.Assets.ContactInformation for valid components.
-.PARAMETER ContactName
-    Name of the primary contact for the vendor.
-.PARAMETER ContactTitle
-    Title of the primary contact for the vendor.
-.PARAMETER ContactDepartment
-    Department of the primary contact for the vendor.
-.PARAMETER ContactEmail
-    Email for the primary contact for the vendor.
-.PARAMETER PrimaryContactInformation
-    Contact information for the primary contact for the vendor. Format as
-    hashtable. See TeamDynamix.Api.Assets.ContactInformation for valid
-    components.
-.PARAMETER Attributes
-    Custom attributes for new vendor in TeamDynamix. Format as hashtable.
-.PARAMETER AppID
-    Application ID where the vendor will be created.
-.PARAMETER Passthru
-    Return newly created asset as an object.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-    C:\>New-TDVendor -Name 'Vendor Name 1' -AuthenticationToken $Authentication
-
-    Creates a new vendor in TeamDynamix.
-.EXAMPLE
-    C:\>$ProductType | New-TDVendor -AuthenticationToken $Authentication
-
-    Using an object, create a new vendor from the pipeline in TeamDynamix.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function New-TDVendor
 {
     [CmdletBinding(SupportsShouldProcess)]
@@ -6319,64 +4740,6 @@ function New-TDVendor
     }
 }
 
-<#
-.Synopsis
-    Edits a vendor in TeamDynamix
-.DESCRIPTION
-    Edits a vendor in TeamDynamix. The vendor name is required.
-.PARAMETER ID
-    Vendor ID in TeamDynamix.
-.PARAMETER Name
-    Vendor name.
-.PARAMETER Description
-    Vendor description.
-.PARAMETER IsActive
-    Set whether the vendor is currently active.
-.PARAMETER AccountNumber
-    Vendor account number.
-.PARAMETER IsContractProvider
-    Set whether the vendor is a contract provider.
-.PARAMETER IsManufacturer
-    Set whether the vendor is a manufacturer.
-.PARAMETER IsSupplier
-    Set whether the vendor is a supplier.
-.PARAMETER CompanyInformation
-    Contact information for the vendor. Format as hashtable. See
-    TeamDynamix.Api.Assets.ContactInformation for valid components.
-.PARAMETER ContactName
-    Name of the primary contact for the vendor.
-.PARAMETER ContactTitle
-    Title of the primary contact for the vendor.
-.PARAMETER ContactDepartment
-    Department of the primary contact for the vendor.
-.PARAMETER ContactEmail
-    Email for the primary contact for the vendor.
-.PARAMETER PrimaryContactInformation
-    Contact information for the primary contact for the vendor. Format as
-    hashtable. See TeamDynamix.Api.Assets.ContactInformation for valid
-    components.
-.PARAMETER Attributes
-    Custom attributes for new vendor in TeamDynamix. Format as hashtable.
-.PARAMETER AppID
-    Application ID where the vendor will be created.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-    C:\>Set-TDVendor -ID 5400 -Name 'Updated Vendor Name' -AuthenticationToken $Authentication
-
-    Updates the vendor name in TeamDynamix.
-.EXAMPLE
-    C:\>$ProductType | New-TDVendor -AuthenticationToken $Authentication
-
-    Using an object, edits the vendor from the pipeline in TeamDynamix.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function Set-TDVendor
 {
     [CmdletBinding(SupportsShouldProcess)]
@@ -6531,27 +4894,6 @@ function Set-TDVendor
     }
 }
 
-<#
-.Synopsis
-    Get configuation item forms from TeamDynamix
-.DESCRIPTION
-    Gets all active configuation item forms from TeamDynamix.
-.PARAMETER AppID
-    Application ID for the configuration item form.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-   C:\>Get-TDAssetForm -AuthenticationToken $Authentication
-
-   Returns a list of all active asset forms.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function Get-TDConfigurationItemForm
 {
     [CmdletBinding(DefaultParameterSetName='Search')]
@@ -6617,41 +4959,6 @@ function Get-TDConfigurationItemForm
     }
 }
 
-<#
-.Synopsis
-    Create a new configuration relationship type in TeamDynamix
-.DESCRIPTION
-    Creates a new configuration relationship type in TeamDynamix.
-.PARAMETER Description
-    Description of configuration relationship type from the perspective
-    of the parent configuration item.
-.PARAMETER InverseDescription
-    Description of configuration relationship type from the perspective
-    of the child configuration item.
-.PARAMETER IsOperationalDependency
-    Set whether configuration relationship type constitutes an operational
-    dependency.
-.PARAMETER IsActive
-    Set whether configuration relationship type is active or not. Default:
-    true.
-.PARAMETER AppID
-    Application ID for the configuration relationship type.
-.PARAMETER Passthru
-    Return newly created asset as an object.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-   C:\>New-TDConfigurationRelationshipType -Description 'From parent' -InverseDescription 'From child' -AuthenticationToken $Authentication
-
-   Creates a new active configuration relationship type.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function New-TDConfigurationRelationshipType
 {
     [CmdletBinding(SupportsShouldProcess=$true,
@@ -6745,41 +5052,6 @@ function New-TDConfigurationRelationshipType
     }
 }
 
-<#
-.Synopsis
-    Modify a configuration relationship type in TeamDynamix
-.DESCRIPTION
-    Modifies a configuration relationship type in TeamDynamix.
-.PARAMETER ID
-    ID of configuration relationship type to modify in TeamDynamix.
-.PARAMETER Description
-    Description of configuration relationship type from the perspective
-    of the parent configuration item.
-.PARAMETER InverseDescription
-    Description of configuration relationship type from the perspective
-    of the child configuration item.
-.PARAMETER IsOperationalDependency
-    Set whether configuration relationship type constitutes an operational
-    dependency.
-.PARAMETER IsActive
-    Set whether configuration relationship type is active or not. Default:
-    true.
-.PARAMETER AppID
-    Application ID for the configuration relationship type.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-   C:\>Set-TDConfigurationRelationshipType -ID 4531 -Description 'Modified relationship type' -AuthenticationToken $Authentication
-
-   Modifies configuration relationship type with ID 4531, to have a new name.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function Set-TDConfigurationRelationshipType
 {
     [CmdletBinding(SupportsShouldProcess=$true,

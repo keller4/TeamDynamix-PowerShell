@@ -1,71 +1,5 @@
 ### Locations
 
-<#
-.Synopsis
-    Get a location (building) in TeamDynamix.
-.DESCRIPTION
-    Get information on location (building) in TeamDynamix. Specify the
-    location ID number to select a specific location.
-.PARAMETER ID
-    Location (building) ID to retrieve from TeamDynamix.
-.PARAMETER NameLike
-    Substring search for location (building) name to retrieve from TeamDynamix.
-    Use -Exact for exact text match.
-.PARAMETER IsActive
-    Return only active buildings.
-.PARAMETER IsRoomRequired
-    Return only locations where room is required.
-.PARAMETER RoomID
-    Return only the location that contains the specified room. When combined
-    with the location ID, will return full detail on the specified room.
-.PARAMETER RoomLike
-    Substring search for room name to retrieve from TeamDynamix. Use -Exact for
-    exact text match.
-.PARAMETER ReturnItemCounts
-    Return asset and ticket counts. Not returned by default.
-.PARAMETER ReturnRooms
-    Return rooms contained in each location. Not returned by default.
-.PARAMETER Attributes
-    Retrieve locations (buildings) with specified custom attributes.
-.PARAMETER MaxResults
-    Limit return set. Default 50.
-.PARAMETER Detail
-    Return full detail.
-.PARAMETER Exact
-    Return only a single unambiguous match for NameLike and RoomLike searches.
-    If search was ambiguous, that is, matched more than one location or room,
-    return no result at all.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-    C:\>Get-TDLocation -ID XXXX -AuthenticationToken $Authentication
-
-    Retrieves location (building) with ID XXXX from TeamDynamix.
-.EXAMPLE
-    C:\>Get-TDLocation -AuthenticationToken $Authentication
-
-    Retrieves all active locations (buildings) from TeamDynamix.
-.EXAMPLE
-    C:\>Get-TDLocation -IsActive $null -AuthenticationToken $Authentication
-
-    Retrieves all locations (buildings), active and inactive from TeamDynamix.
-.EXAMPLE
-    C:\>Get-TDLocation -NameLike 'Smith Hall' -ReturnRooms -AuthenticationToken $Authentication
-
-    Retrieves rooms and location (buildings) with 'Smith Hall' in the location
-    name from TeamDynamix.
-.EXAMPLE
-    C:\>XXXX | Get-TDLocation -AuthenticationToken $Authentication
-
-    Retrieves location (building) with ID XXXX from TeamDynamix.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function Get-TDLocation
 {
     [CmdletBinding(DefaultParameterSetName='Filter')]
@@ -318,30 +252,6 @@ function Get-TDLocation
     }
 }
 
-<#
-.Synopsis
-    Deletes a room from a location (building) in TeamDynamix
-.DESCRIPTION
-    Deletes a room from a location (building) in TeamDynamix. Specify the room and location ID numbers.
-.PARAMETER RoomID
-    Room ID to delete from TeamDynamix.
-.PARAMETER LocationID
-    Location (building) ID containing room to delete from TeamDynamix.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-    C:\>Remove-TDRoom -RoomID XXXX -LocationID YYYY -AuthenticationToken $Authentication
-
-    Removes room with ID XXXX from location (building) with ID YYYY from
-    TeamDynamix.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function Remove-TDRoom
 {
     [CmdletBinding(SupportsShouldProcess=$true)]
@@ -391,53 +301,6 @@ function Remove-TDRoom
     }
 }
 
-<#
-.Synopsis
-    Creates a new location (building) in TeamDynamix
-.DESCRIPTION
-    Creates a new location (building) in TeamDynamix. Also accepts an object
-    on the pipeline that contains all the building information.
-.PARAMETER Name
-    Name of the location (building).
-.PARAMETER Description
-    Description of the location (building).
-.PARAMETER ExternalID
-    External ID of the location (building).
-.PARAMETER IsActive
-    Is the location (building) active.
-.PARAMETER Address
-    Street address of the location (building).
-.PARAMETER City
-    City of the location (building).
-.PARAMETER State
-    State (as in, mailing address) of the location (building).
-.PARAMETER PostalCode
-    Postal code of the location (building).
-.PARAMETER Country
-    Country of the location (building).
-.PARAMETER IsRoomRequired
-    Are rooms required for the location (building).
-.PARAMETER Attributes
-    Custom attributes for the location. Format as hashtable.
-.PARAMETER Latitude
-    Latitude of the location (building).
-.PARAMETER Longitude
-    Longitude of the location (building).
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-    C:\>New-TDLocation -Name 'Smith Hall' -Description 'Student dormitory' -AuthenticationToken $Authentication
-
-    Creates a new location (building) with name "Smith Hall" and description
-    "Student dormitory" in TeamDynamix.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function New-TDLocation
 {
     [CmdletBinding(SupportsShouldProcess=$true,
@@ -562,55 +425,6 @@ function New-TDLocation
     }
 }
 
-<#
-.Synopsis
-    Modifies a location (building) in TeamDynamix
-.DESCRIPTION
-    Modifies  location (building) in TeamDynamix. Also accepts an object
-    on the pipeline that contains all the building information.
-.PARAMETER ID
-    Location (building) ID to modify in TeamDynamix.
-.PARAMETER Name
-    Name of the location (building).
-.PARAMETER Description
-    Description of the location (building).
-.PARAMETER ExternalID
-    External ID of the location (building).
-.PARAMETER IsActive
-    Is the location (building) active.
-.PARAMETER Address
-    Street address of the location (building).
-.PARAMETER City
-    City of the location (building).
-.PARAMETER State
-    State (as in, mailing address) of the location (building).
-.PARAMETER PostalCode
-    Postal code of the location (building).
-.PARAMETER Country
-    Country of the location (building).
-.PARAMETER IsRoomRequired
-    Are rooms required for the location (building).
-.PARAMETER Attributes
-    Custom attributes for the location. Format as hashtable.
-.PARAMETER Latitude
-    Latitude of the location (building).
-.PARAMETER Longitude
-    Longitude of the location (building).
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-    C:\>Set-TDLocation -ID 24447 -Description 'Student dormitory' -AuthenticationToken $Authentication
-
-    Sets the description for location (building) with ID 24447 to "Student
-    dormitory" in TeamDynamix.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function Set-TDLocation
 {
     [CmdletBinding(SupportsShouldProcess=$true,
@@ -756,41 +570,6 @@ function Set-TDLocation
     }
 }
 
-<#
-.Synopsis
-    Creates a new room in a location (building) in TeamDynamix
-.DESCRIPTION
-    Creates a new room in a location (building) in TeamDynamix. Also accepts
-    an object on the pipeline that contains all the room information.
-.PARAMETER ID
-    Location (building) ID that containes the room to create in TeamDynamix
-.PARAMETER Name
-    Room name to create in TeamDynamix.
-.PARAMETER Description
-    Description of the room.
-.PARAMETER Floor
-    Floor in the building of the room.
-.PARAMETER Capacity
-    Capacity of the room (nullable).
-.PARAMETER ExternalID
-    External ID of the room.
-.PARAMETER Attributes
-    Custom attributes for the location. Format as hashtable.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-    C:\>New-TDRoom -ID XXXX -Name '0120' -AuthenticationToken $Authentication
-
-    Creates a new room named, "0120", in location (building) with ID XXXX in
-    TeamDynamix.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function New-TDRoom
 {
     [CmdletBinding(SupportsShouldProcess=$true,
@@ -879,43 +658,6 @@ function New-TDRoom
     }
 }
 
-<#
-.Synopsis
-    Edits a room in a location (building) in TeamDynamix
-.DESCRIPTION
-    Edits a room in a location (building) in TeamDynamix. Also accepts an
-    object on the pipeline that contains all the room information.
-.PARAMETER LocationID
-    Location (building) ID that containes the room to edit in TeamDynamix.
-.PARAMETER RoomID
-    Room ID to edit in TeamDynamix.
-.PARAMETER Name
-    Updated room name.
-.PARAMETER Description
-    Description of the room.
-.PARAMETER Floor
-    Floor in the building of the room.
-.PARAMETER Capacity
-    Capacity of the room (nullable).
-.PARAMETER ExternalID
-    External ID of the room.
-.PARAMETER Attributes
-    Custom attributes for the location. Format as hashtable.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-    C:\>Set-TDRoom -LocationID XXXX -RoomID YYYY -ExternalID '0120' -AuthenticationToken $Authentication
-
-    Sets the external ID to "0120" for room with ID YYYY, in location
-    (building) with ID XXXX in TeamDynamix.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function Set-TDRoom
 {
     [CmdletBinding(SupportsShouldProcess=$true,
