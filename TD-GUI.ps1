@@ -210,13 +210,6 @@ function Get-TDGUILogin
     return $Return
 }
 
-<#
-.SYNOPSIS
-GUI front-end for TeamDynamix local functions
-.DESCRIPTION
-GUI front-end for TeamDynamix local functions, such as updating users, getting
-asset consistency information, and retrieving OSU directory information.
-#>
 function Start-TDGUI
 {
     [CmdletBinding()]

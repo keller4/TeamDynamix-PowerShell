@@ -1,129 +1,5 @@
 ### Time
 
-<#
-.Synopsis
-    Get a time entry in TeamDynamix.
-.DESCRIPTION
-    Get a time entry in TeamDynamix. Specify the time entry ID number or search
-    using the minutes, date, rate, type, workspace, plan, task, ticket,
-    application, status, person, component, time off, billability, or if it is
-    limited. Results will only include time for the current user unless the
-    current user has the Analysis application or is an organization's Web API
-    User.
-.PARAMETER MinutesFrom
-    The minimum number of minutes a time entry can have to be returned. Can be
-    negative. Optional. When omitted or null this is not used for filtering.
-.PARAMETER MinutesTo
-    The maximum number of minutes a time entry can have to be returned. Can be
-    negative. Optional. When omitted or null this is not used for filtering.
-.PARAMETER EntryDateFrom
-    The minimum date the time entry can have to be returned. Optional. When
-    omitted or null this is not used for filtering.
-.PARAMETER EntryDateTo
-    The maximum date the time entry can have to be returned. Optional. When
-    omitted or null this is not used for filtering.
-.PARAMETER CreatedDateFrom
-    The minimum date the time entry can have been created by to be returned.
-    Optional. When omitted or null this is not used for filtering.
-.PARAMETER CreatedDateTo
-    The maximum date the time entry can have been created by to be returned.
-    Optional. When omitted or null this is not used for filtering.
-.PARAMETER StatusDateFrom
-    The minimum status date the time entry can have to be returned. Status
-    date is updated when a time entry is submitted, approved, rejected, etc.
-    Optional. When omitted or null this is not used for filtering.
-.PARAMETER StatusDateTo
-    The maximum status date the time entry can have to be returned. Status date
-    is updated when a time entry is submitted, approved, rejected, etc.
-    Optional. When omitted or null this is not used for filtering.
-.PARAMETER BillRateFrom
-    The minimum billable rate a time entry can have to be returned. Optional.
-    When omitted or null this is not used for filtering.
-.PARAMETER BillRateTo
-    The maximum billable rate a time entry can have to be returned. Optional.
-    When omitted or null this is not used for filtering.
-.PARAMETER CostRateFrom
-    The minimum cost rate a time entry can have to be returned. Optional. When
-    omitted or null this is not used for filtering.
-.PARAMETER CostRateTo
-    The maximum cost rate a time entry can have to be returned. Optional. When
-    omitted or null this is not used for filtering.
-.PARAMETER TimeTypeIDs
-    The list of time type identifiers. If this is empty or null, no filtering
-    will occur, otherwise, only items that use one of the specfified time
-    types will be returned.
-.PARAMETER ProjectOrWorkspaceIDs
-    The list of project, request, or workspace identifiers. If this is empty or
-    null, no filtering will occur, otherwise, only items that use one of the
-    specfified time types will be returned.
-.PARAMETER PlanIDs
-    The list of plan identifiers. If this is empty or null, no filtering will
-    occur, otherwise, only items that use one of the specfified time types will
-    be returned.
-.PARAMETER TaskIDs
-    The list of task identifiers. If this is empty or null, no filtering will
-    occur, otherwise, only items that use one of the specfified time types will
-    be returned.
-.PARAMETER IssueIDs
-    The list of issue identifiers. If this is empty or null, no filtering will
-    occur, otherwise, only items that use one of the specfified time types will
-    be returned.
-.PARAMETER TicketIDs
-    The list of ticket identifiers. If this is empty or null, no filtering will
-    occur, otherwise, only items that use one of the specfified time types will
-    be returned.
-.PARAMETER TicketTaskIDs
-    The list of ticket task identifiers. If this is empty or null, no filtering
-    will occur, otherwise, only items that use one of the specfified time types
-    will be returned.
-.PARAMETER ApplicationIDs
-    The list of application identifiers, typically used with ticketing
-    applications. If this is empty or null, no filtering will occur, otherwise,
-    only items that use one of the specfified time types will be returned.
-.PARAMETER StatusIDs
-    The list of status identifiers. If this is empty or null, no filtering will
-    occur, otherwise, only items that use one of the specfified time types will
-    be returned.
-.PARAMETER PersonUIDs
-    The list of person unique identifiers. If this is empty or null, no
-    filtering will occur, otherwise, only items that use one of the specfified
-    time types will be returned.
-.PARAMETER Components
-    The list of components, allowing results to be focused down to tickets,
-    issues, etc. If this is empty or null, no filtering will occur, otherwise,
-    only items that use one of the specfified time types will be returned.
-.PARAMETER IsTimeOff
-    A value indicating whether only time off entries (true), only non-time off
-    entries (false), or all entries should be returned. Defaults to all
-    entries.
-.PARAMETER IsBillable
-    A value indicating whether only billable entries (true), only non-billable
-    entries (false), or all entries should be returned. Defaults to all
-    entries.
-.PARAMETER IsLimited
-    A value indicating whether only limited entries (true), only non-limited
-    entries (false), or all entries should be returned. Defaults to all
-    entries.
-.PARAMETER MaxResults
-	The maximum number of results to be returned. Defaults to 1000.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-    C:\>Get-TDTime
-
-    Returns all time entries.
-.EXAMPLE
-    C:\>Get-TDTime -ID 77553
-
-    Returns time entry with ID 77553.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function Get-TDTime
 {
     [CmdletBinding(DefaultParameterSetName='Search')]
@@ -361,63 +237,6 @@ function Get-TDTime
     }
 }
 
-<#
-.Synopsis
-    Get time types from TeamDynamix.
-.DESCRIPTION
-    Get time types from TeamDynamix. Use ID parameter to specify an
-    specific time type, or search using ticket, ticket task, request,
-    project, issue, plan task, or workspace.
-.PARAMETER ID
-    Time type ID to retrieve from TeamDynamix.
-.PARAMETER UID
-    UID of user to filter time types.
-.PARAMETER StartDate
-    Start date limiting search for user time types.
-.PARAMETER EndDate
-    End date limiting search for user time types.
-.PARAMETER TicketID
-    Search for time types that are available or applied to ticket ID.
-.PARAMETER TaskID
-    Search for time types that are available or applied to task ID. Requires
-    ticket and application ID or project and plan ID.
-.PARAMETER AppID
-    Search for time types in application. Requires ticket ID.
-.PARAMETER ProjectID
-    Search for time types that are available or applied to project ID.
-.PARAMETER TimeOff
-    Search for time types that are available to a project ID that can be
-    applied as time off.
-.PARAMETER IssueID
-    Search for time types that are available or applied to issue ID. Requires
-    project ID.
-.PARAMETER PlanID
-    Search for time types that are available or applied to plan ID. Requires
-    Project ID and task ID.
-.PARAMETER RequestID
-    Search for time types that are available or applied to request ID.
-.PARAMETER WorkspaceID
-    Search for time types that are available or applied to workspace ID.
-.PARAMETER All
-    Return all available active time types.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-    C:\>Get-TDTimeType -AuthenticationToken $Authentication
-
-    Retrieves the list of all available active time types from TeamDynamix.
-.EXAMPLE
-    C:\>Get-TDTimeType -ID 5564 -AuthenticationToken $Authentication
-
-    Retrieves time type ID 5564 from TeamDynamix.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function Get-TDTimeType
 {
     [CmdletBinding(DefaultParameterSetName='All')]
@@ -610,52 +429,6 @@ function Get-TDTimeType
     }
 }
 
-<#
-.Synopsis
-    Set a time entry in TeamDynamix.
-.DESCRIPTION
-    Modify an existing time entry in TeamDynamix. If the time entry is on a
-    ticket, specify the application ID and ticket ID. If the time entry is on
-    an issue, task, or project, specify the project. If the time entry is on an
-    issue or task, specify the plan ID.
-.PARAMETER TimeID
-    The ID of the time entry. This should be zero or negative when performing an add.
-.PARAMETER ItemID
-    The ID of the item the time entry is entered against.
-.PARAMETER Uid
-    The unique identifier of the user who created the time entry.
-.PARAMETER TimeTypeID
-    The ID of the associated time type.
-.PARAMETER AppID
-    The ID of the associated application. This should be zero except when working with ticketing applications.
-.PARAMETER Component
-    The type of module the ItemID corresponds with.
-.PARAMETER TicketID
-    The ticket identifier. This is useful if the time entry is on a ticket or ticket task. Note that Component, AppID, and ItemID should still be set.
-.PARAMETER Minutes
-    The minutes logged for the time entry.
-.PARAMETER Description
-    The description of the time entry.
-.PARAMETER ProjectID
-    The project identifier. This is used when the time is on an issue, project, or task.
-.PARAMETER PlanID
-    The plan identifier. This is used when the time is on an issue, or task.
-.PARAMETER TimeDate
-    The date the time entry should be recorded for.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-    C:\>Set-TDTime -TimeID 7601 -ItemID 4452 -UID XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX -TimeTypeID 943 -AppID 0
-
-    ??
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function Set-TDTime
 {
     [CmdletBinding(SupportsShouldProcess=$true,
@@ -820,28 +593,6 @@ function Set-TDTime
     }
 }
 
-<#
-.Synopsis
-    Removes a time entry in TeamDynamix
-.DESCRIPTION
-    Removes a time entry or time entries in a list, specified by ID, in
-    TeamDynamix.
-.PARAMETER ID
-    ID of the time entry to be removed.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-    C:\>Remove-TDTime -ID 1057 -AuthenticationToken $Authentication
-
-    Removes time entry ID 1057 from TeamDynamix.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function Remove-TDTime
 {
     [CmdletBinding(SupportsShouldProcess=$true)]
@@ -886,31 +637,6 @@ function Remove-TDTime
     }
 }
 
-<#
-.Synopsis
-    Get locked days in TeamDynamix.
-.DESCRIPTION
-    Get locked days within a time period in TeamDynamix. Time entry is not
-    allowed during locked days.
-.PARAMETER StartDate
-    Start date to search for locked days.
-.PARAMETER EndDate
-    End date to search for locked days.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-    C:\>Get-TDTimeLockedDays -StartDate 11-25-2018 -EndDate 12-25-2019 -AuthenticationToken $Authentication
-
-    Returns locked days between November 25, 2018 and December 25, 2019 in
-    TeamDynamix.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function Get-TDTimeLockedDays
 {
     [CmdletBinding()]
@@ -973,34 +699,6 @@ function Get-TDTimeLockedDays
     }
 }
 
-<#
-.Synopsis
-    Get week's time report (weekly timesheet) in TeamDynamix.
-.DESCRIPTION
-    Get week's time report (weekly timesheet) in TeamDynamix. By default, get
-    report for current user. Specify UID to get report for a specific user.
-.PARAMETER ReportDate
-    Start date to search for locked days.
-.PARAMETER UID
-    End date to search for locked days.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-    C:\>Get-TDTimeReport -ReportDate 11-25-2018 -UID XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX -AuthenticationToken $Authentication
-
-    Returns weekly timesheet for specified user for November 25, 2018.
-.EXAMPLE
-    C:\>Get-TDTimeReport -ReportDate 11-25-2018 -AuthenticationToken $Authentication
-
-    Returns weekly timesheet for the current user for November 25, 2018.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function Get-TDTimeReport
 {
     [CmdletBinding()]
@@ -1058,35 +756,6 @@ function Get-TDTimeReport
     }
 }
 
-<#
-.Synopsis
-    Get time limits for a time type in TeamDynamix.
-.DESCRIPTION
-    Get time limits for a time type for a specific user within a date range in
-    TeamDynamix.
-.PARAMETER ID
-    Get limits for this time type ID.
-.PARAMETER UID
-    Get limits for user with this ID.
-.PARAMETER StartDate
-    Start date to search for limits.
-.PARAMETER EndDate
-    End date to search for limits.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-    C:\>Get-TDTimeTypeLimits -ID 7503 -UID XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX -StartDate 11-25-2018 -EndDate 12-25-2019 -AuthenticationToken $Authentication
-
-    Returns time type limits for specified user between November 25, 2018 and
-    December 25, 2019 in TeamDynamix.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function Get-TDTimeTypeLimits
 {
     [CmdletBinding()]

@@ -1,69 +1,5 @@
 ### KnowledgeBase
 
-<#
-.Synopsis
-    Get a KnowledgeBase article in TeamDynamix
-.DESCRIPTION
-    Get a KnowledgeBase article in TeamDynamix. Specify the article ID number
-    or search using the text of the article, the category ID, status,
-    author ID, and whether or not the article is published or public.
-.PARAMETER ID
-    Article ID to retrieve from TeamDynamix.
-.PARAMETER SearchText
-    Text to search for in article.
-.PARAMETER CategoryID
-    Category ID number of articles to search for.
-.PARAMETER Status
-    Article status to retrieve.
-.PARAMETER AuthorUID
-    Articles written by specific author, specified by author's UID.
-.PARAMETER IsPublished
-    Retrieve only published or unpublished articles.
-.PARAMETER IsPublic
-    Retrieve only public or non-public articles.
-.PARAMETER ReturnCount
-    Maximum number of articles to return. Default 50.
-.PARAMETER IncludeArticleBodies
-    Set whether to include article bodies.
-.PARAMETER IncludeShortcuts
-    Set whether to include shortuts.
-.PARAMETER CustomAttributes
-    Retrieve articles with matching custom attributes.
-.PARAMETER Related
-    Set whether to include related articles.
-.PARAMETER Detail
-    Return full detail for article. Default searches return partial detail.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-    C:\>Get-TDKBArticle -AuthenticationToken $Authentication
-
-    Retrieves all KB articles from TeamDynamix.
-.EXAMPLE
-    C:\>Get-TDKBArticle -ID 1752 -AuthenticationToken $Authentication
-
-    Retrieves KB article number 1752 from TeamDynamix.
-.EXAMPLE
-    C:\>Get-TDKBArticle -SearchText vpn -AuthenticationToken $Authentication
-
-    Retrieves first 50 KB articles containing the text "vpn" from TeamDynamix.
-.EXAMPLE
-    C:\>Get-TDKBArticle -SearchText vpn -IncludeArticleBodies -AuthenticationToken $Authentication
-
-    Retrieves full detail of first 50 KB articles containing the text "vpn"
-    from TeamDynamix.
-.EXAMPLE
-    C:\>Get-TDKBArticle -ID 1752 -Related -AuthenticationToken $Authentication
-
-    Retrieves articles related to article number 1752 from TeamDynamix.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function Get-TDKBArticle
 {
     [CmdletBinding(DefaultParameterSetName='ArticleID')]
@@ -240,63 +176,6 @@ function Get-TDKBArticle
     }
 }
 
-<#
-.Synopsis
-    Create a new KnowledgeBase article on TeamDynamix
-.DESCRIPTION
-    Create a new KnowledgeBase article on TeamDynamix. Accepts articles as
-    objects on the pipeline.
-.PARAMETER Subject
-    The subject of the new KB article to create on TeamDynamix.
-.PARAMETER Body
-    The body of the new KB article to create on TeamDynamix.
-.PARAMETER Status
-    Article status to retrieve.
-.PARAMETER Order
-    The order of the service among its siblings (default 1.0).
-.PARAMETER CategoryID
-    Category ID number of articles to search for.
-.PARAMETER Summary
-    Summary of the new KB articles to create on TeamDynamix.
-.PARAMETER ReviewDateUtc
-    Review date of new KB article to create on TeamDynamix.
-.PARAMETER IsPublished
-    Determines whether the KB article is published on TeamDynamix.
-.PARAMETER IsPublic
-    Determines whether the KB article is public on TeamDynamix.
-.PARAMETER WhitelistGroups
-    Determines whether the KB article groups are whitelisted or blacklisted on
-    TeamDynamix.
-.PARAMETER InheritPermissions
-    Determines whether the KB article inherits permissions from the parent
-    category on TeamDynamix.
-.PARAMETER NotifyOwner
-    Determines whether the KB article on TeamDynamix should be notified of
-    feedback.
-.PARAMETER OwnerUID
-    The KB article's owner UID in TeamDynamix. Only one of OwnerUID or
-    OwningGroupID is allowed, but one or the other is required.
-.PARAMETER OwningGroupID
-    The KB article's owning group ID in TeamDynamix. Only one of OwnerUID or
-    OwningGroupID is allowed, but one or the other is required.
-.PARAMETER Tags
-    Tags for the KB article on TeamDynamix to facilitate search.
-.PARAMETER Attributes
-    Custom attributes for the KB article.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-    C:\>New-TDKBArticle -Subject Testing -Body 'This is a test' -Status 1 -OwningGroupID 755 -AuthenticationToken $Authentication
-
-    Creates a new KnowledgeBase article.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function New-TDKBArticle
 {
     [CmdletBinding(SupportsShouldProcess=$true,
@@ -493,27 +372,6 @@ function New-TDKBArticle
     }
 }
 
-<#
-.Synopsis
-    Delete a KnowledgeBase article from TeamDynamix
-.DESCRIPTION
-    Delete a KnowledgeBase article from TeamDynamix using the article ID.
-.PARAMETER ID
-    ID number of the KB article to be deleted from TeamDynamix.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-    C:\>Remove-TDKBArticle -ID 7 -AuthenticationToken $Authentication
-
-    Deletes KnowledgeBase article with ID number 7 from TeamDynamix.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function Remove-TDKBArticle
 {
     [CmdletBinding(SupportsShouldProcess=$true,
@@ -558,63 +416,6 @@ function Remove-TDKBArticle
     }
 }
 
-<#
-.Synopsis
-    Edit an existing KnowledgeBase article on TeamDynamix
-.DESCRIPTION
-    Updates an existing KnowledgeBase article on TeamDynamix. Accepts articles
-    as objects on the pipeline.
-    Note that permission inheritance, public status, and whitelist/blacklist
-    options are ignored by the TeamDynamix API at this time.
-.PARAMETER Subject
-    The new subject of the KB article on TeamDynamix.
-.PARAMETER Body
-    The new body of the KB article on TeamDynamix.
-.PARAMETER Status
-    Article status to retrieve.
-.PARAMETER Order
-    The order of the service among its siblings (default 1.0).
-.PARAMETER CategoryID
-    The new category ID number of the KB article on TeamDynamix.
-.PARAMETER Summary
-    Summary of the new KB articles to create on TeamDynamix.
-.PARAMETER ReviewDateUtc
-    The new review date of the KB article on TeamDynamix.
-.PARAMETER IsPublished
-    Determines whether the KB article is published on TeamDynamix.
-.PARAMETER IsPublic
-    Determines whether the KB article is public on TeamDynamix. Ignored.
-.PARAMETER WhitelistGroups
-    Determines whether the KB article groups are whitelisted or blacklisted on TeamDynamix. Ignored.
-.PARAMETER InheritPermissions
-    Determines whether the KB article inherits permissions from the parent category on TeamDynamix. Ignored.
-.PARAMETER NotifyOwner
-    Determines whether the KB article on TeamDynamix should be notified of feedback.
-.PARAMETER OwnerUID
-    The KB article's owner UID in TeamDynamix. Only one of either OwnerUID or
-    OwningGroupID is allowed.
-.PARAMETER OwningGroupID
-    The KB article's owning group ID in TeamDynamix. Only one of either
-    OwnerUID or OwningGroupID is allowed.
-.PARAMETER Tags
-    Updated tags for the KB article on TeamDynamix to facilitate search.
-.PARAMETER Attributes
-    Custom attributes for the KB article.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-    C:\>Set-TDKBArticle 111 -Subject "This is a new subject" -AuthenticationToken $Authentication
-
-    Changes the subject of KnowledgeBase article ID 111 to "This is a new
-    subject."
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function Set-TDKBArticle
 {
     [CmdletBinding(SupportsShouldProcess=$true,
@@ -850,32 +651,7 @@ function Set-TDKBArticle
     }
 }
 
-<#
-.Synopsis
-    Add a file attachment to a KnowledgeBase article in TeamDynamix
-.DESCRIPTION
-    Add a file attachment to a KnowledgeBase article in TeamDynamix. Returns
-    information regarding the attachment of the form
-    TeamDynamix.Api.Attachments.Attachment.
-.PARAMETER ID
-    ID number of the KB article the attachment will be added to in TeamDynamix.
-.PARAMETER FilePath
-    The full path and filename of the file to be added as an attachment.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-    C:\> Add-TDKBAttachment -ID 111 -FilePath C:\temp\1.jpg -AuthenticationToken $Authentication
-
-    Attaches the file c:\temp\1.jpg to KnowledgeBase article ID 111 in
-    TeamDynamix.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>function Add-TDKBAttachment
+function Add-TDKBAttachment
 {
     [CmdletBinding(SupportsShouldProcess=$true)]
     Param
@@ -947,32 +723,6 @@ function Set-TDKBArticle
     }
 }
 
-<#
-.Synopsis
-    Add a relationship between two KnowledgeBase articles from TeamDynamix
-.DESCRIPTION
-    Add a relationship between two KnowledgeBase articles from TeamDynamix
-    using the article IDs.
-.PARAMETER ID
-    ID number of the KB article with the relationship to be added to
-    TeamDynamix.
-.PARAMETER RelatedArticleID
-    ID number of the related KB article.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-    C:\>Add-TDKBArticleRelationship -ID 7 -RelatedArticleID 24 -AuthenticationToken $Authentication
-
-    Adds a relationship between KnowledgeBase article with ID number 7 and
-    article 24 in TeamDynamix.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function Add-TDKBArticleRelationship
 {
     [CmdletBinding(SupportsShouldProcess=$true,
@@ -1023,32 +773,6 @@ function Add-TDKBArticleRelationship
     }
 }
 
-<#
-.Synopsis
-    Delete a relationship between two KnowledgeBase articles from TeamDynamix
-.DESCRIPTION
-    Delete a relationship between two KnowledgeBase articles from TeamDynamix
-    using the article IDs.
-.PARAMETER ID
-    ID number of the KB article with the relationship to be deleted from
-    TeamDynamix.
-.PARAMETER RelatedArticleID
-    ID number of the related KB article.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-    C:\>Remove-TDKBArticleRelationship -ID 7 -RelatedArticleID 24 -AuthenticationToken $Authentication
-
-    Deletes the relationship that KnowledgeBase article with ID number 7 has
-    with article 24 from TeamDynamix.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function Remove-TDKBArticleRelationship
 {
     [CmdletBinding(SupportsShouldProcess=$true,
@@ -1099,31 +823,6 @@ function Remove-TDKBArticleRelationship
     }
 }
 
-<#
-.Synopsis
-    Get a KnowledgeBase category in TeamDynamix
-.DESCRIPTION
-    Get a KnowledgeBase category in TeamDynamix.
-.PARAMETER ID
-    Category to retrieve from TeamDynamix.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-    C:\>Get-TDKBCategory -AuthenticationToken $Authentication
-
-    Retrieves all KB article categories from TeamDynamix.
-.EXAMPLE
-    C:\>Get-TDKBCategory -ID 1752 -AuthenticationToken $Authentication
-
-    Retrieves KB article category number 1752 from TeamDynamix.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function Get-TDKBCategory
 {
     [CmdletBinding()]
@@ -1176,42 +875,6 @@ function Get-TDKBCategory
     }
 }
 
-<#
-.Synopsis
-    Create a new KnowledgeBase category on TeamDynamix
-.DESCRIPTION
-    Create a new KnowledgeBase category on TeamDynamix. Accepts categories as
-    objects on the pipeline.
-.PARAMETER ParentID
-    The parent article ID of the new category to create on TeamDynamix.
-.PARAMETER Order
-    The order of the category among its siblings (default 1.0).
-.PARAMETER Name
-    The name of the new category to create on TeamDynamix.
-.PARAMETER Description
-    The description of the new category to create on TeamDynamix.
-.PARAMETER IsPublic
-    Indicates whether the category is public or private.
-.PARAMETER WhitelistGroups
-    Indicates whether groups assigned to the category are whitelisted or
-    blacklisted from accessing the category in the Knowlege Base.
-.PARAMETER InheritPermissions
-    Indicates whether permissions for the category are inherited from the
-    parent category.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-    C:\>New-TDKBCategory -Order 1 -Name 'Test category' -AuthenticationToken $Authentication
-
-    Creates a new KnowledgeBase article category.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function New-TDKBCategory
 {
     [CmdletBinding(SupportsShouldProcess=$true)]
@@ -1299,27 +962,6 @@ function New-TDKBCategory
     }
 }
 
-<#
-.Synopsis
-    Delete a Knowledge Base category from TeamDynamix
-.DESCRIPTION
-    Delete a Knowledge Base category from TeamDynamix using the category ID.
-.PARAMETER ID
-    ID number of the KB category to be deleted from TeamDynamix.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-    C:\>Remove-TDKBCategory -ID 7 -AuthenticationToken $Authentication
-
-    Deletes KnowledgeBase article category with ID number 7 from TeamDynamix.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function Remove-TDKBCategory
 {
     [CmdletBinding(SupportsShouldProcess=$true,
@@ -1364,43 +1006,6 @@ function Remove-TDKBCategory
     }
 }
 
-<#
-.Synopsis
-    Edit an existing Knowledge Base category on TeamDynamix
-.DESCRIPTION
-    Edit a Knowledge Base category on TeamDynamix. Accepts categories as
-    objects on the pipeline.
-.PARAMETER ParentID
-    The parent article ID of the category to edit on TeamDynamix.
-.PARAMETER Order
-    The order of the category among its siblings (default 1.0).
-.PARAMETER Name
-    The name of the category to edit on TeamDynamix.
-.PARAMETER Description
-    The description of the category to edit on TeamDynamix.
-.PARAMETER IsPublic
-    Indicates whether the category is public or private.
-.PARAMETER WhitelistGroups
-    Indicates whether groups assigned to the category are whitelisted or
-    blacklisted from accessing the category in the Knowlege Base.
-.PARAMETER InheritPermissions
-    Indicates whether permissions for the category are inherited from the
-    parent category.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-    C:\>Set-TDKBCategory -ID 111 -Description "This is a new category" -AuthenticationToken $Authentication
-
-    Changes the description of Knowledge Base article category ID 111 to "This
-    is a new category."
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function Set-TDKBCategory
 {
     [CmdletBinding(SupportsShouldProcess=$true)]

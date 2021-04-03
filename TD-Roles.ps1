@@ -1,52 +1,5 @@
 ### Roles
 
-<#
-.Synopsis
-    Get a functional role from TeamDynamix
-.DESCRIPTION
-    Gets a specific functional role, or searches for matching functional roles
-	from TeamDynamix. Functional roles are used to describe a user's job title
-	(their function). Search using a substring of the desired functional role
-	name.
-.PARAMETER Name
-    Substring search filter, no wildcards. Leave blank for all functional
-    roles. May also use "Filter" instead of "Name".
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.PARAMETER MaxResults
-    Limit return set to a number between 1 and 100.
-.INPUTS
-    String, or array of strings, containing UIDs.
-.OUTPUTS
-    Powershell object containing user account properties as documented in
-    TeamDynamix.Api.Accounts.Account.
-.EXAMPLE
-   C:\>Get-TDFunctionalRole -AuthenticationToken $Authentication
-
-   Returns a list of all functional roles.
-.EXAMPLE
-   C:\>Get-TDFunctionalRole -Name 'Admin' -AuthenticationToken $Authentication -MaxResults 2
-
-   Returns functional role information on two accounts with "Admin" in the
-   full name.
-.EXAMPLE
-   C:\>Get-TDFunctionalRole -Filter 'Admin' -AuthenticationToken $Authentication -MaxResults 2
-
-   Returns functional role information on two accounts with "Admin" in the
-   full name.
-.EXAMPLE
-   C:\>'Admin', 'Professor' | Get-TDFunctionalRole -AuthenticationToken $Authentication
-
-   Returns full department information on functional roles specified in the
-   pipeline.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function Get-TDFunctionalRole
 {
     [CmdletBinding()]
@@ -105,39 +58,6 @@ function Get-TDFunctionalRole
     }
 }
 
-<#
-.Synopsis
-    Create a functional role in TeamDynamix
-.DESCRIPTION
-    Create a new functional role in TeamDynamix. Functional roles are used to
-    describe a user's job title (their function).
-.PARAMETER Name
-    Name of the role to be created.
-.PARAMETER StandardRate
-    Standard rate for the role to be created.
-.PARAMETER CostRate
-    Cost rate for the role to be created.
-.PARAMETER Comments
-    Comments regarding the role to be created.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.INPUTS
-    Object containing, at minimum, the name of the role.
-.OUTPUTS
-    Powershell object containing functional role properties as documented in
-    TeamDynamix.Api.Roles.FunctionalRole.
-.EXAMPLE
-   C:\>New-TDFunctionalRole -Name 'Manager' -AuthenticationToken $Authentication
-
-   Creates a new functional role named 'Manager', with StandardRate and CostRate of 0.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function New-TDFunctionalRole
 {
     [CmdletBinding(SupportsShouldProcess=$true)]
@@ -210,41 +130,6 @@ function New-TDFunctionalRole
     }
 }
 
-<#
-.Synopsis
-    Update a functional role in TeamDynamix
-.DESCRIPTION
-    Update a functional role in TeamDynamix. Functional roles are used to
-    describe a user's job title (their function).
-.PARAMETER ID
-    ID of the role to be updated.
-.PARAMETER Name
-    Name of the role to be updated.
-.PARAMETER StandardRate
-    Standard rate for the role to be updated.
-.PARAMETER CostRate
-    Cost rate for the role to be updated.
-.PARAMETER Comments
-    Comments regarding the role to be updated.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.INPUTS
-    Object containing, at minimum, the name of the role.
-.OUTPUTS
-    Powershell object containing functional role properties as documented in
-    TeamDynamix.Api.Roles.FunctionalRole.
-.EXAMPLE
-   C:\>Set-TDFunctionalRole -ID 2077 -Name 'Manager2' -AuthenticationToken $Authentication
-
-   Updates functional role with ID 2077, to be named 'Manager2'.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function Set-TDFunctionalRole
 {
     [CmdletBinding(SupportsShouldProcess=$true)]
@@ -345,54 +230,6 @@ function Set-TDFunctionalRole
     }
 }
 
-<#
-.Synopsis
-    Get a security role from TeamDynamix
-.DESCRIPTION
-    Gets a specific security role, or searches for matching security roles
-	from TeamDynamix. Security roles are used to describe a user's access
-	rights in TeamDynamix. Search using a substring of the desired security role
-	name.
-.PARAMETER ID
-	UID of the security role to retrieve.
-.PARAMETER NameLike
-    Substring search filter, no wildcards. Leave blank for all security roles.
-.PARAMETER AppID
-    Application to search for security roles.
-.PARAMETER LicenseTypeID
-    License type ID number to search for security roles.
-.PARAMETER Exact
-    Return only a single unambiguous match for NameLike searches. If search
-    was ambiguous, that is, matched more than one location or room, return no
-    result at all.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.INPUTS
-    String, or array of strings, containing UIDs.
-.OUTPUTS
-    Powershell object containing user account properties as documented in
-    TeamDynamix.Api.Accounts.Account.
-.EXAMPLE
-   C:\>Get-TDSecurityRole -AuthenticationToken $Authentication
-
-   Returns a list of all security roles.
-.EXAMPLE
-   C:\>Get-TDSecurityRole -NameLike 'Admin' -AuthenticationToken $Authentication
-
-   Returns security role information on accounts with "Admin" in the full name.
-.EXAMPLE
-   C:\>'Admin', 'Technician' | Get-TDSecurityRole -AuthenticationToken $Authentication
-
-   Returns full department information on security roles specified in the
-   pipeline.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function Get-TDSecurityRole
 {
     [CmdletBinding(DefaultParameterSetName='Search')]
@@ -493,41 +330,6 @@ function Get-TDSecurityRole
     }
 }
 
-<#
-.Synopsis
-    Create a security role in TeamDynamix
-.DESCRIPTION
-    Create a new security role in TeamDynamix. Security roles are used to
-    describe a user's access rights in TeamDynamix.
-.PARAMETER Name
-    Name of the role to be created.
-.PARAMETER AppID
-    Application ID for the role to be created.
-.PARAMETER LicenseType
-    License type for the role to be created.
-.PARAMETER Permissions
-    Permissions granted to users for the role to be created.
-.PARAMETER UseDefaultPermissions
-    Use default permissions from the license for the new role.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.INPUTS
-    Object containing, at minimum, the name of the role.
-.OUTPUTS
-    Powershell object containing functional role properties as documented in
-    TeamDynamix.Api.Roles.SecurityRole.
-.EXAMPLE
-   C:\>New-TDSecurityRole -Name 'Manager' -AuthenticationToken $Authentication
-
-   Creates a new functional role named 'Manager', with StandardRate and CostRate of 0.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function New-TDSecurityRole
 {
     [CmdletBinding(SupportsShouldProcess=$true)]
@@ -604,42 +406,6 @@ function New-TDSecurityRole
     }
 }
 
-<#
-.Synopsis
-    Update a security role in TeamDynamix
-.DESCRIPTION
-    Update a security role in TeamDynamix. Security roles are used to
-    describe a user's access rights in TeamDynamix.
-.PARAMETER ID
-    ID of the role to be updated.
-.PARAMETER Name
-    Name of the role to be updated.
-.PARAMETER LicenseType
-    License type for the role to be updated.
-.PARAMETER Permissions
-    Permissions granted to users for the role to be updated.
-.PARAMETER UseDefaultPermissions
-    Use default permissions from the license for the updated role.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.INPUTS
-    Object containing, at minimum, the name of the role.
-.OUTPUTS
-    Powershell object containing functional role properties as documented in
-    TeamDynamix.Api.Roles.SecurityRole.
-.EXAMPLE
-   C:\>Set-TDSecurityRole -ID 'xxxxxxxx-yyyy-yyyy-yyyy-zzzzzzzzzzzz' -Name 'Manager2' -AuthenticationToken $Authentication
-
-   Updates functional role with UID xxxxxxxx-yyyy-yyyy-yyyy-zzzzzzzzzzzz, to
-   be named 'Manager2'.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function Set-TDSecurityRole
 {
     [CmdletBinding(SupportsShouldProcess=$true)]
@@ -738,48 +504,6 @@ function Set-TDSecurityRole
     }
 }
 
-<#
-.Synopsis
-    Get list of security role permissions from TeamDynamix
-.DESCRIPTION
-    Get security role permissions from TeamDynamix for a specific application
-    and license type. Use the "OnlyDefault" option to only show the default
-    permissions.
-.PARAMETER AppID
-	Retrieve the security role permissions for the specified application. Default
-    is all applications.
-.PARAMETER LicenseType
-    Retrieve the security role permissions for the specified license type. May
-    be specified as either the name or number.
-.PARAMETER OnlyDefault
-    Only retrieve the default security role permissions.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.INPUTS
-    String, or array of strings, containing UIDs.
-.OUTPUTS
-    Powershell object containing security role permissions as documented in
-    TeamDynamix.Api.Roles.Permission.
-.EXAMPLE
-   C:\>Get-TDSecurityRolePermissions -AuthenticationToken $Authentication
-
-   Returns a list of all security role permissions.
-.EXAMPLE
-   C:\>Get-TDSecurityRolePermissions -AppID 556 -AuthenticationToken $Authentication
-
-   Returns security role permissions for application with ID 556.
-.EXAMPLE
-   C:\>Get-TDSecurityRolePermissions -LicenseType Client -AuthenticationToken $Authentication
-
-   Returns security role permissions for the "Client" license type.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function Get-TDSecurityRolePermissions
 {
     [CmdletBinding()]
@@ -858,44 +582,6 @@ function Get-TDSecurityRolePermissions
     }
 }
 
-<#
-.Synopsis
-    Get a list of functional roles for a user from TeamDynamix
-.DESCRIPTION
-    Gets a list of functional roles of the specified user in TeamDynamix. User
-    is specified by UID.
-.PARAMETER UID
-    User ID to examine for functional roles.
-.PARAMETER Username
-    Username to examine for functional roles. Specify username@domain.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.INPUTS
-    String, or array of strings, containing UIDs.
-.OUTPUTS
-    Powershell object containing user account properties as documented in
-    TeamDynamix.Api.Users.UserGroup.
-.EXAMPLE
-   C:\>Get-TDUserFunctionalRole -UID XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX -AuthenticationToken $Authentication
-
-   Returns a list of functional roles for user XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX.
-.EXAMPLE
-   C:\>Get-TDUserFunctionalRole -Username smith@domain -AuthenticationToken $Authentication
-
-   Returns a list of functional roles for user smith@domain.
-.EXAMPLE
-   C:\>'XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX', 'YYYYYYYY-YYYY-YYYY-YYYY-YYYYYYYYYYYY' | Get-TDUserFunctionalRole -AuthenticationToken $Authentication
-
-   Returns a list of functional roles for users XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
-   and YYYYYYYY-YYYY-YYYY-YYYY-YYYYYYYYYYYY via the pipeline.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 
 function Get-TDUserFunctionalRole
 {
@@ -967,50 +653,6 @@ function Get-TDUserFunctionalRole
     }
 }
 
-<#
-.Synopsis
-    Removes a single user from a functional role in TeamDynamix
-.DESCRIPTION
-    Removes the specified user from the specified functional role in
-    TeamDynamix. User is specified by UID. The funcional role is specified by the
-    role's RoleID.
-.PARAMETER UID
-    User ID to be removed from the functional role.
-.PARAMETER Username
-    Username for the user to be added to the functional role. Username must
-    be of the form user@domain.
-.PARAMETER RoleID
-    User will be removed from the functional role with this RoleID.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.INPUTS
-    PowerShell object with String containing UID and integer containing role
-    ID.
-.OUTPUTS
-    Message indicating success.
-.EXAMPLE
-   C:\>Remove-TDUserFunctionalRole -UID XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX -RoleID 175 -AuthenticationToken $Authentication
-
-   Removes user XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX from functional role 175.
-.EXAMPLE
-   C:\>Remove-TDUserFunctionalRole -Username smith@domain -RoleID 175 -AuthenticationToken $Authentication
-
-   Removes user smith@domain from functional role 175. Note that the username
-   must be unique. Best practice is to use username@domain to ensure
-   uniqueness.
-.EXAMPLE
-   C:\>$RemoveUserFromFunctionalRole = @{$UID='XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX';$RoleID=175}
-   C:\>$RemoveUserFromFunctionalRole | Remove-TDUserFunctionalRole -AuthenticationToken $Authentication
-
-   Removes user XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX from group 175 using the pipeline.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function Remove-TDUserFunctionalRole
 {
     [CmdletBinding(SupportsShouldProcess=$true,
@@ -1093,56 +735,6 @@ function Remove-TDUserFunctionalRole
     }
 }
 
-<#
-.Synopsis
-    Adds a single user to a functional role in TeamDynamix
-.DESCRIPTION
-    Adds the specified user to the specified functional role in TeamDynamix.
-    User is specified by UID. The functional role is specified by the RoleID.
-.PARAMETER UID
-    User ID for user to be added to functional role.
-.PARAMETER Username
-    Username for the user to be added to the functional role. Username must
-    be of the form user@domain.
-.PARAMETER RoleID
-    Group ID for group user is to be added to.
-.PARAMETER IsPrimary
-    Set functional role as primary for the user.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.INPUTS
-    PowerShell object with String containing UID and integer containing role
-    ID.
-.OUTPUTS
-    Message indicating success.
-.EXAMPLE
-   C:\>Add-TDFunctionalRole -UID XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX -RoleID 176 -AuthenticationToken $Authentication
-
-   Adds user XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX to functional role 176.
-.EXAMPLE
-   C:\>Add-TDFunctionalRole -Username smith@domain -RoleID 176 -AuthenticationToken $Authentication
-
-   Adds user smith@domain to functional role 176. Note that the username must
-   be unique. Best practice is to use username@domain to ensure uniqueness.
-.EXAMPLE
-   C:\>Add-TDFunctionalRole -UID XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX -RoleID 176 -IsPrimary -AuthenticationToken $Authentication
-
-   Adds user XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX to functional role 176 and
-   makes group YYYY the primary group for the user.
-.EXAMPLE
-   C:\>$AddUserToFunctionalRole = @{$UID='XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX';$RoleID=176}
-   C:\>$AddUserToFunctionalRole | Remove-TDFunctionalRole -AuthenticationToken $Authentication
-
-   Adds user XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX to functional role 176
-   using the pipeline.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function Add-TDUserFunctionalRole
 {
     [CmdletBinding(DefaultParameterSetName='UID')]

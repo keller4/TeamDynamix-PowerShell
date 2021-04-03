@@ -1,165 +1,5 @@
 ### Projects
 
-<#
-.Synopsis
-    Get a project in TeamDynamix.
-.DESCRIPTION
-    Get or search for a project in TeamDynamix.
-.PARAMETER ID
-    ID of the project.
-.PARAMETER Name
-    The project name to search on.
-.PARAMETER NameLike
-    The text to perform a LIKE search on the project name.
-.PARAMETER IsGlobal
-    Whether to return global projects.
-.PARAMETER PriorityIDs
-    The IDs of associated priorities to filter on.
-.PARAMETER AccountIDs
-    The IDs of associated accounts/departments to filter on.
-.PARAMETER TypeIDs
-    The IDs of associated types to filter on.
-.PARAMETER ClassificationIDs
-    The IDs of associated classifications to filter on.
-.PARAMETER RiskIDs
-    The IDs of associated risks to filter on.
-.PARAMETER ProcessIDs
-    The IDs of associated processes to filter on.
-.PARAMETER GoalIDs
-    The IDs of associated goals to filter on.
-.PARAMETER SystemIDs
-    The IDs of associated systems to filter on.
-.PARAMETER PortfolioIDs
-    The IDs of associated portfolios to filter on.
-.PARAMETER RisksScoreFrom
-    The minimum risks score to filter on.
-.PARAMETER RisksScoreTo
-    The maximum risks score to filter on.
-.PARAMETER GoalsScoreFrom
-    The minimum goals score to filter on.
-.PARAMETER GoalsScoreTo
-    The maximum goals score to filter on.
-.PARAMETER ScorecardScoreFrom
-    The minimum scorecard score to filter on.
-.PARAMETER ScorecardScoreTo
-    The maximum scorecard score to filter on.
-.PARAMETER CompositeScoreFrom
-    The minimum composite score to filter on.
-.PARAMETER CompositeScoreTo
-    The maximum composite score to filter on.
-.PARAMETER CompositeScorePercentFrom
-    The minimum composite score percentage to filter on.
-.PARAMETER CompositeScorePercentTo
-    The maximum composite score percentage to filter on.
-.PARAMETER CreatedDateFrom
-    The minimum created date to filter on.
-.PARAMETER CreatedDateTo
-    The maximum created date to filter on.
-.PARAMETER StartsOperator
-    The operator to use for TeamDynamix.Api.Projects.ProjectSearch.Starts filtering.
-.PARAMETER Starts
-    The start date filtering to apply, used in conjunction with the TeamDynamix.Api.Projects.ProjectSearch.StartsOperator.
-.PARAMETER EndsOperator
-    The operator to use for TeamDynamix.Api.Projects.ProjectSearch.Ends filtering.
-.PARAMETER Ends
-    The end date filtering to apply, used in conjunction with the TeamDynamix.Api.Projects.ProjectSearch.EndsOperator.
-.PARAMETER EstimatedHoursFrom
-    The minimum estimated hours to filter on.
-.PARAMETER EstimatedHoursTo
-    The maximum estimated hours to filter on.
-.PARAMETER ManagerUID
-    The UID of the project manager to filter on.
-.PARAMETER ProjectIDs
-    The project IDs to filter on.
-.PARAMETER ProjectIDsExclude
-    The project IDs to exclude from search results.
-.PARAMETER PortfolioIDsExclude
-    The portfolio IDs to exclude from search results.
-.PARAMETER StatusLastUpdatedOperator
-    The operator to use for TeamDynamix.Api.Projects.ProjectSearch.StatusLastUpdated filtering.
-.PARAMETER StatusLastUpdated
-    The last status update date filtering to apply, used in conjunction with the TeamDynamix.Api.Projects.ProjectSearch.StatusLastUpdatedOperator.
-.PARAMETER StatusIDs
-    The IDs of associated statuses to filter on.
-.PARAMETER BudgetOperator
-    The operator to use for TeamDynamix.Api.Projects.ProjectSearch.Budget filtering.
-.PARAMETER Budget
-    The budget filtering to apply, used in conjunction with the TeamDynamix.Api.Projects.ProjectSearch.BudgetOperator.
-.PARAMETER PercentCompleteOperator
-    The operator to use for TeamDynamix.Api.Projects.ProjectSearch.PercentComplete filtering.
-.PARAMETER PercentComplete
-    The percent complete filtering to apply, used in conjunction with the TeamDynamix.Api.Projects.ProjectSearch.PercentCompleteOperator.
-.PARAMETER IsOpen
-    The open status to filter on.
-.PARAMETER IsActive
-    The active status to filter on.
-.PARAMETER SponsorName
-    The name of the associated sponsor to filter on.
-.PARAMETER SponsorEmail
-    The email of the associated sponsor to filter on.
-.PARAMETER SponsorUID
-    The UID of the associated sponsor to filter on.
-.PARAMETER ReportsToName
-    The name of the &quot;reports to&quot; user to filter on.
-.PARAMETER ReportsToUID
-    The UID of the &quot;reports to&quot; user to filter on.
-.PARAMETER CascadeReportsToUID
-    Whether TeamDynamix.Api.Projects.ProjectSearch.ReportsToUID filtering should be cascaded.
-.PARAMETER FunctionalRoleIDs
-    The IDs of associated functional roles to filter on.
-.PARAMETER ShowManagedByPlan
-    Whether projects managed by plan should be returned.
-.PARAMETER ShowManagedByProject
-    Whether projects managed by project should be returned.
-.PARAMETER ShowManagedBoth
-    Whether both projects managed by plan and project should be returned.
-.PARAMETER SelectedFieldIDs
-    The IDs of associated selected fields to filter on.
-.PARAMETER IsPrivate
-    The private status to filter on.
-.PARAMETER HasTimeOff
-    Whether projects with time off time types should be returned.
-.PARAMETER HasPortfolio
-    Whether projects associated with a portfolio should be returned.
-.PARAMETER ShouldEnforceProjectMembership
-    Whether project membership should be enforced in the search results.
-.PARAMETER CustomAttributes
-    The custom attributes to filter on.
-.PARAMETER IsPublic
-    The public status to filter on.
-.PARAMETER IsPublished
-    The published status to filter on.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.PARAMETER Detail
-    Return full detail for found projects.
-.PARAMETER Exact
-    Return only a single unambiguous match for NameLike searches. If search
-    was ambiguous, that is, matched more than one location or room, return no
-    result at all.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-    C:\>Get-TDProject -ID 55433
-
-    Gets project with ID 55433.
-.EXAMPLE
-    C:\>Get-TDProject -NameLike "Big"
-
-    Gets all projects with "Big" in their name.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function Get-TDProject
 {
     [CmdletBinding(DefaultParameterSetName='Search')]
@@ -552,88 +392,6 @@ function Get-TDProject
     }
 }
 
-<#
-.Synopsis
-    Modify a project in TeamDynamix.
-.DESCRIPTION
-    Modify a project in TeamDynamix.
-.PARAMETER ID
-    ID number of the project in TeamDynamix.
-.PARAMETER Name
-    Name of the project in TeamDynamix.
-.PARAMETER Budget
-    Project budget in dollars.
-.PARAMETER AccountID
-    Project account ID number.
-.PARAMETER SponsorUID
-    Project sponsor ID number
-.PARAMETER Description
-    Project description.
-.PARAMETER ExpensesBudget
-    Project expenses budge in dollars.
-.PARAMETER AllowProjectTime
-    Allow project to keep time.
-.PARAMETER ApproveTimeByReportsTo
-    Project time approvals follow user Reports-To field.
-.PARAMETER PriorityID
-    Project priority ID number.
-.PARAMETER IsActive
-    Boolean to set project to be active or not.
-.PARAMETER TimeBudget
-    Project time budget.
-.PARAMETER TypeID
-    Project type ID number.
-.PARAMETER IsPublic
-    A value indicating whether this project is publicly viewable.
-.PARAMETER IsPublished
-    A value indicating whether this project is published to authenticated
-    users.
-.PARAMETER UpdateStartEnd
-    Boolean to trigger project start/end update.
-.PARAMETER ScheduleHoursByPlan
-    Boolean to schedule hours by plan or not.
-.PARAMETER AllocationEditMode
-    The allocation edit mode which governs how resources are scheduled by
-    resource pool managers from the Resource Management Console.
-.PARAMETER UseRemainingHours
-    A value indicating whether the project's tasks should be updated with
-    remaining hours instead of percent complete.
-.PARAMETER AlertOnEstimatedHoursExceeded
-    A value indicating whether the project manager should be alerted
-    periodically when plan estimated hours exceed project estimated hours.
-.PARAMETER AlertOnAssignedHoursExceeded
-    A value indicating whether the project manager should be alerted
-    periodically when plan assigned hours exceed project estimated hours.
-.PARAMETER ClassificationID
-    Project classification ID number
-.PARAMETER AddContact
-    Boolean to set whether project should automatically add contacts.
-.PARAMETER Requirements
-    Project requirements description.
-.PARAMETER EndDate
-    End date of the project.
-.PARAMETER StartDate
-    Start date of the project.
-.PARAMETER Attributes
-    The custom attributes.
-.PARAMETER ServiceID
-    The ID of the associated service.
-.PARAMETER RemoveAttributes
-    Custom attributes to be removed.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-    C:\>Set-TDProject -ID 2322 -Description 'Updated description'
-
-    Updates the project description for specified project.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function Set-TDProject
 {
     [CmdletBinding(SupportsShouldProcess=$true)]
@@ -876,29 +634,6 @@ function Set-TDProject
     }
 }
 
-<#
-.Synopsis
-    Update a project in TeamDynamix.
-.DESCRIPTION
-    Update a project in TeamDynamix by adding a project feed entry.
-.PARAMETER ID
-    The ID number of the project
-.PARAMETER Body
-    The body of the feed entry.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-    C:\>Update-TDProject -ID 783421 -Body "Update entry 1"
-
-    Add a project feed entry to specified project.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function Update-TDProject
 {
     [CmdletBinding()]
@@ -951,27 +686,6 @@ function Update-TDProject
     }
 }
 
-<#
-.Synopsis
-    Get resources for a project in TeamDynamix.
-.DESCRIPTION
-    Get resources (staff) for a project in TeamDynamix.
-.PARAMETER ID
-    Project ID number in TeamDynamix.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-    C:\>Get-TDProjectResources -ID 783421
-
-    Get a list of resources for the specified project.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function Get-TDProjectResources
 {
     [CmdletBinding()]
@@ -1014,49 +728,6 @@ function Get-TDProjectResources
     }
 }
 
-<#
-.Synopsis
-    Get project plans in TeamDynamix.
-.DESCRIPTION
-    Get a project plan or search for project plans in TeamDynamix. Search by
-    name, or retrieve all plans the current user is a member of.
-.PARAMETER PlanID
-    Return this plan ID.
-.PARAMETER NameLike
-    The search text to filter on. If this is set, this will sort the results by
-    their text relevancy.
-.PARAMETER ProjectID
-    The project ID that will be filtered on.
-.PARAMETER IncludeEmpty
-    A value indicating whether plans without tasks should be included.
-.PARAMETER CurrentUser
-    Return all plans the current user is a member of.
-.PARAMETER Exact
-    Return only a single unambiguous match for NameLike searches. If search
-    was ambiguous, that is, matched more than one location or room, return no
-    result at all.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-    C:\>Get-TDProjectPlan -ID 75500 -ProjectID 430711
-
-    Returns the specified project plan for the specified project.
-.EXAMPLE
-    C:\>Get-TDProjectPlan -ProjectID 430711
-
-    Returns all project plans for the specified project.
-.EXAMPLE
-    C:\>Get-TDProjectPlan -CurrentUser
-
-    Returns all project plans the current user is a member of.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function Get-TDProjectPlan
 {
     [CmdletBinding(DefaultParameterSetName='Search')]
@@ -1157,36 +828,6 @@ function Get-TDProjectPlan
     }
 }
 
-<#
-.Synopsis
-    Modify a project plan in TeamDynamix.
-.DESCRIPTION
-    Modify a project plan name or description in TeamDynamix.
-.PARAMETER ProjectID
-    Project ID number to be modified.
-.PARAMETER PlanID
-    Plan ID number to be modified.
-.PARAMETER DraftID
-    Plan draft ID number to be modified.
-.PARAMETER Title
-    New title of the project plan. Required.
-.PARAMETER Description
-    New description of the project plan
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-    C:\>Set-TDProjectPlan -ProjectID 5591 -PlanID 71 -DraftID 5 -Title "New title" -Description "New Description."
-
-    Sets the title and description text for the draft of the project plan
-    specified.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function Set-TDProjectPlan
 {
     [CmdletBinding(SupportsShouldProcess=$true)]
@@ -1257,31 +898,6 @@ function Set-TDProjectPlan
     }
 }
 
-<#
-.Synopsis
-    Gets resource for the user who has a project plan checked out from
-    TeamDynamix.
-.DESCRIPTION
-    Gets resource for the user who has a project plan checked out from
-    TeamDynamix.
-.PARAMETER ProjectID
-    Project ID number for the project plan.
-.PARAMETER PlanID
-    Plan ID number for the project plan.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-    C:\>Get-TDProjectPlanCheckoutUser -ProjectID 5591 -PlanID 71
-
-    Get the resources for the user who checked out the specified project plan.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function Get-TDProjectPlanCheckoutUser
 {
     [CmdletBinding()]
@@ -1329,29 +945,6 @@ function Get-TDProjectPlanCheckoutUser
     }
 }
 
-<#
-.Synopsis
-    Get the feed for a project plan in TeamDynamix.
-.DESCRIPTION
-    Get the feed for a project plan in TeamDynamix.
-.PARAMETER ProjectID
-    Project ID number for the project plan.
-.PARAMETER PlanID
-    Plan ID number for the project plan.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-    C:\>Get-TDProjectPlanFeed -ProjectID 5591 -PlanID 71
-
-    Get the feed for the specified project plan.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function Get-TDProjectPlanFeed
 {
     [CmdletBinding()]
@@ -1399,35 +992,6 @@ function Get-TDProjectPlanFeed
     }
 }
 
-<#
-.Synopsis
-    Get the tasks for a project plan in TeamDynamix.
-.DESCRIPTION
-    Get the tasks for a project plan in TeamDynamix.
-.PARAMETER ProjectID
-    Project ID number for the project plan.
-.PARAMETER PlanID
-    Plan ID number for the project plan.
-.PARAMETER TaskID
-    Plan ID number for the project plan.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-    C:\>Get-TDProjectPlanTask -ProjectID 5591 -PlanID 71
-
-    Get all tasks for the specified project plan.
-.EXAMPLE
-    C:\>Get-TDProjectPlanTask -ProjectID 5591 -PlanID 71 -TaskID 77843
-
-    Get specific task for the specified project plan.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function Get-TDProjectPlanTask
 {
     [CmdletBinding()]
@@ -1502,158 +1066,6 @@ function Get-TDProjectPlanTask
     }
 }
 
-<#
-.Synopsis
-    Modify a project plan task in TeamDynamix.
-.DESCRIPTION
-    Modify a project plan task in TeamDynamix.
-.PARAMETER OutlineNumber
-    The outline number of this task.
-.PARAMETER Wbs
-    The WBS (work breakdown structure) number.
-.PARAMETER IsParent
-    A value indicating whether this task is a parent task.
-.PARAMETER IndentLevel
-    The indentation level of this task.
-.PARAMETER ParentID
-    The ID of the task that is this task's parent or 0 if there is no parent.
-.PARAMETER PlanID
-    The ID of the TeamDynamix.Api.Plans.Plan containing this task.
-.PARAMETER PlanName
-    The name of the TeamDynamix.Api.Plans.Plan containing this task.
-.PARAMETER IsFlagged
-    A value indicating whether this task is flagged for further review.
-.PARAMETER TicketID
-    The ID of the source ticket that was converted to this task, or -1 when no such conversion was performed.
-.PARAMETER TicketAppID
-    The ID of the application containing the source ticket that was converted to this task, or -1 when no such conversion was performed.
-.PARAMETER Field1
-    The value for the custom column 'Field 1'.
-.PARAMETER Field2
-    The value for the custom column 'Field 2'.
-.PARAMETER Field3
-    The value for the custom column 'Field 3'.
-.PARAMETER Field4
-    The value for the custom column 'Field 4'.
-.PARAMETER Field5
-    The value for the custom column 'Field 5'.
-.PARAMETER Field6
-    The value for the custom column 'Field 6'.
-.PARAMETER Field7
-    The value for the custom column 'Field 7'.
-.PARAMETER Field8
-    The value for the custom column 'Field 8'.
-.PARAMETER Field9
-    The value for the custom column 'Field 9'.
-.PARAMETER Field10
-    The value for the custom column 'Field 10'.
-.PARAMETER IsMilestone
-    A value indicating whether this task is a milestone.
-.PARAMETER IsConvertedFromTicket
-    A value indicating whether the current task is converted from a ticket.
-.PARAMETER HasExternalRelationships
-    Gets a value indicating whether there are external relationships directly-involving this task (not any of its children).
-.PARAMETER IsExternalRelationshipViolated
-    A value indicating whether the task is in violation of one or more of its external relationships.
-.PARAMETER CanShiftForward
-    A value indicating whether this task can be shifted forward.
-.PARAMETER ShiftForwardDate
-    Gets the earliest date to which the task can be shifted forward.
-.PARAMETER HasIssues
-    Gets a value indicating whether any issues, regardless of status, are associated with this task.
-.PARAMETER HasAttachments
-    Gets a value indicating whether any file attachments are associated with this task.
-.PARAMETER Priority
-    The priority of the task. 0 = None, 1 = High, 2 = Medium / High, 3 = Medium, 4 = Medium / Low, 5 = Low
-.PARAMETER IsStory
-    A value indicating whether this task is a story.
-.PARAMETER OpenIssuesCount
-    The open issues count.
-.PARAMETER IssuesCount
-    The issues count.
-.PARAMETER Predecessors
-    Gets the relationships between predecessor tasks and this task. Do not use this property to set values. Use PredecessorsOutlineNumbersComplex i
-.PARAMETER PredecessorsOutlineNumbersComplex
-    A comma-separated list of the outline numbers of the task's predecessors, including any non-default relationship type or lag/lead values.
-.PARAMETER Resources
-    Gets the resources assigned to this task.
-.PARAMETER ResourcesNamesAndPercents
-    Gets a semicolon-separated list of the names/assignment percentages of the resources assigned to this task.
-.PARAMETER IsCriticalPath
-    A value indicating whether this task is on the critical path.
-.PARAMETER StatusID
-    The ID of the Custom Task Status.
-.PARAMETER Status
-    The status of the task. This is a progression status (in progress, overdue, etc) instead of a custom user-defined status.
-.PARAMETER OrderInParent
-    The order in parent for this task. The order in parent is the index of this task within its parent task. If no parent task is present, order in parent determines the task's order in the overall root-level hierarchy.
-.PARAMETER Tags
-    The tags associated with the task.
-.PARAMETER ID
-    The ID of the project plan task.
-.PARAMETER Title
-    The title of the item.
-.PARAMETER Description
-    The description of the item.
-.PARAMETER StartDateUtc
-    The start date of the item.
-.PARAMETER EndDateUtc
-    The end date of the item.
-.PARAMETER Duration
-    Gets the duration of the task in absolute days.
-.PARAMETER DurationString
-    Set this field to a duration for the task. (Ex: 3 days, 4 weeks, 2 months)
-.PARAMETER CompletedDateUtc
-    The date the item was completed.
-.PARAMETER EstimatedHoursAtCompletion
-    The estimated number of hours spent on the task once the task is completed.
-.PARAMETER ProjectID
-    The ID of the containing project.
-.PARAMETER ProjectIDEncrypted
-    The encrypted ID of the containing project.
-.PARAMETER ProjectName
-    The name of the containing project.
-.PARAMETER CreatedUID
-    The UID of the creator.
-.PARAMETER CreatedFullName
-    The full name of the creator.
-.PARAMETER CreatedDate
-    The date/time the item was created.
-.PARAMETER EstimatedHours
-    The estimated hours of the item.
-.PARAMETER EstimatedHoursBaseline
-    Gets the baselined estimated hours.
-.PARAMETER ActualHours
-    The accrued hours on the item.
-.PARAMETER PercentComplete
-.PARAMETER StartDateBaselineUtc
-    The baselined start date.
-.PARAMETER EndDateBaselineUtc
-    The baselined end date.
-.PARAMETER StoryPoints
-    The story points for a task.
-.PARAMETER ValuePoints
-    The value points for a task.
-.PARAMETER RemainingHours
-    The remaining hours.
-.PARAMETER PlanType
-    The type of the associated plan.
-.PARAMETER VarianceDays
-    Gets the variance, in days, between the end date and the end date of the currently-active baseline.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-    C:\>Set-TDProjectPlanTask
-
-    ??
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function Set-TDProjectPlanTask
 {
     [CmdletBinding(SupportsShouldProcess=$true)]
@@ -2072,31 +1484,6 @@ function Set-TDProjectPlanTask
     }
 }
 
-<#
-.Synopsis
-    Get the feed for a project plan task in TeamDynamix.
-.DESCRIPTION
-    Get the feed for a project plan task in TeamDynamix.
-.PARAMETER ProjectID
-    Project ID number for the project plan task.
-.PARAMETER PlanID
-    Plan ID number for the project plan task.
-.PARAMETER TaskID
-    Task ID number for the project plan task.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-    C:\>Get-TDProjectPlanTaskFeed -ProjectID 5591 -PlanID 71 -TaskID 38871
-
-    Get the feed for the specified project plan task.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function Get-TDProjectPlanTaskFeed
 {
     [CmdletBinding()]
@@ -2149,49 +1536,6 @@ function Get-TDProjectPlanTaskFeed
     }
 }
 
-<#
-.Synopsis
-    Update a task in a project plan in TeamDynamix.
-.DESCRIPTION
-    Enter a comment into the feed for a task in a project plan in TeamDynamix.
-.PARAMETER ProjectId
-    The ID of the containing project.
-.PARAMETER PlanId
-    The ID of the containing plan.
-.PARAMETER TaskId
-    The ID of the task to update.
-.PARAMETER Notify
-    The people to notify.
-.PARAMETER Comments
-    The comments to include with the update.
-.PARAMETER CompletedDate
-    The completed date of the task.
-.PARAMETER TimeTypeId
-    The ID of the time type to use when adding a time entry as part of the update.
-.PARAMETER HoursWorked
-    The worked hours of the time entry to add as part of the update.
-.PARAMETER DateWorked
-    The date that the specified hours were worked when adding time.
-.PARAMETER PercentComplete
-    The percent complete of the task, on a 0 to 100 scale.
-.PARAMETER RemainingHours
-    The number of hours remaining on the task. This is only used if a project is set to update by remaining hours.
-.PARAMETER IsPrivate
-    A value indicating whether or not the update creates a private feed entry.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-    C:\>Update-TDProjectPlanTask -ProjectID 755519 -PlanID 1102 -TaskID -48882 -Comments "New comment"
-
-    Enter the comment into the specified project plan task feed.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function Update-TDProjectPlanTask
 {
     [CmdletBinding()]
@@ -2296,25 +1640,6 @@ function Update-TDProjectPlanTask
     }
 }
 
-<#
-.Synopsis
-    Get risk statuses from TeamDynamix.
-.DESCRIPTION
-    Get risk statuses from TeamDynamix.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-    C:\>Get-TDProjectRiskStatuses
-
-    Get a list of risk statuses.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function Get-TDProjectRiskStatuses
 {
     [CmdletBinding()]
@@ -2352,87 +1677,6 @@ function Get-TDProjectRiskStatuses
     }
 }
 
-<#
-.Synopsis
-    Get project risk in TeamDynamix.
-.DESCRIPTION
-    Get or search for project risks in TeamDynamix.
-.PARAMETER ProjectID
-    Project ID number in TeamDynamix.
-.PARAMETER RiskID
-    Project Risk ID number in TeamDynamix
-.PARAMETER Probabilities
-    The probabilities to filter on. Very Low is 0.05, Low is 0.1, Medium is
-    0.2, High is 0.4, Very High is 0.8
-.PARAMETER Impacts
-    The impacts to filter on. Very Low is 0.05, Low is 0.1, Medium is 0.2, High
-     is 0.4, Very High is 0.8
-.PARAMETER Urgencies
-    The urgencies to filter on. Very Low is 0.05, Low is 0.1, Medium is 0.2,
-    High is 0.4, Very High is 0.8
-.PARAMETER IsOpportunity
-    The opportunity status to filter on.
-.PARAMETER ResponseStrategyIDs
-    The IDs of associated response strategies to filter on.
-.PARAMETER MaxResults
-    The maximum number of results to return, or <code>null</code> to have no restriction.
-.PARAMETER ID
-    The ID to filter on.
-.PARAMETER ProjectIDs
-    The project IDs to filter on.
-.PARAMETER StatusIDs
-    The status IDs to include.
-.PARAMETER StatusIDsNot
-    The status IDs to exclude.
-.PARAMETER CategoryIDs
-    The category IDs to filter on.
-.PARAMETER ModifiedDateFrom
-    The minimum last modified date to filter on.
-.PARAMETER ModifiedDateTo
-    The maximum last modified date to filter on.
-.PARAMETER CreatedUID
-    The UID of the creating user to filter on.
-.PARAMETER CreatedDateFrom
-    The minimum created date to filter on.
-.PARAMETER CreatedDateTo
-    The maximum created date to filter on.
-.PARAMETER UpdatedFrom
-    The minimum last update date to filter on.
-.PARAMETER UpdatedTo
-    The maximum last update date to filter on.
-.PARAMETER UpdatedUID
-    The UID of the updating user to filter on.
-.PARAMETER ResponsibilityUID
-    The UID of the responsible user to filter on.
-.PARAMETER NameLike
-    The text to perform a LIKE search on name.
-.PARAMETER Exact
-    Return only a single unambiguous match for NameLike searches. If search
-    was ambiguous, that is, matched more than one location or room, return no
-    result at all.
-.PARAMETER CustomAttributes
-    The custom attributes to filter on.
-.PARAMETER Detail
-    Return detailed information on the project risk. Used when searching.
-    Requesting by project and risk ID will always return full data.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-    C:\>Get-TDProjectRisk -ProjectID 34441 -RiskID 981
-
-    Gets the specified project risk.
-.EXAMPLE
-    C:\>Get-TDProjectRisk -NameLike 'Main project risk'
-
-    Gets all project risks with names containing the text specified.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function Get-TDProjectRisk
 {
     [CmdletBinding(DefaultParameterSetName='Search')]
@@ -2633,39 +1877,6 @@ function Get-TDProjectRisk
     }
 }
 
-<#
-.Synopsis
-    Modify a project risk in TeamDynamix.
-.DESCRIPTION
-    Modify a project risk in TeamDynamix.
-.PARAMETER RiskID
-    The risk ID.
-.PARAMETER ProjectID
-    The project ID.
-.PARAMETER StatusID
-    The status ID.
-.PARAMETER Notify
-    The email addresses to notify. This is an array of strings.
-.PARAMETER Comments
-    The comments.
-.PARAMETER Attributes
-    The custom attributes.
-.PARAMETER IsPrivate
-    A value indicating whether this update is private.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-    C:\>Set-TDProjectRisk
-
-    ??
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function Set-TDProjectRisk
 {
     [CmdletBinding(SupportsShouldProcess=$true)]
@@ -2752,57 +1963,6 @@ function Set-TDProjectRisk
     }
 }
 
-<#
-.Synopsis
-    Create a new project risk in TeamDynamix.
-.DESCRIPTION
-    Create a new project risk in TeamDynamix.
-.PARAMETER IsOpportunity
-    A value indicating whether this instance is a risk that represents an opportunity instead of a threat.
-.PARAMETER Impact
-    The impact of a risk or opportunity, should it occur with 0 meaning no impact and 1 meaning maximum possible impact.
-.PARAMETER Probability
-    The probability of a risk or opportunity coming to fruition 0 meaning no chance and 1 meaning guaranteed to happen.
-.PARAMETER Urgency
-    The urgency of a risk. This is autocalculated from Impact and Probability but can be manually adjusted as well.
-.PARAMETER ResponseStrategyID
-    The response strategy identifier used for marking how a risk will be responded to.
-.PARAMETER Title
-    The title.
-.PARAMETER Description
-    The description.
-.PARAMETER IsRead
-    Whether or not the current user has read the item.
-.PARAMETER CategoryID
-    The ID of the associated category.
-.PARAMETER StatusID
-    The ID of the associated status.
-.PARAMETER ProjectID
-    The ID of the associated project.
-.PARAMETER ResponsibleUID
-    The UID of the responsible user.
-.PARAMETER Attributes
-    The custom attribute collection for the issue.
-.PARAMETER NotifyOnClosed
-    Switch indicating that the creator should be notified when the issue is
-    closed.
-.PARAMETER Passthru
-    Return newly created asset as an object.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-    C:\>New-TDProjectRisk -Title "Staff-related risk" -CategoryID 5 -StatusID 27 -ProjectID 55496
-
-    Creates a new project risk called "Staff-related risk", with risk category
-    ID 5, status ID 27, and for project ID 55496.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function New-TDProjectRisk
 {
     [CmdletBinding(SupportsShouldProcess=$true)]
@@ -2922,29 +2082,6 @@ function New-TDProjectRisk
     }
 }
 
-<#
-.Synopsis
-    Get the feed for a project risk in TeamDynamix.
-.DESCRIPTION
-    Get the feed for a project risk in TeamDynamix.
-.PARAMETER ProjectID
-    Project ID number for the project risk.
-.PARAMETER RiskID
-    Risk ID number for the project risk.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-    C:\>Get-TDProjectPlanRiskFeed -ProjectID 5591 -RiskID 38871
-
-    Get the feed for the specified project risk.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function Get-TDProjectRiskFeed
 {
     [CmdletBinding()]
@@ -2992,36 +2129,6 @@ function Get-TDProjectRiskFeed
     }
 }
 
-<#
-.Synopsis
-    Adds a comment to a project risk feed in TeamDynamix
-.DESCRIPTION
-    Adds a comment to a project risk feed in TeamDynamix.
-.PARAMETER ProjectID
-    Project ID number for the feed be updated.
-.PARAMETER RiskID
-    Risk ID number for the feed be updated.
-.PARAMETER Comments
-    Comment to be added to risk feed.
-.PARAMETER Notify
-    Email addresses of individuals to notify with the comment.
-.PARAMETER IsPrivate
-    Switch to indicate if the comment should be flagged as private. Default is
-    "not private".
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-    C:\>Update-TDProjectRisk -ProjectID 1055 -RiskID 40555 -Comments "Don't update this system without consult."
-
-    Adds the comment to the specified project risk.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function Update-TDProjectRisk
 {
     [CmdletBinding()]
@@ -3099,83 +2206,6 @@ function Update-TDProjectRisk
     }
 }
 
-<#
-.Synopsis
-    Get a project issue in TeamDynamix.
-.DESCRIPTION
-    Get or search for project issues in TeamDynamix.
-.PARAMETER ProjectID
-    Project ID that holds the issue.
-.PARAMETER IssueID
-    The issue ID number to retrieve from the project.
-.PARAMETER PriorityIDs
-    The IDs of associated priorities to filter on.
-.PARAMETER EndDateFrom
-    The minimum end date to filter on.
-.PARAMETER EndDateTo
-    The maximum end date to filter on.
-.PARAMETER StartDateFrom
-    The minimum start date to filter on.
-.PARAMETER StartDateTo
-    The maximum start date to filter on.
-.PARAMETER ParentIDs
-    The IDs of associated parents to filter on.
-.PARAMETER MaxResults
-    The maximum number of results to return, or <code>null</code> to have no restriction.
-.PARAMETER ID
-    The ID to filter on.
-.PARAMETER ProjectIDs
-    The project IDs to filter on.
-.PARAMETER StatusIDs
-    The status IDs to include.
-.PARAMETER StatusIDsNot
-    The status IDs to exclude.
-.PARAMETER CategoryIDs
-    The category IDs to filter on.
-.PARAMETER ModifiedDateFrom
-    The minimum last modified date to filter on.
-.PARAMETER ModifiedDateTo
-    The maximum last modified date to filter on.
-.PARAMETER CreatedUID
-    The UID of the creating user to filter on.
-.PARAMETER CreatedDateFrom
-    The minimum created date to filter on.
-.PARAMETER CreatedDateTo
-    The maximum created date to filter on.
-.PARAMETER UpdatedFrom
-    The minimum last update date to filter on.
-.PARAMETER UpdatedTo
-    The maximum last update date to filter on.
-.PARAMETER UpdatedUID
-    The UID of the updating user to filter on.
-.PARAMETER ResponsibilityUID
-    The UID of the responsible user to filter on.
-.PARAMETER NameLike
-    The text to perform a LIKE search on name.
-.PARAMETER CustomAttributes
-    The custom attributes to filter on.
-.PARAMETER Exact
-    Return only a single unambiguous match for NameLike searches. If search
-    was ambiguous, that is, matched more than one location or room, return no
-    result at all.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-    C:\>Get-TDProjectIssue -ProjectID 34441 -IssueID 981
-
-    Gets the specified project issue.
-.EXAMPLE
-    C:\>Get-TDProjectIssue -NameLike 'Top issue'
-
-    Gets all project risks with names containing the text specified.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function Get-TDProjectIssue
 {
     [CmdletBinding(DefaultParameterSetName='Search')]
@@ -3374,47 +2404,6 @@ function Get-TDProjectIssue
     }
 }
 
-<#
-.Synopsis
-    Modify a project issue in TeamDynamix.
-.DESCRIPTION
-    Modify a project issue in TeamDynamix.
-.PARAMETER IssueID
-    The issue ID.
-.PARAMETER TimeEntryDate
-    The time entry date.
-.PARAMETER HoursWorked
-    The hours worked.
-.PARAMETER TimeTypeID
-    The time type ID.
-.PARAMETER ParentID
-    The parent Risk's identifier.
-.PARAMETER ProjectID
-    The project ID.
-.PARAMETER StatusID
-    The status ID.
-.PARAMETER Notify
-    The email addresses to notify. This is an array of strings.
-.PARAMETER Comments
-    The comments.
-.PARAMETER Attributes
-    The custom attributes.
-.PARAMETER IsPrivate
-    A value indicating whether this update is private.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-    C:\>Set-TDProjectIssue -ProjectID 55129 -IssueID 71129 -StatusID 6891 -Comments "Issue modified"
-
-    Modifies the specified project issue with the specified comment and status ID.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function Set-TDProjectIssue
 {
     [CmdletBinding(SupportsShouldProcess=$true)]
@@ -3526,54 +2515,6 @@ function Set-TDProjectIssue
     }
 }
 
-<#
-.Synopsis
-    Create a new project issue in TeamDynamix.
-.DESCRIPTION
-    Create a new project issue in TeamDynamix.
-.PARAMETER EstimatedHours
-    The estimated hours.
-.PARAMETER StartDate
-    The start date.
-.PARAMETER EndDate
-    The end date.
-.PARAMETER PriorityID
-    The ID of the associated priority.
-.PARAMETER TaskID
-    The ID of the associated task.
-.PARAMETER Title
-    The title.
-.PARAMETER Description
-    The description.
-.PARAMETER CategoryID
-    The ID of the associated category.
-.PARAMETER StatusID
-    The ID of the associated status.
-.PARAMETER ProjectID
-    The ID of the associated project.
-.PARAMETER ResponsibleUID
-    The UID of the responsible user.
-.PARAMETER Attributes
-    The custom attribute collection for the issue.
-.PARAMETER NotifyOnClosed
-    Switch indicating that the creator should be notified when the issue is
-    closed.
-.PARAMETER Passthru
-    Return newly created asset as an object.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-    C:\>New-TDProjectIssue -PriorityID 5542 -Title "New issue" -CategoryID 10042 -StatusID 5577 -ProjectID 435278
-
-    Creates a new project issue with specified parameters.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function New-TDProjectIssue
 {
     [CmdletBinding(SupportsShouldProcess=$true)]
@@ -3683,36 +2624,6 @@ function New-TDProjectIssue
     }
 }
 
-<#
-.Synopsis
-    Adds a comment to a project issue feed in TeamDynamix
-.DESCRIPTION
-    Adds a comment to a project issue feed in TeamDynamix.
-.PARAMETER ProjectID
-    Project ID number for the feed be updated.
-.PARAMETER IssueID
-    Risk ID number for the feed be updated.
-.PARAMETER Comments
-    Comment to be added to issue feed.
-.PARAMETER Notify
-    Email addresses of individuals to notify with the comment.
-.PARAMETER IsPrivate
-    Switch to indicate if the comment should be flagged as private. Default is
-    "not private".
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-    C:\>Update-TDProjectIssue -ProjectID 1055 -IssueID 81109 -Comments "Updating is an issue."
-
-    Adds the comment to the specified project issue.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function Update-TDProjectIssue
 {
     [CmdletBinding()]
@@ -3790,29 +2701,6 @@ function Update-TDProjectIssue
     }
 }
 
-<#
-.Synopsis
-    Get the feed for a project issue in TeamDynamix.
-.DESCRIPTION
-    Get the feed for a project issue in TeamDynamix.
-.PARAMETER ProjectID
-    Project ID number for the project issue.
-.PARAMETER IssueID
-    Issue ID number for the project issue.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-    C:\>Get-TDProjectIssueFeed -ProjectID 5591 -IssueID 38871
-
-    Get the feed for the specified project issue.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function Get-TDProjectIssueFeed
 {
     [CmdletBinding()]
@@ -3860,25 +2748,6 @@ function Get-TDProjectIssueFeed
     }
 }
 
-<#
-.Synopsis
-    Get issue statuses from TeamDynamix.
-.DESCRIPTION
-    Get issue statuses from TeamDynamix.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-    C:\>Get-TDProjectIssueStatuses
-
-    Get a list of issue statuses.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function Get-TDProjectIssueStatuses
 {
     [CmdletBinding()]
@@ -3916,34 +2785,6 @@ function Get-TDProjectIssueStatuses
     }
 }
 
-<#
-.Synopsis
-    Get the list of folders/files for a project in TeamDynamix.
-.DESCRIPTION
-    Get the list of folders, or list of files in a folder, for a project in
-    TeamDynamix.
-.PARAMETER ProjectID
-    Project ID number for the project folders list.
-.PARAMETER FolderID
-    Folder ID number for the list of files in the project folder.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-    C:\>Get-TDProjectFolder -ProjectID 5591
-
-    Get the list of folders for the specified project.
-.EXAMPLE
-    C:\>Get-TDProjectFolder -ProjectID 5591 -Folder xxxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
-
-    Get the list of files in the specified folder and project.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function Get-TDProjectFolder
 {
     [CmdletBinding(DefaultParameterSetName='Folders')]
@@ -4010,35 +2851,6 @@ function Get-TDProjectFolder
     }
 }
 
-<#
-.Synopsis
-    Get a file for a project in TeamDynamix.
-.DESCRIPTION
-    Get a file for a project in TeamDynamix.
-.PARAMETER ProjectID
-    Project ID number for the project files list.
-.PARAMETER FileID
-    File ID number for the project files list.
-.PARAMETER Content
-    Retrieve the contents of the project file.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-    C:\>Get-TDProjectFile -ProjectID 5591 -FileID xxxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
-
-    Get the specified file in the specified project.
-.EXAMPLE
-    C:\>Get-TDProjectFile -ProjectID 5591 -FileID xxxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx -Content
-
-    Get the contents of the specified file in the specified project.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>
 function Get-TDProjectFile
 {
     [CmdletBinding()]
@@ -4098,34 +2910,7 @@ function Get-TDProjectFile
         return $Return
     }
 }
-
-<#
-.Synopsis
-    Add a file to a project folder in TeamDynamix.
-.DESCRIPTION
-    Add a file to a project folder in TeamDynamix. Returns information
-    regarding the file of the form TeamDynamix.Api.Briefcase.File.
-.PARAMETER ProjectID
-    ID number of the project the file will be added to in TeamDynamix.
-.PARAMETER FolderID
-    ID number of the project folder the file will be added to in TeamDynamix.
-.PARAMETER FilePath
-    The full path and filename of the file to be added as an attachment.
-.PARAMETER AuthenticationToken
-    Hashtable with one key: "Authorization" and value of "Bearer" followed
-    by the JSON bearer web token. See Set-TDAuthentication.
-.PARAMETER Environment
-    Execute the commands on the specified TeamDynamix site. Valid options are
-    "Production", "Sandbox", and "Preview". Default is the site selected when
-    the module was loaded.
-.EXAMPLE
-    C:\> Add-TDProjectFile -ProjectID 111 -FolderID xxxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx -FilePath C:\temp\1.jpg
-
-    Uploads the file c:\temp\1.jpg to the specified project and folder in
-    TeamDynamix.
-.NOTES
-    Author: Brian Keller <keller.4@osu.edu>
-#>function Add-TDProjectFile
+function Add-TDProjectFile
 {
     [CmdletBinding(SupportsShouldProcess=$true)]
     Param
