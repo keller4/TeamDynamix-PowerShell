@@ -1391,7 +1391,7 @@ function Set-TDTicket
         {
             #  Set ID parameters from their corresponding Name (dynamic) parameters (in begin block if none are gathered from the pipeline, otherwise in process block)
             $IDsFromNamesUpdates = Get-IDsFromNames -DynamicParameterDictionary $DynamicParameterDictionary -AppID $AppID
-            $IDsFromNamesUpdates.GetEnumerator() | ForEach-Object {Set-Variable -Name $_.Name -Value $_.Value}
+            $IDsFromNamesUpdates | ForEach-Object {Set-Variable -Name $_.Name -Value $_.Value}
 
             try
             {
@@ -1795,7 +1795,7 @@ function New-TDTicket
         {
             #  Set ID parameters from their corresponding Name (dynamic) parameters (in begin block if none are gathered from the pipeline, otherwise in process block)
             $IDsFromNamesUpdates = Get-IDsFromNames -DynamicParameterDictionary $DynamicParameterDictionary -AppID $AppID
-            $IDsFromNamesUpdates.GetEnumerator() | ForEach-Object {Set-Variable -Name $_.Name -Value $_.Value}
+            $IDsFromNamesUpdates | ForEach-Object {Set-Variable -Name $_.Name -Value $_.Value}
 
             $TDTicket = [TeamDynamix_Api_Tickets_Ticket]::new()
             Update-Object -InputObject $TDTicket -ParameterList $CommandParameters.Keys -BoundParameterList $MyInvocation.BoundParameters.Keys -IgnoreList $IgnoreParameters -AuthenticationToken $AuthenticationToken -Environment $Environment
@@ -2353,7 +2353,7 @@ function Update-TDTicket
     {
         #  Set ID parameters from their corresponding Name (dynamic) parameters (in begin block if none are gathered from the pipeline, otherwise in process block)
         $IDsFromNamesUpdates = Get-IDsFromNames -DynamicParameterDictionary $DynamicParameterDictionary -AppID $AppID
-        $IDsFromNamesUpdates.GetEnumerator() | ForEach-Object {Set-Variable -Name $_.Name -Value $_.Value}
+        $IDsFromNamesUpdates | ForEach-Object {Set-Variable -Name $_.Name -Value $_.Value}
 
         $TicketUpdate = [TeamDynamix_Api_Feed_TicketFeedEntry]::new()
         Update-Object -InputObject $TicketUpdate -ParameterList $CommandParameters.Parameters.Keys -BoundParameterList $MyInvocation.BoundParameters.Keys -IgnoreList $IgnoreParameters -AuthenticationToken $AuthenticationToken -Environment $Environment
@@ -2573,7 +2573,7 @@ function New-TDBlackoutWindow
     {
         #  Set ID parameters from their corresponding Name (dynamic) parameters (in begin block if none are gathered from the pipeline, otherwise in process block)
         $IDsFromNamesUpdates = Get-IDsFromNames -DynamicParameterDictionary $DynamicParameterDictionary -AppID $AppID
-        $IDsFromNamesUpdates.GetEnumerator() | ForEach-Object {Set-Variable -Name $_.Name -Value $_.Value}
+        $IDsFromNamesUpdates | ForEach-Object {Set-Variable -Name $_.Name -Value $_.Value}
 
         $NewBlackoutWindow = [TeamDynamix_Api_Cmdb_BlackoutWindow]::new()
         Update-Object -InputObject $NewBlackoutWindow -ParameterList $CommandParameters.Keys -BoundParameterList $MyInvocation.BoundParameters.Keys -IgnoreList $IgnoreParameters -AuthenticationToken $AuthenticationToken -Environment $Environment
@@ -2692,7 +2692,7 @@ function Set-TDBlackoutWindow
     {
         #  Set ID parameters from their corresponding Name (dynamic) parameters (in begin block if none are gathered from the pipeline, otherwise in process block)
         $IDsFromNamesUpdates = Get-IDsFromNames -DynamicParameterDictionary $DynamicParameterDictionary -AppID $AppID
-        $IDsFromNamesUpdates.GetEnumerator() | ForEach-Object {Set-Variable -Name $_.Name -Value $_.Value}
+        $IDsFromNamesUpdates | ForEach-Object {Set-Variable -Name $_.Name -Value $_.Value}
 
         # Retrieve existing blackout window
         try
