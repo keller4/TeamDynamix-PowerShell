@@ -1,5 +1,6 @@
 ﻿### Assets
 
+function Get-TDAsset
 {
     [CmdletBinding(DefaultParameterSetName='Search')]
     Param
@@ -3838,7 +3839,7 @@ function Add-TDConfigurationItemAttachment
     {
         #  Set ID parameters from their corresponding Name (dynamic) parameters (in begin block if none are gathered from the pipeline, otherwise in process block)
         $IDsFromNamesUpdates = Get-IDsFromNames -DynamicParameterDictionary $DynamicParameterDictionary -AppID $AppID
-        $IDsFromNamesUpdates.GetEnumerator() | ForEach-Object {Set-Variable -Name $_.Name -Value $_.Value}
+        $IDsFromNamesUpdates | ForEach-Object {Set-Variable -Name $_.Name -Value $_.Value}
 
         #Extract filename
         $FileName = $FilePath.Split("\")[$FilePath.Split("\").Count - 1]
@@ -3951,7 +3952,7 @@ function Add-TDConfigurationItemRelationship
     {
         #  Set ID parameters from their corresponding Name (dynamic) parameters (in begin block if none are gathered from the pipeline, otherwise in process block)
         $IDsFromNamesUpdates = Get-IDsFromNames -DynamicParameterDictionary $DynamicParameterDictionary -AppID $AppID
-        $IDsFromNamesUpdates.GetEnumerator() | ForEach-Object {Set-Variable -Name $_.Name -Value $_.Value}
+        $IDsFromNamesUpdates | ForEach-Object {Set-Variable -Name $_.Name -Value $_.Value}
 
         Write-ActivityHistory "Adding relationship for TeamDynamix asset ID $ID, of type $TypeID with comment, $Comment."
         $Return = Invoke-RESTCall -Uri "$BaseURI/$AppID/cmdb/$ID/relationships?typeId=$TypeID&otherItemId=$OtherItemID&isParent=$IsParent&removeExisting=$RemoveExisting" -ContentType $ContentType -Method Put -Headers $AuthenticationToken
@@ -4562,7 +4563,7 @@ function Set-TDProductType
     {
         #  Set ID parameters from their corresponding Name (dynamic) parameters (in begin block if none are gathered from the pipeline, otherwise in process block)
         $IDsFromNamesUpdates = Get-IDsFromNames -DynamicParameterDictionary $DynamicParameterDictionary -AppID $AppID
-        $IDsFromNamesUpdates.GetEnumerator() | ForEach-Object {Set-Variable -Name $_.Name -Value $_.Value}
+        $IDsFromNamesUpdates | ForEach-Object {Set-Variable -Name $_.Name -Value $_.Value}
 
         Write-ActivityHistory "Getting full product type record for $ID on TeamDynamix."
         try

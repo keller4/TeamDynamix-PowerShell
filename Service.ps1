@@ -1145,13 +1145,13 @@ function Get-TDOpenTicketActivity
     (
         # Technician name
         [Parameter(Mandatory=$false)]
-        [ValidatePattern('^\w+\.\d+$')]
+        [ValidateScript({if ($_ -match $TDConfig.UsernameRegex) {$true} else {$false}})]
         [string[]]
         $TechnicianName,
 
         # Client name
         [Parameter(Mandatory=$false)]
-        [ValidatePattern('^\w+\.\d+$')]
+        [ValidateScript({if ($_ -match $TDConfig.UsernameRegex) {$true} else {$false}})]
         [string[]]
         $ClientName,
 
@@ -3594,7 +3594,7 @@ function Get-IDsFromNames
 
     process
     {
-        $Return = @{}
+        $Return = @()
         # Step through dynamic parameters from DynamicParameterDictionary
         foreach ($DynamicParameter in $DynamicParameterDictionary.GetEnumerator())
         {
@@ -3629,7 +3629,7 @@ function Get-IDsFromNames
                         $DynamicParameterValue += $DynamicParameterValueObject.ID
                     }
                 }
-                $Return += @{"$IDParameter" = "$DynamicParameterValue"}
+                $Return += [psobject]@{Name = $IDParameter; Value = $DynamicParameterValue}
             }
         }
         return $Return
@@ -3923,7 +3923,7 @@ function Invoke-Get {
     if ($DynamicParameterDictionary)
     {
         $IDsFromNamesUpdates = Get-IDsFromNames -DynamicParameterDictionary $DynamicParameterDictionary -DynamicParameterList $DynamicParameterList
-        $IDsFromNamesUpdates.GetEnumerator() | ForEach-Object {Set-Variable -Name $_.Name -Value $_.Value}
+        $IDsFromNamesUpdates | ForEach-Object {Set-Variable -Name $_.Name -Value $_.Value}
     }
     switch -regex ($ParameterSetName)
     {
@@ -4086,7 +4086,7 @@ function Invoke-New {
     if ($DynamicParameterDictionary)
     {
         $IDsFromNamesUpdates = Get-IDsFromNames -DynamicParameterDictionary $DynamicParameterDictionary -DynamicParameterList $DynamicParameterList
-        $IDsFromNamesUpdates.GetEnumerator() | ForEach-Object {Set-Variable -Name $_.Name -Value $_.Value}
+        $IDsFromNamesUpdates | ForEach-Object {Set-Variable -Name $_.Name -Value $_.Value}
     }
     # Test for Set or New
     if ($RetrievalCommand)
@@ -4465,3 +4465,357 @@ function Get-OrgAppsByRoleName {
     }
 }
 #endregion
+
+function New-CacheClass
+{
+    [CmdletBinding()]
+    Param
+    (
+        # Description comment - used verbatim at top of class to identify what it stores
+        [Parameter(Mandatory=$true)]
+        [string]
+        $Description,
+
+        # Class name to create
+        [Parameter(Mandatory=$true)]
+        [string]
+        $ClassName,
+
+        # Key type - type of object being cached
+        [Parameter(Mandatory=$true)]
+        [string]
+        $CacheObjectType,
+
+        # Detail test - object property to test to see if more detail needs to be retrieved
+        #  If no detail is required, set this to a property that is never blank or null
+        [Parameter(Mandatory=$true)]
+        [string]
+        $DetailTestProperty,
+
+        # Retrieval command - command used to retrieve data from TeamDynamix
+        [Parameter(Mandatory=$true)]
+        [string]
+        $IncludeTD_Class
+    )
+
+    Begin
+    {
+@'
+# Stores location (building/room) data
+class TD_Location_Cache
+{
+    # $WorkingEnvironment points at the working environment cache
+    hidden [TeamDynamix_Api_Locations_Location[]]$WorkingEnvironment
+    hidden [TeamDynamix_Api_Locations_Location[]]$Production
+    hidden [TeamDynamix_Api_Locations_Location[]]$Sandbox
+    hidden [TeamDynamix_Api_Locations_Location[]]$Preview
+
+    # Default constructor
+    TD_Location_Cache ()
+    {
+    }
+
+    # Methods
+    #  Add by target object - all add commands pass through here
+    hidden [void]Add(
+        [TeamDynamix_Api_Locations_Location]$TargetObject,
+        [EnvironmentChoices]$Environment,
+        [switch]$Detail,
+        [switch]$CheckCache)
+    {
+        # Add
+        #  Add new items, or replace existing items if detail information isn't present
+        $CachedTargetObject = $null
+        if ($CheckCache)
+        {
+            # This check is skipped when bulk-loading data, since the cache is empty when that happens
+            $CachedTargetObject = $this.GetCached($TargetObject.Name,$Environment)
+        }
+        if (-not $CachedTargetObject)
+        {
+            if ($Detail)
+            {
+                # Look up detail data if not present
+                if (-not $TargetObject.Rooms)
+                {
+                    $TargetObject = Get-TDLocation -ID $TargetObject.ID -Environment $Environment
+                }
+            }
+            $this.$Environment += $TargetObject
+        }
+        else
+        {
+            if ($Detail)
+            {
+                # Look up detail data if not present
+                if (-not $CachedTargetObject.Rooms)
+                {
+                    #Replace existing entry with one that contains detail data
+                    $this.Replace((Get-TDLocation -ID $TargetObject.ID -Environment $Environment),$Environment)
+                }
+            }
+        }
+        $this.WorkingEnvironment = $this.$script:WorkingEnvironment
+    }
+    #  Add multiple targets
+    hidden [void]Add(
+        [System.Object[]]$TargetObject,
+        [EnvironmentChoices]$Environment,
+        [switch]$Detail,
+        [switch]$CheckCache)
+    {
+        foreach ($Target in $TargetObject)
+        {
+            $this.Add($Target,$Environment,$Detail,$CheckCache)
+        }
+    }
+    #  Add by target name
+    hidden [void]Add(
+        [string]$TargetName,
+        [EnvironmentChoices]$Environment,
+        [switch]$Detail)
+    {
+        # Look up by name
+        $this.Add((Get-TDLocation -NameLike $TargetName -Exact -Environment $Environment),$Environment,$Detail,$true)
+    }
+    #  Add by target ID
+    hidden [void]Add(
+        [int]$TargetID,
+        [EnvironmentChoices]$Environment,
+        [switch]$Detail)
+    {
+        $this.Add((Get-TDLocation -ID $TargetID -Environment $Environment),$Environment,$Detail,$true)
+    }
+    #  Delegating methods for Add
+    hidden [void]Add(
+        [int]$TargetID)
+    {
+        $this.Add($TargetID,$script:WorkingEnvironment,$true,$true)
+    }
+    hidden [void]Add(
+        [string]$TargetName)
+    {
+        $this.Add($TargetName,$script:WorkingEnvironment,$true,$true)
+    }
+    hidden [void]Add(
+        [System.Object[]]$TargetObject)
+    {
+        $this.Add($TargetObject,$script:WorkingEnvironment,$true,$true)
+    }
+    hidden [void]Add(
+        [TeamDynamix_Api_Locations_Location]$TargetObject)
+    {
+        $this.Add($TargetObject,$script:WorkingEnvironment,$true,$true)
+    }
+
+    # Remove
+    #  Remove $TargetObject in cache by creating temporary copy, clearing existing list and adding everything back, except the one to delete
+    hidden [void]Remove(
+        [int]$TargetID,
+        [EnvironmentChoices]$Environment)
+    {
+        # Copy targets to temporary array
+        $TemporaryTargets = $this.$Environment.Clone()
+        # Erase targets array
+        $this.FlushCache($Environment)
+        # Add targets back from temporary array
+        foreach ($Target in $TemporaryTargets)
+        {
+            # Exclude desired target
+            if ($Target.ID -ne $TargetID)
+            {
+                $this.$Environment += $Target
+            }
+        }
+        $this.WorkingEnvironment = $this.$script:WorkingEnvironment
+    }
+    #  Delegating method for remove
+    hidden [void]Remove(
+        [int]$TargetID)
+    {
+        $this.Remove($TargetID,$script:WorkingEnvironment)
+    }
+
+    # FlushCache
+    #  Remove all cached targets
+    [void]FlushCache(
+        [EnvironmentChoices]$Environment)
+    {
+        $this.$Environment = $null
+        $this.WorkingEnvironment = $this.$script:WorkingEnvironment
+    }
+    #  Delegating method for FlushCache
+    [void]FlushCache()
+    {
+        $this.FlushCache($script:WorkingEnvironment)
+    }
+
+    # Replace
+    #  Replace $TargetObject in cache by removing it and re-adding it
+    hidden [void]Replace(
+        [TeamDynamix_Api_Locations_Location]$TargetObject,
+        [EnvironmentChoices]$Environment)
+    {
+        # Remove entry with matching ID from cache
+        $this.Remove($TargetObject.ID,$Environment)
+        # Add replacement entry to cache
+        $this.Add($TargetObject,$Environment,$false,$true)
+    }
+    #  Delegating method for replace
+    hidden [void]Replace(
+        [TeamDynamix_Api_Locations_Location]$TargetObject)
+    {
+        $this.Replace($TargetObject.ID,$script:WorkingEnvironment)
+    }
+
+    # GetCached
+    #  Get a target from the cache, by name
+    hidden [TeamDynamix_Api_Locations_Location]GetCached(
+        [string]$TargetName,
+        [EnvironmentChoices]$Environment)
+    {
+        # If there's nothing in the cache, load basic target data
+        if (-not $this.$Environment)
+        {
+            $this.LoadTargets($Environment)
+        }
+        return $this.$Environment | Where-Object Name -eq $TargetName
+    }
+    #  Get a target from the cache, by ID
+    hidden [TeamDynamix_Api_Locations_Location]GetCached(
+        [int]$TargetID,
+        [EnvironmentChoices]$Environment)
+    {
+        # If there's nothing in the cache, load basic target data
+        if (-not $this.$Environment)
+        {
+            $this.LoadTargets($Environment)
+        }
+        return $this.$Environment | Where-Object ID -eq $TargetID
+    }
+    # Delegating methods for GetCached
+    #  Get a target from the cache, by name
+    hidden [TeamDynamix_Api_Locations_Location]GetCached(
+        [string]$TargetName)
+    {
+        return $this.GetCached($TargetName,$script:WorkingEnvironment)
+    }
+    #  Get a target from the cache, by ID
+    hidden [TeamDynamix_Api_Locations_Location]GetCached(
+        [int]$TargetID)
+    {
+        return $this.GetCached($TargetID,$script:WorkingEnvironment)
+    }
+
+    # Get
+    #  Get a target from the cache, if present; if not retrieve and add to cache - by name
+    [TeamDynamix_Api_Locations_Location]Get(
+        [string]$TargetName,
+        [EnvironmentChoices]$Environment)
+    {
+        $Target = $this.GetCached($TargetName,$Environment)
+        # Check to see if target and detail data exist
+        if ($Target.Rooms)
+        {
+            return $Target
+        }
+        else
+        {
+            # No target or detail data, add target with detail to cache
+            $this.Add($TargetName,$Environment,$true)
+            # Extract newly-added/updated entry from cache
+            return $this.GetCached($TargetName)
+        }
+    }
+    #  Get a target from the cache, if present, if not retrieve and add to cache - by ID
+    [TeamDynamix_Api_Locations_Location]Get(
+        [int]$TargetID,
+        [EnvironmentChoices]$Environment)
+    {
+        $Target = $this.GetCached($TargetID,$Environment)
+        # Check to see if target and detail data exist
+        if ($Target.Rooms)
+        {
+            return $Target
+        }
+        else
+        {
+            # No target or no detail data, add target with detail to cache
+            $this.Add($TargetID,$Environment,$true)
+            # Extract newly-added/updated entry from cache
+            return $this.GetCached($TargetID)
+        }
+    }
+    #  Delegating methods for Get
+    [TeamDynamix_Api_Locations_Location]Get(
+        [int]$TargetID)
+    {
+        return $this.Get($TargetID,$script:WorkingEnvironment)
+    }
+    [TeamDynamix_Api_Locations_Location]Get(
+        [string]$TargetName)
+    {
+        return $this.Get($TargetName,$script:WorkingEnvironment)
+    }
+
+    # GetAll
+    #  Get all targets from the cache for an environment, if present; if not retrieve and add to cache
+    [TeamDynamix_Api_Locations_Location[]]GetAll(
+        [EnvironmentChoices]$Environment)
+    {
+        if (-not $this.$Environment)
+        {
+            $this.LoadLocations($Environment)
+        }
+        return $this.$Environment
+    }
+    #  Delegating methods for GetAll
+    [TeamDynamix_Api_Locations_Location[]]GetAll()
+    {
+        return $this.GetAll($script:WorkingEnvironment)
+    }
+    [TeamDynamix_Api_Locations_Location[]]Get()
+    {
+        return $this.GetAll($script:WorkingEnvironment)
+    }
+
+    # LoadTargets
+    #  Load existing targets into cache, no detail data
+    [void]LoadTargets(
+        [EnvironmentChoices]$Environment)
+    {
+        # Only load existing targets if there's nothing in the cache - don't load detail data, skip cache checks
+        if (-not $this.$Environment)
+        {
+            $this.Add((Get-TDLocation -Environment $Environment),$Environment,$false,$false)
+        }
+    }
+    #  Delegating method for LoadTargets
+    [void]LoadTargets()
+    {
+        $this.LoadTargets($script:WorkingEnvironment)
+    }
+    # Custom methods
+    # GetByExternalID
+    #  Get a target from the cache by external ID
+    [TeamDynamix_Api_Locations_Location]GetByExternalID(
+        [int]$ExternalID,
+        [EnvironmentChoices]$Environment)
+    {
+        # Find target
+        $Target = $this.$Environment | Where-Object {[int]$_.ExternalID -eq $ExternalID}
+        # Ensure detail data in included by passing through Get
+        return $this.Get($Target.ID,$Environment)
+    }
+    #  Delegating method for GetByExternalID
+    [TeamDynamix_Api_Locations_Location]GetByExternalID(
+        [int]$ExternalID)
+    {
+        return $this.GetByExternalID($ExternalID,$script:WorkingEnvironment)
+    }
+}
+'@
+    }
+    process {}
+    end{}
+}

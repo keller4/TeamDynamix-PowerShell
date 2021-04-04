@@ -2238,7 +2238,7 @@ function Set-TDUser
         if ($DynamicParameterDictionary)
         {
             $IDsFromNamesUpdates = Get-IDsFromNames -DynamicParameterDictionary $DynamicParameterDictionary -DynamicParameterList $DynamicParameterList
-            $IDsFromNamesUpdates.GetEnumerator() | ForEach-Object {Set-Variable -Name $_.Name -Value $_.Value}
+            $IDsFromNamesUpdates | ForEach-Object {Set-Variable -Name $_.Name -Value $_.Value}
         }
         # Make sure we have the UID so we can get the full user record
         if (($Username -ne '') -and (($null -eq $UID) -or ($UID -eq '00000000-0000-0000-0000-000000000000')))
@@ -2797,7 +2797,7 @@ function Add-TDGroupApplication
         if ($DynamicParameterDictionary)
         {
             $IDsFromNamesUpdates = Get-IDsFromNames -DynamicParameterDictionary $DynamicParameterDictionary -DynamicParameterList $DynamicParameterList
-            $IDsFromNamesUpdates.GetEnumerator() | ForEach-Object {Set-Variable -Name $_.Name -Value $_.Value}
+            $IDsFromNamesUpdates | ForEach-Object {Set-Variable -Name $_.Name -Value $_.Value}
         }
     }
 
@@ -2869,7 +2869,7 @@ function Get-TDGroupApplication
         if ($DynamicParameterDictionary)
         {
             $IDsFromNamesUpdates = Get-IDsFromNames -DynamicParameterDictionary $DynamicParameterDictionary -DynamicParameterList $DynamicParameterList
-            $IDsFromNamesUpdates.GetEnumerator() | ForEach-Object {Set-Variable -Name $_.Name -Value $_.Value}
+            $IDsFromNamesUpdates | ForEach-Object {Set-Variable -Name $_.Name -Value $_.Value}
         }
     }
 
@@ -2953,7 +2953,7 @@ function Remove-TDGroupApplication
         if ($DynamicParameterDictionary)
         {
             $IDsFromNamesUpdates = Get-IDsFromNames -DynamicParameterDictionary $DynamicParameterDictionary -DynamicParameterList $DynamicParameterList
-            $IDsFromNamesUpdates.GetEnumerator() | ForEach-Object {Set-Variable -Name $_.Name -Value $_.Value}
+            $IDsFromNamesUpdates | ForEach-Object {Set-Variable -Name $_.Name -Value $_.Value}
         }
     }
 

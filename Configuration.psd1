@@ -4,8 +4,13 @@
             # Log file directory (used for user and asset updates)
             LogFileDirDefault = 'C:\Temp\TD'
 
-            # Email address domain, used to set usernames and primary email address
+            # Email address domain (the part after the @), used to set usernames and primary email address
             DefaultEmailDomain = 'osu.edu'
+
+            # User recognition regex pattern
+            #  Using a regular expression, describe what a valid username looks like (the part before the @ in an email address)
+            #  If you wish to not use a recognition pattern (or don't know regular expressions), use ".*"
+            UsernameRegex = '.*\.\d+'
 
             # Set default TeamDynamix applications
             DefaultAssetCIsApp  = 'Assets/CIs'
@@ -25,6 +30,10 @@
             #  Must have a DefaultADDomainName and DefaultADSearchBase for finding departments
             #  Must be marked as active
             DefaultADConnector = 'Active Directory'
+
+            # User directory information command
+            #  Command should be written so it is possible to add the name to lookup to the end
+            DirectoryLookup = 'Get-OSUDirectoryListing -Properties * -Name'
 
             # Define security roles for users
             # Role names must be unique

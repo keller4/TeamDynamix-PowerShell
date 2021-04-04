@@ -220,7 +220,7 @@ function Start-TDGUI
     #$OrganizationalUnits = Get-ADOrganizationalUnit -Filter * -SearchBase $TDConfig.ADSearchBase -SearchScope OneLevel -Server $TDConfig.DefaultADDomainName
     #$OrganizationalUnits += (Get-ADOrganizationalUnit -Identity 'OU=Non-Affiliated,DC=asc,DC=ohio-state,DC=edu' -Server $TDConfig.DefaultADDomainName)
     #$UnitNames = $OrganizationalUnits.Name.Trim('_') | Sort-Object
-    #$ADUsers = Get-ADUser -Server $TDConfig.DefaultADDomainName -Filter 'Enabled -eq $true' | Where-Object SamAccountName -match '^\w.*\.\d+$'
+    #$ADUsers = Get-ADUser -Server $TDConfig.DefaultADDomainName -Filter 'Enabled -eq $true' | Where-Object SamAccountName -match $TDConfig.UsernameRegex
 
     # Create and display the GUI
     [xml]$Xaml = @"
@@ -252,9 +252,9 @@ function Start-TDGUI
                         Content = 'U_pdate User Data'
                         Visibility = 'Collapsed'/>
                     <Button
-                        Name    = 'bOSUDir'
+                        Name    = 'bDirLookup'
                         Padding = '5,2'
-                        Content = 'OSU Directory _Info'/>
+                        Content = 'Directory _Info'/>
                     <Button
                         Name    = 'bAssetConsistency'
                         Padding = '5,2'
@@ -273,17 +273,17 @@ function Start-TDGUI
                 </WrapPanel>
             </DockPanel>
             <DockPanel
-                Name       = 'pOSUDir'
+                Name       = 'pDirLookup'
                 Dock       = 'Top'
                 Visibility = 'Collapsed'>
                 <DockPanel Dock = 'Top'>
                     <Label>Username</Label>
                     <TextBox
-                        Name   = 'tbOSUDirUsername'
+                        Name   = 'tbDirLookupUsername'
                         Height = '25'
                         Width  = '200'/>
                     <Button
-                        Name      = 'bOSUDirSearch'
+                        Name      = 'bDirLookupSearch'
                         Padding   = '5,2'
                         Margin    = '5,0'
                         IsDefault = 'True'
@@ -295,7 +295,7 @@ function Start-TDGUI
                         VerticalScrollBarVisibility   = 'Auto'
                         HorizontalScrollBarVisibility = 'Auto'>
                         <TextBox
-                            Name            = 'tbOSUDirOut'
+                            Name            = 'tbDirLookupOut'
                             FontFamily      = 'Consolas'
                             Background      = 'Transparent'
                             BorderThickness = '0'
@@ -547,7 +547,7 @@ function Start-TDGUI
     $bCommandGUI.add_Click(
         {
             $pCommandGUI.Visibility      = 'Visible'
-            $pOSUDir.Visibility          = 'Collapsed'
+            $pDirLookup.Visibility          = 'Collapsed'
             $pUpdateUser.Visibility      = 'Collapsed'
             $pDuplicateAssets.Visibility = 'Collapsed'
             $cmbCommandGUI.ItemsSource   = $CommandList
@@ -555,19 +555,19 @@ function Start-TDGUI
             $cmbCommandGUI.Focus()
         }
     )
-    $bOSUDir.add_Click(
+    $bDirLookup.add_Click(
         {
             $pCommandGUI.Visibility      = 'Collapsed'
-            $pOSUDir.Visibility          = 'Visible'
+            $pDirLookup.Visibility          = 'Visible'
             $pUpdateUser.Visibility      = 'Collapsed'
             $pDuplicateAssets.Visibility = 'Collapsed'
-            $tbOSUDirUsername.Focus()
+            $tbDirLookupUsername.Focus()
         }
     )
     $bUpdateUser.add_Click(
         {
             $pCommandGUI.Visibility      = 'Collapsed'
-            $pOSUDir.Visibility          = 'Collapsed'
+            $pDirLookup.Visibility          = 'Collapsed'
             $pUpdateUser.Visibility      = 'Visible'
             $pDuplicateAssets.Visibility = 'Collapsed'
             $tbUpdateUserUsername.Focus()
@@ -577,7 +577,7 @@ function Start-TDGUI
     $bDuplicates.add_Click(
         {
             $pCommandGUI.Visibility            = 'Collapsed'
-            $pOSUDir.Visibility                = 'Collapsed'
+            $pDirLookup.Visibility                = 'Collapsed'
             $pUpdateUser.Visibility            = 'Collapsed'
             $pDuplicateAssets.Visibility       = 'Visible'
             $pDuplicateSelectSearch.Visibility = 'Visible'
@@ -588,7 +588,7 @@ function Start-TDGUI
     $bAssetConsistency.add_Click(
         {
             $pCommandGUI.Visibility      = 'Collapsed'
-            $pOSUDir.Visibility          = 'Collapsed'
+            $pDirLookup.Visibility          = 'Collapsed'
             $pUpdateUser.Visibility      = 'Collapsed'
             $pDuplicateAssets.Visibility = 'Collapsed'
         }
@@ -596,7 +596,7 @@ function Start-TDGUI
 
     $bGroups.add_Click(
         {
-            $pOSUDir.Visibility          = 'Collapsed'
+            $pDirLookup.Visibility          = 'Collapsed'
             $pUpdateUser.Visibility      = 'Collapsed'
             $pDuplicateAssets.Visibility = 'Collapsed'
         }
@@ -614,9 +614,9 @@ function Start-TDGUI
         }
     )
 
-    $bOSUDirSearch.add_Click(
+    $bDirLookupSearch.add_Click(
         {
-            OSUDir
+            DirLookup
         }
     )
 
@@ -716,16 +716,16 @@ function Start-TDGUI
         }
         $bCommandGUIExecute.IsEnabled = $true
     }
-    function OSUDir
+    function DirLookup
     {
-        $bOSUDirSearch.IsEnabled = $false
-        $Return = Get-OSUDirectoryListing $tbOSUDirUsername.Text -Properties *
-        $tbOSUDirOut.Text = ($Return | Out-String)
-        $bOSUDirSearch.IsEnabled = $true
+        $bDirLookupSearch.IsEnabled = $false
+        $Return = Invoke-Expression "$($TDConfig.DirectoryLookup) $($tbDirLookupUsername.Text)"
+        $tbDirLookupOut.Text = ($Return | Out-String)
+        $bDirLookupSearch.IsEnabled = $true
     }
     function UpdateUserSearch
     {
-        if ($tbUpdateUserUsername.text -match '^.*\.\d+@osu\.edu$')
+        if ($tbUpdateUserUsername.text -match "^$([regex]::Escape($TDConfig.UsernameRegex))@$([regex]::Escape($TDConfig.DefaultEmailDomain))`$")
         {
             $bUpdateUserSearch.IsEnabled = $false
             $Return = Get-TDUser -Username $tbUpdateUserUsername.Text -Authentication $TDAuthentication -Environment $WorkingEnvironment
