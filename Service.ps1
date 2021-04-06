@@ -3612,21 +3612,40 @@ function Get-IDsFromNames
                         break
                     }
                 }
-                # Store results in an array, since input might be an array
-                $DynamicParameterValue = @()
-                # Step through each value on the dynamic parameter (if parameter is an array, there may be several)
-                foreach ($DynamicParameterValueItem in $DynamicParameter.Value.Value)
+                # Test to see if the parameter value is an array
+                if ($DynamicParameter.Value.Value.GetType().BaseType.Name -eq 'Array')
                 {
-	                # Use IDsMethod to look up object containing ID
-                    $DynamicParameterValueObject = Invoke-Expression $IDsMethod | Where-Object Name -eq $DynamicParameterValueItem
+                    # Store results in an array, since input is an array
+                    $DynamicParameterValue = @()
+                    # Step through each value on the dynamic parameter to get the ID for each entry
+                    foreach ($DynamicParameterValueItem in $DynamicParameter.Value.Value)
+                    {
+                        # Use IDsMethod to look up object containing ID
+                        $DynamicParameterValueObject = Invoke-Expression $IDsMethod | Where-Object Name -eq $DynamicParameterValueItem
+                        #
+                        if ($DynamicParameter.Key -eq 'AppName')
+                        {
+                            $DynamicParameterValue += $DynamicParameterValueObject.AppID
+                        }
+                        else
+                        {
+                            $DynamicParameterValue += $DynamicParameterValueObject.ID
+                        }
+                    }
+                }
+                # Parameter value is a single entity, not an array
+                else
+                {
+                    # Use IDsMethod to look up object containing ID
+                    $DynamicParameterValueObject = Invoke-Expression $IDsMethod | Where-Object Name -eq $DynamicParameter.Value.Value
                     #
                     if ($DynamicParameter.Key -eq 'AppName')
                     {
-                        $DynamicParameterValue += $DynamicParameterValueObject.AppID
+                        $DynamicParameterValue = $DynamicParameterValueObject.AppID
                     }
                     else
                     {
-                        $DynamicParameterValue += $DynamicParameterValueObject.ID
+                        $DynamicParameterValue = $DynamicParameterValueObject.ID
                     }
                 }
                 $Return += [psobject]@{Name = $IDParameter; Value = $DynamicParameterValue}
