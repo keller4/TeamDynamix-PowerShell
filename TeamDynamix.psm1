@@ -11,6 +11,13 @@
     $WorkingEnvironment = 'Production'
 )
 
+# Operational note on maintaining help documentation
+#  Requires PlatyPS module to update
+#  Help files are stored as markdown files in .\Docs
+#  Issue the following commands to update XML help file
+#  Import-Module PlatyPS
+#  New-ExternalHelp -Path .\Docs -OutputPath .\en-US\ -Force
+
 Write-Progress -ID 100 -Activity 'Loading module' -Status 'Setting up environment' -PercentComplete 0
 
 # Import configuration and check validity

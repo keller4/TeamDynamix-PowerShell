@@ -366,6 +366,8 @@ function Get-TDUser
         # Return full detail on user
         [Parameter(ParameterSetName='Search',
                    Mandatory=$false)]
+        [Parameter(Parametersetname='Fast',
+                   Mandatory=$false)]
         [switch]
         $Detail,
 
@@ -431,6 +433,14 @@ function Get-TDUser
         [ValidateRange(1,100)]
         [int]
         $MaxResults,
+
+        # Return only exact matches on account search
+        [Parameter(ParameterSetName='Search',
+                   Mandatory=$false)]
+        [Parameter(Parametersetname='Fast',
+                   Mandatory=$false)]
+        [switch]
+        $Exact,
 
         # TeamDynamix authentication token
         [Parameter(Mandatory=$false)]
@@ -519,9 +529,23 @@ function Get-TDUser
                 $Return = ($Return | ForEach-Object {[TeamDynamix_Api_Users_User]::new($_)})
             }
         }
-        if ($Detail)
+        # Local modifications to return set
+        if ($Return)
         {
-            $Return = Get-TDUser -UID $Return.UID -AuthenticationToken $AuthenticationToken -Environment $Environment
+            if ($Exact)
+            {
+                if (-not [string]::IsNullOrWhiteSpace($SearchText))
+                {
+                    $Return = $Return | Where-Object {$SearchText -in @($_.AlertEmail,$_.$AlternateEmail,$_.AuthenticationUserName,$_.FullName,$_.PrimaryEmail,$_.UserName)}
+                }
+            }
+            if ($Detail)
+            {
+                if ($Return)
+                {
+                    $Return = Get-TDUser -UID $Return.UID -AuthenticationToken $AuthenticationToken -Environment $Environment
+                }
+            }
         }
         return $Return
     }
