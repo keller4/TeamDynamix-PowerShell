@@ -20,7 +20,7 @@ function Set-TDAuthentication
         $CredentialPath,
 
         # Get credentials from a GUI form
-        [Parameter(Mandatory=$true,
+        [Parameter(Mandatory=$false,
                    ParameterSetName='GUI')]
         [switch]
         $GUI,
@@ -119,6 +119,8 @@ function Set-TDAuthentication
         }
         GUI
         {
+            # Force $GUI to $true, since the default parameter set will send us through this code path, even if $GUI isn't set to true
+            $GUI = $true
             # Fall back to Prompt if $ModuleGUI = $false
             if ($ModuleGUI)
             {

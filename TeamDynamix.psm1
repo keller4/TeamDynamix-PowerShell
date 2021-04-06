@@ -8,13 +8,7 @@
     [Parameter(Mandatory=$false,
                Position=1)]
     [string]
-    $WorkingEnvironment = 'Production',
-
-    # Activity reporting queue depth, shows most recent activity on errors - use for debugging
-    [Parameter(Mandatory=$false,
-               Position=2)]
-    [int]
-    $MaxActivityHistoryDefault = 1
+    $WorkingEnvironment = 'Production'
 )
 
 Write-Progress -ID 100 -Activity 'Loading module' -Status 'Setting up environment' -PercentComplete 0
@@ -22,6 +16,24 @@ Write-Progress -ID 100 -Activity 'Loading module' -Status 'Setting up environmen
 # Import configuration and check validity
 $TDConfig = Import-PowerShellDataFile $PSScriptRoot\Configuration.psd1
 if (($TDConfig.UserRoles | Where-Object Default -eq $true).Name.Count -ne 1) {throw 'In Configuration.psd1, there must be one, and only one, default user role.'}
+if ($TDConfig.MaxActivityHistoryDefault -lt 1) {throw 'In Configuration.psd1, MaxActivityHistoryDefault should be 1 or higher.'}
+#  Test for blanks and nulls in required settings
+$RequiredSettings = @(
+    'LogFileDirDefault'
+    'DefaultEmailDomain'
+    'UsernameRegex'
+    'DefaultAssetCIsApp'
+    'DefaultTicketingApp'
+    'DefaultPortalApp'
+    'DefaultTDPortalBaseURI'
+    'DefaultTDPortalPreviewBaseURI'
+    'DefaultTDPortalSandboxTargetURI'
+    'DefaultTDPortalTargetURI'
+    )
+foreach ($RequiredSetting in $RequiredSettings)
+{
+    if ([string]::IsNullOrEmpty($TDConfig.$RequiredSetting)) {throw "In Configuration.psd1, $RequiredSetting must not be blank or null."}
+}
 
 #region Reference and control variables
 # Check to see if GUI is supported (currently only supported on Windows, and cross-platform support began with version 6)
@@ -82,6 +94,9 @@ $script:DefaultTDBaseURI          = 'https://api.teamdynamix.com'
 $script:DefaultTDPreviewBaseURI   = 'https://api.teamdynamixpreview.com'
 $script:DefaultTDSandboxTargetURI = '/SBTDWebApi/api'
 $script:DefaultTDTargetURI        = '/TDWebApi/api'
+
+# Activity reporting queue depth
+$script:MaxActivityHistoryDefault = $TDConfig.MaxActivityHistoryDefault
 
 # PowerShell and TeamDynamix standard parameters to be ignored (use carefully, parameters inside TD's API that match these names will never be updated)
 $script:GlobalIgnoreParameters = @(
