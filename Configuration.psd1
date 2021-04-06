@@ -35,6 +35,12 @@
             #  Command should be written so it is possible to add the name to lookup to the end
             DirectoryLookup = 'Get-OSUDirectoryListing -Properties * -Name'
 
+            # Activity reporting queue depth, select any value 1 or higher
+            #  This is the number of recent activities to be reported when there is an error
+            #  Used for debugging
+            #  Recommended default: 1
+            MaxActivityHistoryDefault = 1
+
             # Define security roles for users
             # Role names must be unique
             # Security roles must match a TD security role, same for FunctionalRole and TD functional role, this does not create the roles

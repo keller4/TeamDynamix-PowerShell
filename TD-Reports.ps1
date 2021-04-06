@@ -156,15 +156,15 @@ function Get-TDSearch
         {
             'Get-TDSearch'
             {
-                $AppName.Value = ($TDApplications | Where-Object Type -eq 'Ticketing')[0].Name
+                $AppName.Value = $TDConfig.DefaultTicketingApp
             }
             'Get-TDAssetSearch'
             {
-                $AppName.Value = ($TDApplications | Where-Object Type -eq 'Asset/CI')[0].Name
+                $AppName.Value = $TDConfig.DefaultAssetCIsApp
             }
             'Get-TDTicketSearch'
             {
-                $AppName.Value = ($TDApplications | Where-Object Type -eq 'Ticketing')[0].Name
+                $AppName.Value = $TDConfig.DefaultTicketingApp
             }
 
         }
@@ -290,15 +290,15 @@ function Search-TD
         {
             'Search-TD'
             {
-                $AppName.Value = ($TDApplications | Where-Object Type -eq 'Ticketing')[0].Name
+                $AppName.Value = $TDConfig.DefaultTicketingApp
             }
             'Search-TDAsset'
             {
-                $AppName.Value = ($TDApplications | Where-Object Type -eq 'Asset/CI')[0].Name
+                $AppName.Value = $TDConfig.DefaultAssetCIsApp
             }
             'Search-TDTicket'
             {
-                $AppName.Value = ($TDApplications | Where-Object Type -eq 'Ticketing')[0].Name
+                $AppName.Value = $TDConfig.DefaultTicketingApp
             }
 
         }
@@ -449,19 +449,19 @@ function Get-TDFeed
         {
             'Get-TDFeed'
             {
-                $AppName.Value = ($TDApplications | Where-Object Type -eq 'Ticketing')[0].Name
+                $AppName.Value = $TDConfig.DefaultTicketingApp
             }
             'Get-TDAssetFeed'
             {
-                $AppName.Value = ($TDApplications | Where-Object Type -eq 'Asset/CI')[0].Name
+                $AppName.Value = $TDConfig.DefaultAssetCIsApp
             }
             'Get-TDTicketFeed'
             {
-                $AppName.Value = ($TDApplications | Where-Object Type -eq 'Ticketing')[0].Name
+                $AppName.Value = $TDConfig.DefaultTicketingApp
             }
             'Get-TDProjectFeed'
             {
-                $AppName.Value = 'Projects'
+                $AppName.Value = 'Projects / Workspaces'
             }
         }
         $ParameterDictionary.Add("AppName", $AppName)
@@ -485,31 +485,19 @@ function Get-TDFeed
         {
             $AppID = ($TDApplications | Where-Object Name -eq $AppName.Value).AppID
         }
-        # Get app type to use appropriate URI
-        if ($AppID -eq 0) # Occurs when the AppID isn't needed
+        $AppClass = ($TDApplications | Where-Object AppID -eq $AppID).AppClass
+        switch ($AppClass)
         {
-            $AppType = ($TDApplications | Where-Object Name -eq $AppName.Value).Type
-            switch ($AppType)
-            {
-                'Ticketing' {$AppIDTypeURI = 'tickets'}
-                'Asset/CI'  {$AppIDTypeURI = 'assets' }
-            }
-        }
-        else
-        {
-            $AppType = ($TDApplications | Where-Object AppID -eq $AppID).Type
-            switch ($AppType)
-            {
-                'Ticketing' {$AppIDTypeURI = "$AppID/tickets"}
-                'Asset/CI'  {$AppIDTypeURI = "$AppID/assets" }
-            }
+            'TDTickets'  {$AppIDClassURI = "$AppID/tickets"}
+            'TDAssets'   {$AppIDClassURI = "$AppID/assets" }
+            'TDProjects' {$AppIDClassURI = 'projects' }
         }
         switch ($pscmdlet.ParameterSetName)
         {
             'ID'
             {
-                Write-ActivityHistory "Retrieving feed for TeamDynamix $AppType ID $ID"
-                $Return = Invoke-RESTCall -Uri "$BaseURI/$AppIDTypeURI/$ID/feed" -ContentType $ContentType -Method Get -Headers $AuthenticationToken
+                Write-ActivityHistory "Retrieving feed for TeamDynamix $AppClass ID $ID"
+                $Return = Invoke-RESTCall -Uri "$BaseURI/$AppIDClassURI/$ID/feed" -ContentType $ContentType -Method Get -Headers $AuthenticationToken
                 if ($Return)
                 {
                     if ($IgnoreUIDs)
@@ -522,7 +510,7 @@ function Get-TDFeed
             'Page'
             {
                 # Paged feed search is date-based.
-                Write-ActivityHistory "Retrieving paged feed for TeamDynamix $AppType ID $ID"
+                Write-ActivityHistory "Retrieving paged feed for TeamDynamix $AppClass ID $ID"
                 # Build page query string
                 $PageQuery = ''
                 if ($DateFrom)
@@ -553,7 +541,7 @@ function Get-TDFeed
                     }
                     $PageQuery += "ReturnCount=$ReturnCount"
                 }
-                $Return = Invoke-RESTCall -Uri "$BaseURI/$AppIDTypeURI/feed/?$PageQuery" -ContentType $ContentType -Method Get -Headers $AuthenticationToken
+                $Return = Invoke-RESTCall -Uri "$BaseURI/$AppIDClassURI/feed/?$PageQuery" -ContentType $ContentType -Method Get -Headers $AuthenticationToken
                 if ($Return)
                 {
                     $Return = ($Return | ForEach-Object {[TeamDynamix_Api_Feed_ItemUpdatesPage]::new($_)})
@@ -607,15 +595,15 @@ function Get-TDForm
         {
             'Get-TDForm'
             {
-                $AppName.Value = ($TDApplications | Where-Object Type -eq 'Ticketing')[0].Name
+                $AppName.Value = $TDConfig.DefaultTicketingApp
             }
             'Get-TDAssetForm'
             {
-                $AppName.Value = ($TDApplications | Where-Object Type -eq 'Asset/CI')[0].Name
+                $AppName.Value = $TDConfig.DefaultAssetCIsApp
             }
             'Get-TDTicketForm'
             {
-                $AppName.Value = ($TDApplications | Where-Object Type -eq 'Ticketing')[0].Name
+                $AppName.Value = $TDConfig.DefaultTicketingApp
             }
 
         }
