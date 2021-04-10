@@ -11,7 +11,7 @@
     RootModule = 'TeamDynamix'
 
     # Version number of this module.
-    ModuleVersion = '2.0.8'
+    ModuleVersion = '2.0.9'
 
     # Supported PSEditions
     # CompatiblePSEditions = @()
@@ -324,6 +324,7 @@
 
     # List of all files packaged with this module
     FileList = @(
+        'Configuration.ps1'
         'Service.ps1'
         'TD-Assets.ps1'
         'TD-Attachments.ps1'

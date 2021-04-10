@@ -20,6 +20,18 @@
 
 Write-Progress -ID 100 -Activity 'Loading module' -Status 'Setting up environment' -PercentComplete 0
 
+# Update/create configuration file
+#  If Configuration.psd1 is present, extract its settings
+#   If existing Configuration.psd1 file is the current version, take no action
+#   Otherwise create a new, default Configuration.psd1 file and move old settings into it
+#  If Configuration file is not present, create a new, default Configuration.psd1 file
+. $PSScriptRoot\Configuration.ps1
+$UpdatedConfiguration = Update-ConfigurationFile
+if ($UpdatedConfiguration)
+{
+    Write-Error 'Configuration file updated. Check settings.'
+}
+
 # Import configuration and check validity
 $TDConfig = Import-PowerShellDataFile $PSScriptRoot\Configuration.psd1
 if (($TDConfig.UserRoles | Where-Object Default -eq $true).Name.Count -ne 1) {throw 'In Configuration.psd1, there must be one, and only one, default user role.'}
@@ -34,8 +46,6 @@ $RequiredSettings = @(
     'DefaultPortalApp'
     'DefaultTDPortalBaseURI'
     'DefaultTDPortalPreviewBaseURI'
-    'DefaultTDPortalSandboxTargetURI'
-    'DefaultTDPortalTargetURI'
     )
 foreach ($RequiredSetting in $RequiredSettings)
 {
@@ -97,10 +107,12 @@ $script:TimeZoneIDReference = [ordered]@{
     62 = 'Afghanistan Time(GMT+04:30)'}
 
 # TeamDynamix API target
-$script:DefaultTDBaseURI          = 'https://api.teamdynamix.com'
-$script:DefaultTDPreviewBaseURI   = 'https://api.teamdynamixpreview.com'
-$script:DefaultTDSandboxTargetURI = '/SBTDWebApi/api'
-$script:DefaultTDTargetURI        = '/TDWebApi/api'
+$script:DefaultTDBaseURI                = 'https://api.teamdynamix.com'
+$script:DefaultTDPreviewBaseURI         = 'https://api.teamdynamixpreview.com'
+$script:DefaultTDSandboxTargetURI       = '/SBTDWebApi/api'
+$script:DefaultTDTargetURI              = '/TDWebApi/api'
+$script:DefaultTDPortalSandboxTargetURI = '/SBTDNext'
+$script:DefaultTDPortalTargetURI        = '/TDNext'
 
 # Activity reporting queue depth
 $script:MaxActivityHistoryDefault = $TDConfig.MaxActivityHistoryDefault
@@ -14238,4 +14250,4 @@ catch
 }
 #endregion
 
-Write-Progress -ID 100 -Activity 'Loading module' -Status 'Finishing' -PercentComplete 95
+Write-Progress -ID 100 -Completed -Activity 'Finishing'
