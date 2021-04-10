@@ -3766,7 +3766,7 @@ function Get-URI {
         Production {
             if ($Portal)
             {
-                $BaseURI = "$($TDConfig.DefaultTDPortalBaseURI)$($TDConfig.DefaultTDPortalTargetURI)"
+                $BaseURI = "$($TDConfig.DefaultTDPortalBaseURI)$($script:DefaultTDPortalTargetURI)"
             }
             else
             {
@@ -3776,7 +3776,7 @@ function Get-URI {
         Preview {
             if ($Portal)
             {
-                $BaseURI = "$($TDConfig.DefaultTDPortalPreviewBaseURI)$($TDConfig.DefaultTDPortalTargetURI)"
+                $BaseURI = "$($TDConfig.DefaultTDPortalPreviewBaseURI)$($script:DefaultTDPortalTargetURI)"
             }
             else
             {
@@ -3786,7 +3786,7 @@ function Get-URI {
         Sandbox {
             if ($Portal)
             {
-                $BaseURI = "$($TDConfig.DefaultTDPortalBaseURI)$($TDConfig.DefaultTDPortalSandboxTargetURI)"
+                $BaseURI = "$($TDConfig.DefaultTDPortalBaseURI)$($script:DefaultTDPortalSandboxTargetURI)"
             }
             else
             {

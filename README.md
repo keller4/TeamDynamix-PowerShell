@@ -40,7 +40,7 @@ Where they are used as parameters that list their values, slowly changing data, 
 
 # Configuration file
 
-Configure local defaults, including TeamDynamix portal URLs, log file directories, security roles, default applications, and data connectors in the `Configuration.psd1` file.
+Configure local defaults, including TeamDynamix portal URLs, log file directories, security roles, default applications, and data connectors in the `Configuration.psd1` file. The configuration file is automatically created when importing the module the first time.
 
 Currently, only settings in *region Required* are implemented. Other settings are present for future development. Contact Brian Keller if you wish to participate in the development process.
 
