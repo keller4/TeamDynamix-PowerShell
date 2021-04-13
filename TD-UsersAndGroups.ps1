@@ -43,6 +43,18 @@ function Set-TDAuthentication
         [switch]
         $NoUpdate,
 
+        # Don't invalidate the cached data
+        [Parameter(Mandatory=$false,
+                   ParameterSetName='PSCredential')]
+        [Parameter(Mandatory=$false,
+                   ParameterSetName='CredentialPath')]
+        [Parameter(Mandatory=$false,
+                   ParameterSetName='GUI')]
+        [Parameter(Mandatory=$false,
+                   ParameterSetName='Prompt')]
+        [switch]
+        $NoInvalidateCache,
+
         # Return authentication information, even if Update switch is used (which would normally consume the authentication info)
         [Parameter(Mandatory=$false,
                    ParameterSetName='PSCredential')]
@@ -194,6 +206,34 @@ function Set-TDAuthentication
 
         # Build hashtable for use as header
         $AuthenticationHeader = @{"Authorization" = ("Bearer $JSONWebToken")}
+    }
+
+    # Flush cached variables
+    if (-not $NoInvalidateCache)
+    {
+        Clear-TDLocalCache
+        <#
+        # Caching variables
+        $CacheVariables = @()
+        # List all script-scoped variables
+        $ScopedVariables = Get-Variable -Scope script
+        foreach ($ScopedVariable in $ScopedVariables)
+        {
+            if ($ScopedVariable.Value)
+            {
+                if ($ScopedVariable.Value.GetType().Name -like 'TD_*_Cache')
+                {
+                    # Collect caching variables
+                    $CacheVariables += $ScopedVariable
+                }
+            }
+        }
+        foreach ($Environ in [System.Enum]::GetNames('EnvironmentChoices'))
+        {
+            # Flush caches for all environments
+            $CacheVariables | ForEach-Object {$_.Value.FlushCache($Environ)}
+        }
+        #>
     }
 
     # Update or return authentication information
@@ -459,11 +499,11 @@ function Get-TDUser
             @{
                 Name             = 'AppName'
                 Type             = 'string'
-                ValidateSet      = $TDApplications.Name
+                ValidateSet      = $TDApplications.GetAll().Name
                 HelpText         = 'Return users who have been granted access to the application'
                 ParameterSetName = 'Search'
                 IDParameter      = 'AppID'
-                IDsMethod        = '$TDApplications'
+                IDsMethod        = '$TDApplications.GetAll($Environment)'
             }
             @{
                 Name             = 'AccountNames'
@@ -1697,6 +1737,12 @@ function New-TDUser
         [string]
         $Password,
 
+        # The salutation of the user.
+        [Parameter(Mandatory=$false,
+                   ValueFromPipelineByPropertyName=$true)]
+        [string]
+        $Salutation,
+
         # First name of new user
         [Parameter(Mandatory=$true,
                    ValueFromPipelineByPropertyName=$true)]
@@ -1714,6 +1760,18 @@ function New-TDUser
                    ValueFromPipelineByPropertyName=$true)]
         [string]
         $LastName,
+
+        # The nickname of the user.
+        [Parameter(Mandatory=$false,
+                   ValueFromPipelineByPropertyName=$true)]
+        [string]
+        $Nickname,
+
+        # The organizational ID of the user.
+        [Parameter(Mandatory=$false,
+                   ValueFromPipelineByPropertyName=$true)]
+        [string]
+        $ExternalID,
 
         # Primary email for new user
         [Parameter(Mandatory=$true,
@@ -1799,6 +1857,36 @@ function New-TDUser
         [string]
         $PrimaryPhone,
 
+        # The home phone number of the user.
+        [Parameter(Mandatory=$false,
+                   ValueFromPipelineByPropertyName=$true)]
+        [string]
+        $HomePhone,
+
+        # The pager number of the user.
+        [Parameter(Mandatory=$false,
+                   ValueFromPipelineByPropertyName=$true)]
+        [string]
+        $Pager,
+
+        # The other phone number of the user.
+        [Parameter(Mandatory=$false,
+                   ValueFromPipelineByPropertyName=$true)]
+        [string]
+        $OtherPhone,
+
+        # The mobile phone number of the user.
+        [Parameter(Mandatory=$false,
+                   ValueFromPipelineByPropertyName=$true)]
+        [String]
+        $MobilePhone,
+
+        # The fax number of the user.
+        [Parameter(Mandatory=$false,
+                   ValueFromPipelineByPropertyName=$true)]
+        [string]
+        $Fax,
+
         # Work address for new user
         [Parameter(Mandatory=$false,
                    ValueFromPipelineByPropertyName=$true)]
@@ -1822,6 +1910,54 @@ function New-TDUser
                    ValueFromPipelineByPropertyName=$true)]
         [string]
         $WorkZip,
+
+        # Work country for user
+        [Parameter(Mandatory=$false,
+                   ValueFromPipelineByPropertyName=$true)]
+        [string]
+        $WorkCountry,
+
+        # The ID of the default priority associated with the user.
+        [Parameter(Mandatory=$false,
+                   ValueFromPipelineByPropertyName=$true)]
+        [int32]
+        $DefaultPriorityID,
+
+        # The &quot;About Me&quot; information associated with the user.
+        [Parameter(Mandatory=$false,
+                   ValueFromPipelineByPropertyName=$true)]
+        [string]
+        $AboutMe,
+
+        # The home address of the user.
+        [Parameter(Mandatory=$false,
+                   ValueFromPipelineByPropertyName=$true)]
+        [string]
+        $HomeAddress,
+
+        # The home city of the user.
+        [Parameter(Mandatory=$false,
+                   ValueFromPipelineByPropertyName=$true)]
+        [string]
+        $HomeCity,
+
+        # The home state abbreviation of the user.
+        [Parameter(Mandatory=$false,
+                   ValueFromPipelineByPropertyName=$true)]
+        [string]
+        $HomeState,
+
+        # The home zip code of the user.
+        [Parameter(Mandatory=$false,
+                   ValueFromPipelineByPropertyName=$true)]
+        [string]
+        $HomeZip,
+
+        # Home country for user
+        [Parameter(Mandatory=$false,
+                   ValueFromPipelineByPropertyName=$true)]
+        [string]
+        $HomeCountry,
 
         # Location (building) ID for user
         [Parameter(Mandatory=$false,
@@ -1858,6 +1994,90 @@ function New-TDUser
                    ValueFromPipelineByPropertyName=$true)]
         [boolean]
         $IsConfidential,
+
+        # The default bill rate of the user.
+        [Parameter(Mandatory=$false,
+                   ValueFromPipelineByPropertyName=$true)]
+        [double]
+        $DefaultRate,
+
+        # The cost rate of the user.
+        [Parameter(Mandatory=$false,
+                   ValueFromPipelineByPropertyName=$true)]
+        [double]
+        $CostRate,
+
+        # The number of workable hours in a work day for the user.
+        [Parameter(Mandatory=$false,
+                   ValueFromPipelineByPropertyName=$true)]
+        [double]
+        $WorkableHours,
+
+        # Whether the user's capacity is managed, meaning they can have capacity and will appear on capacity/availability reports.
+        [Parameter(Mandatory=$false,
+                   ValueFromPipelineByPropertyName=$true)]
+        [boolean]
+        $IsCapacityManaged,
+
+        # The date after which the user should start reporting time. This also governs capacity calculations.
+        [Parameter(Mandatory=$false,
+                   ValueFromPipelineByPropertyName=$true)]
+        [datetime]
+        $ReportTimeAfterDate,
+
+        # The date after which the user is no longer available for scheduling and no longer required to log time.
+        [Parameter(Mandatory=$false,
+                   ValueFromPipelineByPropertyName=$true)]
+        [datetime]
+        $EndDate,
+
+        # Whether the user should report time.
+        [Parameter(Mandatory=$false,
+                   ValueFromPipelineByPropertyName=$true)]
+        [boolean]
+        $ShouldReportTime,
+
+        # The UID of the person who the user reports to.
+        [Parameter(Mandatory=$false,
+                   ValueFromPipelineByPropertyName=$true)]
+        [string]
+        $ReportsToUID,
+
+        # The ID of the resource pool associated with the user.
+        [Parameter(Mandatory=$false,
+                   ValueFromPipelineByPropertyName=$true)]
+        [int32]
+        $ResourcePoolID,
+
+        # The ID of the time zone associated with the user.
+        [Parameter(Mandatory=$false,
+                   ValueFromPipelineByPropertyName=$true)]
+        [int32]
+        $TZID,
+
+        # The authentication username of the user, used for authenticating with non-TeamDynamix authentication types.
+        [Parameter(Mandatory=$false,
+                   ValueFromPipelineByPropertyName=$true)]
+        [string]
+        $AuthenticationUserName,
+
+        # The ID of the authentication provider the new user will use for authentication.
+        [Parameter(Mandatory=$false,
+                   ValueFromPipelineByPropertyName=$true)]
+        [int32]
+        $AuthenticationProviderID,
+
+        # The Instant Messenger (IM) provider associated with the user.
+        [Parameter(Mandatory=$false,
+                   ValueFromPipelineByPropertyName=$true)]
+        [string]
+        $IMProvider,
+
+        # The Instant Messenger (IM) username/handle associated with the user.
+        [Parameter(Mandatory=$false,
+                   ValueFromPipelineByPropertyName=$true)]
+        [string]
+        $IMHandle,
 
         # Custom attributes
         [Parameter(Mandatory=$false,
@@ -1953,29 +2173,23 @@ function New-TDUser
         }
     }
 }
+
 function Set-TDUser
 {
     [CmdletBinding(SupportsShouldProcess=$true,
-                   ConfirmImpact='High',
-                   DefaultParameterSetName='UID')]
+                   ConfirmImpact='High')]
     [OutputType([System.Management.Automation.PSCustomObject])]
     Param
     (
         # UID of user
-        [Parameter(ParameterSetName='UID',
-                   Mandatory=$true,
+        [Parameter(Mandatory=$true,
                    ValueFromPipelineByPropertyName=$true,
                    Position=0)]
         [guid]
         $UID,
 
         # Username of user
-        [Parameter(Mandatory=$true,
-                   ParameterSetName='Username',
-                   ValueFromPipelineByPropertyName=$true,
-                   Position=0)]
         [Parameter(Mandatory=$false,
-                   ParameterSetName='UID',
                    ValueFromPipelineByPropertyName=$true)]
         [string]
         $Username,
@@ -1983,8 +2197,20 @@ function Set-TDUser
         # Is user account active (enabled)
         [Parameter(Mandatory=$false,
                    ValueFromPipelineByPropertyName=$true)]
-        [System.Nullable[boolean]]
+        [boolean]
         $IsActive,
+
+        # The confidential status of the user.
+        [Parameter(Mandatory=$false,
+                   ValueFromPipelineByPropertyName=$true)]
+        [boolean]
+        $IsConfidential,
+
+        # The salutation of the user.
+        [Parameter(Mandatory=$false,
+                   ValueFromPipelineByPropertyName=$true)]
+        [string]
+        $Salutation,
 
         # First name of user
         [Parameter(Mandatory=$false,
@@ -2003,6 +2229,18 @@ function Set-TDUser
                    ValueFromPipelineByPropertyName=$true)]
         [string]
         $LastName,
+
+        # The nickname of the user.
+        [Parameter(Mandatory=$false,
+                   ValueFromPipelineByPropertyName=$true)]
+        [string]
+        $Nickname,
+
+        # The organizational ID of the user.
+        [Parameter(Mandatory=$false,
+                   ValueFromPipelineByPropertyName=$true)]
+        [string]
+        $ExternalID,
 
         # Primary email for user
         [Parameter(Mandatory=$false,
@@ -2088,6 +2326,36 @@ function Set-TDUser
         [string]
         $PrimaryPhone,
 
+        # The home phone number of the user.
+        [Parameter(Mandatory=$false,
+                   ValueFromPipelineByPropertyName=$true)]
+        [string]
+        $HomePhone,
+
+        # The pager number of the user.
+        [Parameter(Mandatory=$false,
+                   ValueFromPipelineByPropertyName=$true)]
+        [string]
+        $Pager,
+
+        # The other phone number of the user.
+        [Parameter(Mandatory=$false,
+                   ValueFromPipelineByPropertyName=$true)]
+        [string]
+        $OtherPhone,
+
+        # The mobile phone number of the user.
+        [Parameter(Mandatory=$false,
+                   ValueFromPipelineByPropertyName=$true)]
+        [String]
+        $MobilePhone,
+
+        # The fax number of the user.
+        [Parameter(Mandatory=$false,
+                   ValueFromPipelineByPropertyName=$true)]
+        [string]
+        $Fax,
+
         # Work address for user
         [Parameter(Mandatory=$false,
                    ValueFromPipelineByPropertyName=$true)]
@@ -2112,6 +2380,54 @@ function Set-TDUser
         [string]
         $WorkZip,
 
+        # Work country for user
+        [Parameter(Mandatory=$false,
+                   ValueFromPipelineByPropertyName=$true)]
+        [string]
+        $WorkCountry,
+
+        # The ID of the default priority associated with the user.
+        [Parameter(Mandatory=$false,
+                   ValueFromPipelineByPropertyName=$true)]
+        [int32]
+        $DefaultPriorityID,
+
+        # The &quot;About Me&quot; information associated with the user.
+        [Parameter(Mandatory=$false,
+                   ValueFromPipelineByPropertyName=$true)]
+        [string]
+        $AboutMe,
+
+        # The home address of the user.
+        [Parameter(Mandatory=$false,
+                   ValueFromPipelineByPropertyName=$true)]
+        [string]
+        $HomeAddress,
+
+        # The home city of the user.
+        [Parameter(Mandatory=$false,
+                   ValueFromPipelineByPropertyName=$true)]
+        [string]
+        $HomeCity,
+
+        # The home state abbreviation of the user.
+        [Parameter(Mandatory=$false,
+                   ValueFromPipelineByPropertyName=$true)]
+        [string]
+        $HomeState,
+
+        # The home zip code of the user.
+        [Parameter(Mandatory=$false,
+                   ValueFromPipelineByPropertyName=$true)]
+        [string]
+        $HomeZip,
+
+        # Home country for user
+        [Parameter(Mandatory=$false,
+                   ValueFromPipelineByPropertyName=$true)]
+        [string]
+        $HomeCountry,
+
         # Location (building) ID for user
         [Parameter(Mandatory=$false,
                    ValueFromPipelineByPropertyName=$true)]
@@ -2135,6 +2451,90 @@ function Set-TDUser
                    ValueFromPipelineByPropertyName=$true)]
         [TeamDynamix_Api_Users_UserType]
         $TypeID,
+
+        # The default bill rate of the user.
+        [Parameter(Mandatory=$false,
+                   ValueFromPipelineByPropertyName=$true)]
+        [double]
+        $DefaultRate,
+
+        # The cost rate of the user.
+        [Parameter(Mandatory=$false,
+                   ValueFromPipelineByPropertyName=$true)]
+        [double]
+        $CostRate,
+
+        # The number of workable hours in a work day for the user.
+        [Parameter(Mandatory=$false,
+                   ValueFromPipelineByPropertyName=$true)]
+        [double]
+        $WorkableHours,
+
+        # Whether the user's capacity is managed, meaning they can have capacity and will appear on capacity/availability reports.
+        [Parameter(Mandatory=$false,
+                   ValueFromPipelineByPropertyName=$true)]
+        [boolean]
+        $IsCapacityManaged,
+
+        # The date after which the user should start reporting time. This also governs capacity calculations.
+        [Parameter(Mandatory=$false,
+                   ValueFromPipelineByPropertyName=$true)]
+        [datetime]
+        $ReportTimeAfterDate,
+
+        # The date after which the user is no longer available for scheduling and no longer required to log time.
+        [Parameter(Mandatory=$false,
+                   ValueFromPipelineByPropertyName=$true)]
+        [datetime]
+        $EndDate,
+
+        # Whether the user should report time.
+        [Parameter(Mandatory=$false,
+                   ValueFromPipelineByPropertyName=$true)]
+        [boolean]
+        $ShouldReportTime,
+
+        # The UID of the person who the user reports to.
+        [Parameter(Mandatory=$false,
+                   ValueFromPipelineByPropertyName=$true)]
+        [string]
+        $ReportsToUID,
+
+        # The ID of the resource pool associated with the user.
+        [Parameter(Mandatory=$false,
+                   ValueFromPipelineByPropertyName=$true)]
+        [int32]
+        $ResourcePoolID,
+
+        # The ID of the time zone associated with the user.
+        [Parameter(Mandatory=$false,
+                   ValueFromPipelineByPropertyName=$true)]
+        [int32]
+        $TZID,
+
+        # The authentication username of the user, used for authenticating with non-TeamDynamix authentication types.
+        [Parameter(Mandatory=$false,
+                   ValueFromPipelineByPropertyName=$true)]
+        [string]
+        $AuthenticationUserName,
+
+        # The ID of the authentication provider the new user will use for authentication.
+        [Parameter(Mandatory=$false,
+                   ValueFromPipelineByPropertyName=$true)]
+        [int32]
+        $AuthenticationProviderID,
+
+        # The Instant Messenger (IM) provider associated with the user.
+        [Parameter(Mandatory=$false,
+                   ValueFromPipelineByPropertyName=$true)]
+        [string]
+        $IMProvider,
+
+        # The Instant Messenger (IM) username/handle associated with the user.
+        [Parameter(Mandatory=$false,
+                   ValueFromPipelineByPropertyName=$true)]
+        [string]
+        $IMHandle,
 
         # Custom attributes
         [Parameter(Mandatory=$false,
@@ -2231,10 +2631,18 @@ function Set-TDUser
                 Name             = 'LocationName'
                 Mandatory        = $false
                 Type             = 'string'
-                ValidateSet      = $TDBuildingRoomCache.Get().Name
+                ValidateSet      = $TDBuildingsRooms.GetAll().Name
                 HelpText         = 'Remove these applications from specified group'
                 IDParameter      = 'LocationID'
-                IDsMethod        = '$TDBuildingRoomCache.Get()'
+                IDsMethod        = '$TDBuildingsRooms.GetAll()'
+            }
+            @{
+                Name             = 'TimeZoneName'
+                Type             = 'string'
+                ValidateSet      = $TDTimeZones.Name
+                HelpText         = 'Name of time zone'
+                IDParameter      = 'TZID'
+                IDsMethod        = '$TDTimeZones'
             }
         )
         $DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
@@ -2255,7 +2663,7 @@ function Set-TDUser
         $LocalIgnoreParameters = @('Username')
         #  Extract relevant list of parameters from the current command
         $ChangeParameters = (Get-Command $MyInvocation.MyCommand.Name).Parameters.Keys | Where-Object {(($_ -notin $LocalIgnoreParameters) -and ($_ -notin $GlobalIgnoreParameters))}
-        $LocalIgnoreParameters += @('RemoveAttributes','RemoveOrgApplications','ClearOrgApplications','OverrideEnterpriseRole','SecurityRoleName','DefaultAccountName','GroupNames','LocationName')
+        $LocalIgnoreParameters += @('RemoveAttributes','RemoveOrgApplications','ClearOrgApplications','OverrideEnterpriseRole','SecurityRoleName','DefaultAccountName','GroupNames','LocationName','TimeZoneName')
     }
     Process
     {
@@ -2800,10 +3208,10 @@ function Add-TDGroupApplication
                 Name             = 'AppNames'
                 Mandatory        = $true
                 Type             = 'string[]'
-                ValidateSet      = $TDApplications.Name
+                ValidateSet      = $TDApplications.GetAll().Name
                 HelpText         = 'Remove these applications from specified group'
                 IDParameter      = 'AppIDs'
-                IDsMethod        = '$TDApplications'
+                IDsMethod        = '$TDApplications.GetAll($Environment)'
             }
         )
         $DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
@@ -2956,10 +3364,10 @@ function Remove-TDGroupApplication
                 Name             = 'AppNames'
                 Mandatory        = $true
                 Type             = 'string[]'
-                ValidateSet      = $TDApplications.Name
+                ValidateSet      = $TDApplications.GetAll().Name
                 HelpText         = 'Remove these applications from specified group'
                 IDParameter      = 'AppIDs'
-                IDsMethod        = '$TDApplications'
+                IDsMethod        = '$TDApplications.GetAll($Environment)'
             }
         )
         $DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList

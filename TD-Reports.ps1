@@ -146,7 +146,7 @@ function Get-TDSearch
         $Attributes.ParameterSetName = 'Name'
         $AttributeCollection = New-Object -Type System.Collections.ObjectModel.Collection[System.Attribute]
         $AttributeCollection.Add($Attributes)
-        $ValidateSet = New-Object System.Management.Automation.ValidateSetAttribute($TDApplications.Name | Where-Object Type -ne 'Standard')
+        $ValidateSet = New-Object System.Management.Automation.ValidateSetAttribute(($TDApplications.GetAll() | Where-Object Type -ne 'Standard').Name)
         $AttributeCollection.Add($ValidateSet)
         $AppName = New-Object -Type System.Management.Automation.RuntimeDefinedParameter("AppName", [string], $AttributeCollection)
         # Specify a default value if none is provided, based on which function name is used
@@ -188,10 +188,10 @@ function Get-TDSearch
         # Get ID for application if name is supplied
         if ($PSCmdlet.ParameterSetName -eq 'Name')
         {
-            $AppID = ($TDApplications | Where-Object Name -eq $AppName.Value).AppID
+            $AppID = $TDApplications.Get($AppName.Value,$Environment).AppID
         }
         # Get app type to use appropriate URI
-        switch (($TDApplications | Where-Object AppID -eq $AppID).Type)
+        switch ($TDApplications.Get($AppID,$Environment).Type)
         {
             'Ticketing'
             {
@@ -280,7 +280,7 @@ function Search-TD
         $Attributes.ParameterSetName = 'AppName'
         $AttributeCollection = New-Object -Type System.Collections.ObjectModel.Collection[System.Attribute]
         $AttributeCollection.Add($Attributes)
-        $ValidateSet = New-Object System.Management.Automation.ValidateSetAttribute($TDApplications.Name | Where-Object Type -ne 'Standard')
+        $ValidateSet = New-Object System.Management.Automation.ValidateSetAttribute(($TDApplications.GetAll() | Where-Object Type -ne 'Standard').Name)
         $AttributeCollection.Add($ValidateSet)
         $AppName = New-Object -Type System.Management.Automation.RuntimeDefinedParameter("AppName", [string], $AttributeCollection)
         # Specify a default value if none is provided, based on which function name is used
@@ -341,10 +341,10 @@ function Search-TD
         # Get ID for application if name is supplied
         if ($PSCmdlet.ParameterSetName -eq 'AppName')
         {
-            $AppID = ($TDApplications | Where-Object Name -eq $AppName.Value).AppID
+            $AppID = $TDApplications.Get($AppName.Value,$Environment).AppID
         }
         # Get app type to use appropriate URI
-        switch (($TDApplications | Where-Object AppID -eq $AppID).Type)
+        switch ($TDApplications.Get($AppID,$Environment).Type)
         {
             'Ticketing'
             {
@@ -440,7 +440,7 @@ function Get-TDFeed
         $Attributes.HelpMessage = 'Name of application whose custom attributes will be retrieved'
         $AttributeCollection = New-Object -Type System.Collections.ObjectModel.Collection[System.Attribute]
         $AttributeCollection.Add($Attributes)
-        $ValidateSet = New-Object System.Management.Automation.ValidateSetAttribute($TDApplications.Name | Where-Object Type -ne 'Standard')
+        $ValidateSet = New-Object System.Management.Automation.ValidateSetAttribute(($TDApplications.GetAll() | Where-Object Type -ne 'Standard').Name)
         $AttributeCollection.Add($ValidateSet)
         $AppName = New-Object -Type System.Management.Automation.RuntimeDefinedParameter("AppName", [string], $AttributeCollection)
         # Specify a default value if none is provided, based on which function name is used
@@ -483,9 +483,9 @@ function Get-TDFeed
         # Get ID from name if AppID is not supplied (AppID defaults to 0)
         if ($AppID -eq 0)
         {
-            $AppID = ($TDApplications | Where-Object Name -eq $AppName.Value).AppID
+            $AppID = $TDApplications.Get($AppName.Value,$Environment).AppID
         }
-        $AppClass = ($TDApplications | Where-Object AppID -eq $AppID).AppClass
+        $AppClass = $TDApplications.Get($AppID,$Environment).AppClass
         switch ($AppClass)
         {
             'TDTickets'  {$AppIDClassURI = "$AppID/tickets"}
@@ -586,7 +586,7 @@ function Get-TDForm
         $Attributes.HelpMessage = 'Name of application whose forms will be retrieved'
         $AttributeCollection = New-Object -Type System.Collections.ObjectModel.Collection[System.Attribute]
         $AttributeCollection.Add($Attributes)
-        $ValidateSet = New-Object System.Management.Automation.ValidateSetAttribute($TDApplications.Name | Where-Object Type -ne 'Standard')
+        $ValidateSet = New-Object System.Management.Automation.ValidateSetAttribute(($TDApplications.GetAll() | Where-Object Type -ne 'Standard').Name)
         $AttributeCollection.Add($ValidateSet)
         $AppName = New-Object -Type System.Management.Automation.RuntimeDefinedParameter("AppName", [string], $AttributeCollection)
         # Specify a default value if none is provided, based on which function name is used
@@ -627,10 +627,10 @@ function Get-TDForm
         # Get ID for application if name is supplied
         if ($AppName.Value)
         {
-            $AppID = ($TDApplications | Where-Object Name -eq $AppName.Value).AppID
+            $AppID = $TDApplications.Get($AppName.Value,$Environment).AppID
         }
         # Get app type to use appropriate URI
-        switch (($TDApplications | Where-Object AppID -eq $AppID).Type)
+        switch ($TDApplications.Get($AppID,$Environment).Type)
         {
             'Ticketing'
             {
