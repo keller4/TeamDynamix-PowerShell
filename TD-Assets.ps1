@@ -372,10 +372,10 @@ function Get-TDAsset
             @{
                 Name        = 'AppName'
                 Type        = 'string'
-                ValidateSet = ($TDApplications | Where-Object AppClass -eq 'TDAssets').Name
+                ValidateSet = $TDApplications.GetByAppClass('TDAssets').Name
                 HelpText    = 'Name of application'
                 IDParameter = 'AppID'
-                IDsMethod   = '$TDApplications'
+                IDsMethod   = '$TDApplications.GetAll($Environment)'
             }
         )
         $DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
@@ -411,12 +411,13 @@ function Get-TDAsset
             # Location and room specified
             if ($RoomLike)
             {
-                $Location = Get-TDLocation -NameLike $LocationLike -RoomLike $RoomLike -Exact -AuthenticationToken $AuthenticationToken -Environment $Environment
+                $Location = $TDBuildingsRooms.GetRoom($LocationLike,$RoomLike,$Environment)
             }
             # Location specified
             else
             {
-                $Location = Get-TDLocation -NameLike $LocationLike -Exact:$ExactLocation -AuthenticationToken $AuthenticationToken -Environment $Environment
+                # Get from cache
+                $Location = $TDBuildingsRooms.Get($LocationLike, $Environment)
             }
             if (-not $Location)
             {
@@ -431,7 +432,7 @@ function Get-TDAsset
                 # Rooms can only be looked up within a single building
                 if ($LocationIDs.Count -eq 1)
                 {
-                    $Location = Get-TDLocation -ID $LocationIDs[0] -RoomLike $RoomLike -Exact -AuthenticationToken $AuthenticationToken -Environment $Environment
+                    $Location = $TDBuildingsRooms.GetRoom($LocationIDs[0],$RoomLike,$Environment)
                     if (-not $Location)
                     {
                         Write-ActivityHistory -MessageChannel 'Error' -ThrowError -Message "Unable to find LocationLike or RoomLike location in location ID $LocationIDs."
@@ -527,10 +528,10 @@ function Get-TDAssetResource
             @{
                 Name        = 'AppName'
                 Type        = 'string'
-                ValidateSet = ($TDApplications | Where-Object AppClass -eq 'TDAssets').Name
+                ValidateSet = $TDApplications.GetByAppClass('TDAssets').Name
                 HelpText    = 'Name of application'
                 IDParameter = 'AppID'
-                IDsMethod   = '$TDApplications'
+                IDsMethod   = '$TDApplications.GetAll($Environment)'
             }
         )
         $DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
@@ -774,10 +775,10 @@ function New-TDAsset
             @{
                 Name        = 'AppName'
                 Type        = 'string'
-                ValidateSet = ($TDApplications | Where-Object AppClass -eq 'TDAssets').Name
+                ValidateSet = $TDApplications.GetByAppClass('TDAssets').Name
                 HelpText    = 'Name of application'
                 IDParameter = 'AppID'
-                IDsMethod   = '$TDApplications'
+                IDsMethod   = '$TDApplications.GetAll($Environment)'
             }
         )
 		$DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
@@ -801,12 +802,12 @@ function New-TDAsset
             # Location and room specified
             if ($LocationRoomName)
             {
-                $Location = Get-TDLocation -NameLike $LocationName -RoomLike $LocationRoomName -Exact -AuthenticationToken $AuthenticationToken -Environment $Environment
+                $Location = $TDBuildingsRooms.GetRoom($LocationName,$LocationRoomName,$Environment)
             }
             # Location specified
             else
             {
-                $Location = Get-TDLocation -NameLike $LocationName -Exact -AuthenticationToken $AuthenticationToken -Environment $Environment
+                $Location = $TDBuildingsRooms.Get($LocationName,$Environment)
             }
             if (-not $Location)
             {
@@ -818,7 +819,7 @@ function New-TDAsset
         {
             if ($LocationID)
             {
-                $Location = Get-TDLocation -ID $LocationID -RoomLike $LocationRoomName -Exact -AuthenticationToken $AuthenticationToken -Environment $Environment
+                $Location = $TDBuildingsRooms.GetRoom($LocationID,$LocationRoomName,$Environment)
                 if (-not $Location)
                 {
                     Write-ActivityHistory -MessageChannel 'Error' -ThrowError -Message "Unable to find LocationName or LocationRoomName location in location ID $LocationID."
@@ -1139,7 +1140,7 @@ function Set-TDAsset
 				HelpText    = 'Name of supplier'
                 ParameterSetName = 'Non-Bulk'
                 IDParameter = 'SupplierID'
-                IDsMethod   = '$TDApplications'
+                IDsMethod   = '$TDApplications.GetAll($Environment)'
 			}
 			@{
 				Name        = 'ProductModelName'
@@ -1176,10 +1177,10 @@ function Set-TDAsset
             @{
                 Name        = 'AppName'
                 Type        = 'string'
-                ValidateSet = ($TDApplications | Where-Object AppClass -eq 'TDAssets').Name
+                ValidateSet = $TDApplications.GetByAppClass('TDAssets').Name
                 HelpText    = 'Name of application'
                 IDParameter = 'AppID'
-                IDsMethod   = '$TDApplications'
+                IDsMethod   = '$TDApplications.GetAll($Environment)'
             }
 		)
 		$DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
@@ -1205,12 +1206,12 @@ function Set-TDAsset
             # Location and room specified
             if ($LocationRoomName)
             {
-                $Location = Get-TDLocation -NameLike $LocationName -RoomLike $LocationRoomName -Exact -AuthenticationToken $AuthenticationToken -Environment $Environment
+                $Location = $TDBuildingsRooms.GetRoom($LocationName,$LocationRoomName,$Environment)
             }
             # Location specified
             else
             {
-                $Location = Get-TDLocation -NameLike $LocationName -Exact -AuthenticationToken $AuthenticationToken -Environment $Environment
+                $Location = $TDBuildingsRooms.Get($LocationName,$Environment)
             }
             if (-not $Location)
             {
@@ -1222,7 +1223,7 @@ function Set-TDAsset
         {
             if ($LocationID)
             {
-                $Location = Get-TDLocation -ID $LocationID -RoomLike $LocationRoomName -Exact -AuthenticationToken $AuthenticationToken -Environment $Environment
+                $Location = $TDBuildingsRooms.GetRoom($LocationID,$LocationRoomName,$Environment)
                 if (-not $Location)
                 {
                     Write-ActivityHistory -MessageChannel 'Error' -ThrowError -Message "Unable to find LocationName or LocationRoomName location in location ID $LocationID."
@@ -1366,10 +1367,10 @@ function Get-TDAssetStatus
             @{
                 Name        = 'AppName'
                 Type        = 'string'
-                ValidateSet = ($TDApplications | Where-Object AppClass -eq 'TDAssets').Name
+                ValidateSet = $TDApplications.GetByAppClass('TDAssets').Name
                 HelpText    = 'Name of application'
                 IDParameter = 'AppID'
-                IDsMethod   = '$TDApplications'
+                IDsMethod   = '$TDApplications.GetAll($Environment)'
             }
         )
         $DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
@@ -1467,10 +1468,10 @@ function New-TDAssetStatus
             @{
                 Name        = 'AppName'
                 Type        = 'string'
-                ValidateSet = ($TDApplications | Where-Object AppClass -eq 'TDAssets').Name
+                ValidateSet = $TDApplications.GetByAppClass('TDAssets').Name
                 HelpText    = 'Name of application'
                 IDParameter = 'AppID'
-                IDsMethod   = '$TDApplications'
+                IDsMethod   = '$TDApplications.GetAll($Environment)'
             }
         )
         $DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
@@ -1567,10 +1568,10 @@ function Set-TDAssetStatus
             @{
                 Name        = 'AppName'
                 Type        = 'string'
-                ValidateSet = ($TDApplications | Where-Object AppClass -eq 'TDAssets').Name
+                ValidateSet = $TDApplications.GetByAppClass('TDAssets').Name
                 HelpText    = 'Name of application'
                 IDParameter = 'AppID'
-                IDsMethod   = '$TDApplications'
+                IDsMethod   = '$TDApplications.GetAll($Environment)'
             }
         )
         $DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
@@ -1657,10 +1658,10 @@ function Get-TDMaintenanceWindow
             @{
                 Name        = 'AppName'
                 Type        = 'string'
-                ValidateSet = ($TDApplications | Where-Object AppClass -eq 'TDAssets').Name
+                ValidateSet = $TDApplications.GetByAppClass('TDAssets').Name
                 HelpText    = 'Name of application'
                 IDParameter = 'AppID'
-                IDsMethod   = '$TDApplications'
+                IDsMethod   = '$TDApplications.GetAll($Environment)'
             }
         )
         $DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
@@ -1766,10 +1767,10 @@ function New-TDMaintenanceWindow
             @{
                 Name        = 'AppName'
                 Type        = 'string'
-                ValidateSet = ($TDApplications | Where-Object AppClass -eq 'TDAssets').Name
+                ValidateSet = $TDApplications.GetByAppClass('TDAssets').Name
                 HelpText    = 'Name of application'
                 IDParameter = 'AppID'
-                IDsMethod   = '$TDApplications'
+                IDsMethod   = '$TDApplications.GetAll($Environment)'
             }
         )
         $DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
@@ -1868,10 +1869,10 @@ function Set-TDMaintenanceWindow
             @{
                 Name        = 'AppName'
                 Type        = 'string'
-                ValidateSet = ($TDApplications | Where-Object AppClass -eq 'TDAssets').Name
+                ValidateSet = $TDApplications.GetByAppClass('TDAssets').Name
                 HelpText    = 'Name of application'
                 IDParameter = 'AppID'
-                IDsMethod   = '$TDApplications'
+                IDsMethod   = '$TDApplications.GetAll($Environment)'
             }
         )
         $DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
@@ -1988,10 +1989,10 @@ function Get-TDVendor
             @{
                 Name        = 'AppName'
                 Type        = 'string'
-                ValidateSet = ($TDApplications | Where-Object AppClass -eq 'TDAssets').Name
+                ValidateSet = $TDApplications.GetByAppClass('TDAssets').Name
                 HelpText    = 'Name of application'
                 IDParameter = 'AppID'
-                IDsMethod   = '$TDApplications'
+                IDsMethod   = '$TDApplications.GetAll($Environment)'
             }
         )
         $DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
@@ -2119,10 +2120,10 @@ function Get-TDProductModel
             @{
                 Name        = 'AppName'
                 Type        = 'string'
-                ValidateSet = ($TDApplications | Where-Object AppClass -eq 'TDAssets').Name
+                ValidateSet = $TDApplications.GetByAppClass('TDAssets').Name
                 HelpText    = 'Name of application'
                 IDParameter = 'AppID'
-                IDsMethod   = '$TDApplications'
+                IDsMethod   = '$TDApplications.GetAll($Environment)'
             }
 		)
 		$DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
@@ -2219,10 +2220,10 @@ function Add-TDAssetComment
             @{
                 Name        = 'AppName'
                 Type        = 'string'
-                ValidateSet = ($TDApplications | Where-Object AppClass -eq 'TDAssets').Name
+                ValidateSet = $TDApplications.GetByAppClass('TDAssets').Name
                 HelpText    = 'Name of application'
                 IDParameter = 'AppID'
-                IDsMethod   = '$TDApplications'
+                IDsMethod   = '$TDApplications.GetAll($Environment)'
             }
         )
         $DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
@@ -2291,10 +2292,10 @@ function Add-TDAssetComment
             @{
                 Name        = 'AppName'
                 Type        = 'string'
-                ValidateSet = ($TDApplications | Where-Object AppClass -eq 'TDAssets').Name
+                ValidateSet = $TDApplications.GetByAppClass('TDAssets').Name
                 HelpText    = 'Name of application'
                 IDParameter = 'AppID'
-                IDsMethod   = '$TDApplications'
+                IDsMethod   = '$TDApplications.GetAll($Environment)'
             }
         )
         $DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
@@ -2382,10 +2383,10 @@ function Add-TDAssetResource
             @{
                 Name        = 'AppName'
                 Type        = 'string'
-                ValidateSet = ($TDApplications | Where-Object AppClass -eq 'TDAssets').Name
+                ValidateSet = $TDApplications.GetByAppClass('TDAssets').Name
                 HelpText    = 'Name of application'
                 IDParameter = 'AppID'
-                IDsMethod   = '$TDApplications'
+                IDsMethod   = '$TDApplications.GetAll($Environment)'
             }
         )
         $DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
@@ -2459,10 +2460,10 @@ function Remove-TDAssetResource
             @{
                 Name        = 'AppName'
                 Type        = 'string'
-                ValidateSet = ($TDApplications | Where-Object AppClass -eq 'TDAssets').Name
+                ValidateSet = $TDApplications.GetByAppClass('TDAssets').Name
                 HelpText    = 'Name of application'
                 IDParameter = 'AppID'
-                IDsMethod   = '$TDApplications'
+                IDsMethod   = '$TDApplications.GetAll($Environment)'
             }
         )
         $DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
@@ -2533,10 +2534,10 @@ function Get-TDCustomAttribute
             @{
                 Name        = 'AppName'
                 Type        = 'string'
-                ValidateSet = ($TDApplications | Where-Object AppClass -eq 'TDAssets').Name
+                ValidateSet = $TDApplications.GetByAppClass('TDAssets').Name
                 HelpText    = 'Name of application'
                 IDParameter = 'AppID'
-                IDsMethod   = '$TDApplications'
+                IDsMethod   = '$TDApplications.GetAll($Environment)'
             }
         )
         $DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
@@ -2904,10 +2905,10 @@ function Get-TDConfigurationItemType
             @{
                 Name        = 'AppName'
                 Type        = 'string'
-                ValidateSet = ($TDApplications | Where-Object AppClass -eq 'TDAssets').Name
+                ValidateSet = $TDApplications.GetByAppClass('TDAssets').Name
                 HelpText    = 'Name of application'
                 IDParameter = 'AppID'
-                IDsMethod   = '$TDApplications'
+                IDsMethod   = '$TDApplications.GetAll($Environment)'
             }
 		)
 		$DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
@@ -2988,10 +2989,10 @@ function New-TDConfigurationItemType
             @{
                 Name        = 'AppName'
                 Type        = 'string'
-                ValidateSet = ($TDApplications | Where-Object AppClass -eq 'TDAssets').Name
+                ValidateSet = $TDApplications.GetByAppClass('TDAssets').Name
                 HelpText    = 'Name of application'
                 IDParameter = 'AppID'
-                IDsMethod   = '$TDApplications'
+                IDsMethod   = '$TDApplications.GetAll($Environment)'
             }
 		)
 		$DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
@@ -3070,10 +3071,10 @@ function Set-TDConfigurationItemType
             @{
                 Name        = 'AppName'
                 Type        = 'string'
-                ValidateSet = ($TDApplications | Where-Object AppClass -eq 'TDAssets').Name
+                ValidateSet = $TDApplications.GetByAppClass('TDAssets').Name
                 HelpText    = 'Name of application'
                 IDParameter = 'AppID'
-                IDsMethod   = '$TDApplications'
+                IDsMethod   = '$TDApplications.GetAll($Environment)'
             }
 		)
 		$DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
@@ -3185,10 +3186,10 @@ function Get-TDConfigurationItem
             @{
                 Name        = 'AppName'
                 Type        = 'string'
-                ValidateSet = ($TDApplications | Where-Object AppClass -eq 'TDAssets').Name
+                ValidateSet = $TDApplications.GetByAppClass('TDAssets').Name
                 HelpText    = 'Name of application'
                 IDParameter = 'AppID'
-                IDsMethod   = '$TDApplications'
+                IDsMethod   = '$TDApplications.GetAll($Environment)'
             }
 		)
 		$DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
@@ -3370,10 +3371,10 @@ function New-TDConfigurationItem
             @{
                 Name        = 'AppName'
                 Type        = 'string'
-                ValidateSet = ($TDApplications | Where-Object AppClass -eq 'TDAssets').Name
+                ValidateSet = $TDApplications.GetByAppClass('TDAssets').Name
                 HelpText    = 'Name of application'
                 IDParameter = 'AppID'
-                IDsMethod   = '$TDApplications'
+                IDsMethod   = '$TDApplications.GetAll($Environment)'
             }
 		)
 		$DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
@@ -3527,10 +3528,10 @@ function Set-TDConfigurationItem
 			@{
 				Name        = 'AppName'
                 Type        = 'string'
-				ValidateSet = ($TDApplications | Where-Object AppClass -eq 'TDAssets').Name
+				ValidateSet = $TDApplications.GetByAppClass('TDAssets').Name
 				HelpText    = 'Name of application'
                 IDParameter = 'AppID'
-                IDsMethod   = '$TDApplications'
+                IDsMethod   = '$TDApplications.GetAll($Environment)'
 			}
 		)
 		$DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
@@ -3590,10 +3591,10 @@ function Get-TDConfigurationRelationshipType
             @{
                 Name        = 'AppName'
                 Type        = 'string'
-                ValidateSet = ($TDApplications | Where-Object AppClass -eq 'TDAssets').Name
+                ValidateSet = $TDApplications.GetByAppClass('TDAssets').Name
                 HelpText    = 'Name of application'
                 IDParameter = 'AppID'
-                IDsMethod   = '$TDApplications'
+                IDsMethod   = '$TDApplications.GetAll($Environment)'
             }
 		)
 		$DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
@@ -3661,10 +3662,10 @@ function Get-TDConfigurationItemRelationship
             @{
                 Name        = 'AppName'
                 Type        = 'string'
-                ValidateSet = ($TDApplications | Where-Object AppClass -eq 'TDAssets').Name
+                ValidateSet = $TDApplications.GetByAppClass('TDAssets').Name
                 HelpText    = 'Name of application'
                 IDParameter = 'AppID'
-                IDsMethod   = '$TDApplications'
+                IDsMethod   = '$TDApplications.GetAll($Environment)'
             }
 		)
 		$DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
@@ -3740,10 +3741,10 @@ function Remove-TDConfigurationItemRelationship
             @{
                 Name        = 'AppName'
                 Type        = 'string'
-                ValidateSet = ($TDApplications | Where-Object AppClass -eq 'TDAssets').Name
+                ValidateSet = $TDApplications.GetByAppClass('TDAssets').Name
                 HelpText    = 'Name of application'
                 IDParameter = 'AppID'
-                IDsMethod   = '$TDApplications'
+                IDsMethod   = '$TDApplications.GetAll($Environment)'
             }
 		)
 		$DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
@@ -3818,10 +3819,10 @@ function Add-TDConfigurationItemAttachment
             @{
                 Name        = 'AppName'
                 Type        = 'string'
-                ValidateSet = ($TDApplications | Where-Object AppClass -eq 'TDAssets').Name
+                ValidateSet = $TDApplications.GetByAppClass('TDAssets').Name
                 HelpText    = 'Name of application'
                 IDParameter = 'AppID'
-                IDsMethod   = '$TDApplications'
+                IDsMethod   = '$TDApplications.GetAll($Environment)'
             }
 		)
 		$DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
@@ -3932,10 +3933,10 @@ function Add-TDConfigurationItemRelationship
             @{
                 Name        = 'AppName'
                 Type        = 'string'
-                ValidateSet = ($TDApplications | Where-Object AppClass -eq 'TDAssets').Name
+                ValidateSet = $TDApplications.GetByAppClass('TDAssets').Name
                 HelpText    = 'Name of application'
                 IDParameter = 'AppID'
-                IDsMethod   = '$TDApplications'
+                IDsMethod   = '$TDApplications.GetAll($Environment)'
             }
 		)
 		$DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
@@ -4054,10 +4055,10 @@ function New-TDProductModel
 			@{
 				Name        = 'AppName'
                 Type        = 'string'
-				ValidateSet = ($TDApplications | Where-Object AppClass -eq 'TDAssets').Name
+				ValidateSet = $TDApplications.GetByAppClass('TDAssets').Name
 				HelpText    = 'Name of application'
                 IDParameter = 'AppID'
-                IDsMethod   = '$TDApplications'
+                IDsMethod   = '$TDApplications.GetAll($Environment)'
 			}
 		)
 		$DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
@@ -4181,10 +4182,10 @@ function Set-TDProductModel
 			@{
 				Name        = 'AppName'
                 Type        = 'string'
-				ValidateSet = ($TDApplications | Where-Object AppClass -eq 'TDAssets').Name
+				ValidateSet = $TDApplications.GetByAppClass('TDAssets').Name
 				HelpText    = 'Name of application'
                 IDParameter = 'AppID'
-                IDsMethod   = '$TDApplications'
+                IDsMethod   = '$TDApplications.GetAll($Environment)'
 			}
 		)
 		$DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
@@ -4278,10 +4279,10 @@ function Get-TDProductType
 			@{
 				Name        = 'AppName'
                 Type        = 'string'
-				ValidateSet = ($TDApplications | Where-Object AppClass -eq 'TDAssets').Name
+				ValidateSet = $TDApplications.GetByAppClass('TDAssets').Name
 				HelpText    = 'Name of application'
                 IDParameter = 'AppID'
-                IDsMethod   = '$TDApplications'
+                IDsMethod   = '$TDApplications.GetAll($Environment)'
 			}
 			@{
 				Name        = 'ParentProductTypeName'
@@ -4421,10 +4422,10 @@ function New-TDProductType
 			@{
 				Name        = 'AppName'
                 Type        = 'string'
-				ValidateSet = ($TDApplications | Where-Object AppClass -eq 'TDAssets').Name
+				ValidateSet = $TDApplications.GetByAppClass('TDAssets').Name
 				HelpText    = 'Name of application'
                 IDParameter = 'AppID'
-                IDsMethod   = '$TDApplications'
+                IDsMethod   = '$TDApplications.GetAll($Environment)'
 			}
 			@{
 				Name        = 'ParentName'
@@ -4535,10 +4536,10 @@ function Set-TDProductType
 			@{
 				Name        = 'AppName'
                 Type        = 'string'
-				ValidateSet = ($TDApplications | Where-Object AppClass -eq 'TDAssets').Name
+				ValidateSet = $TDApplications.GetByAppClass('TDAssets').Name
 				HelpText    = 'Name of application'
                 IDParameter = 'AppID'
-                IDsMethod   = '$TDApplications'
+                IDsMethod   = '$TDApplications.GetAll($Environment)'
 			}
 			@{
 				Name        = 'ParentName'
@@ -4706,10 +4707,10 @@ function New-TDVendor
 			@{
 				Name        = 'AppName'
                 Type        = 'string'
-				ValidateSet = ($TDApplications | Where-Object AppClass -eq 'TDAssets').Name
+				ValidateSet = $TDApplications.GetByAppClass('TDAssets').Name
 				HelpText    = 'Name of application'
                 IDParameter = 'AppID'
-                IDsMethod   = '$TDApplications'
+                IDsMethod   = '$TDApplications.GetAll($Environment)'
 			}
 		)
 		$DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
@@ -4859,10 +4860,10 @@ function Set-TDVendor
 			@{
 				Name        = 'AppName'
                 Type        = 'string'
-				ValidateSet = ($TDApplications | Where-Object AppClass -eq 'TDAssets').Name
+				ValidateSet = $TDApplications.GetByAppClass('TDAssets').Name
 				HelpText    = 'Name of application'
                 IDParameter = 'AppID'
-                IDsMethod   = '$TDApplications'
+                IDsMethod   = '$TDApplications.GetAll($Environment)'
 			}
 		)
 		$DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
@@ -4922,10 +4923,10 @@ function Get-TDConfigurationItemForm
 			@{
 				Name        = 'AppName'
                 Type        = 'string'
-				ValidateSet = ($TDApplications | Where-Object AppClass -eq 'TDAssets').Name
+				ValidateSet = $TDApplications.GetByAppClass('TDAssets').Name
 				HelpText    = 'Name of application'
                 IDParameter = 'AppID'
-                IDsMethod   = '$TDApplications'
+                IDsMethod   = '$TDApplications.GetAll($Environment)'
 			}
 		)
 		$DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
@@ -5018,10 +5019,10 @@ function New-TDConfigurationRelationshipType
             @{
                 Name        = 'AppName'
                 Type        = 'string'
-                ValidateSet = ($TDApplications | Where-Object AppClass -eq 'TDAssets').Name
+                ValidateSet = $TDApplications.GetByAppClass('TDAssets').Name
                 HelpText    = 'Name of application'
                 IDParameter = 'AppID'
-                IDsMethod   = '$TDApplications'
+                IDsMethod   = '$TDApplications.GetAll($Environment)'
             }
 		)
 		$DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
@@ -5112,10 +5113,10 @@ function Set-TDConfigurationRelationshipType
             @{
                 Name        = 'AppName'
                 Type        = 'string'
-                ValidateSet = ($TDApplications | Where-Object AppClass -eq 'TDAssets').Name
+                ValidateSet = $TDApplications.GetByAppClass('TDAssets').Name
                 HelpText    = 'Name of application'
                 IDParameter = 'AppID'
-                IDsMethod   = '$TDApplications'
+                IDsMethod   = '$TDApplications.GetAll($Environment)'
             }
 		)
 		$DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList

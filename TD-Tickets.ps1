@@ -454,7 +454,7 @@ function Get-TDTicket
                 ValidateSet = $TDTicketStatuses.Name
                 HelpText    = 'Names of statuses'
                 IDParameter = 'StatusIDs'
-                IDsMethod   = '$TDApplications'
+                IDsMethod   = '$TDTicketStatuses'
             }
             @{
                 Name        = 'StatusClassNames'
@@ -522,10 +522,10 @@ function Get-TDTicket
             @{
                 Name        = 'AppName'
                 Type        = 'string'
-                ValidateSet = ($TDApplications | Where-Object AppClass -eq 'TDTickets').Name
+                ValidateSet = $TDApplications.GetByAppClass('TDTickets').Name
                 HelpText    = 'Name of application'
                 IDParameter = 'AppID'
-                IDsMethod   = '$TDApplications'
+                IDsMethod   = '$TDApplications.GetAll($Environment)'
             }
         )
         $DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
@@ -563,12 +563,12 @@ function Get-TDTicket
                 # Location and room specified
                 if ($RoomLike)
                 {
-                    $Location = Get-TDLocation -NameLike $LocationLike -RoomLike $RoomLike -Exact:$ExactLocation -AuthenticationToken $AuthenticationToken -Environment $Environment
+                    $Location = $TDBuildingsRooms.GetRoom($LocationLike,$RoomLike,$Environment)
                 }
                 # Location specified
                 else
                 {
-                    $Location = Get-TDLocation -NameLike $LocationLike -Exact:$ExactLocation -AuthenticationToken $AuthenticationToken -Environment $Environment
+                    $Location = $TDBuildingsRooms.Get($LocationLike,$Environment)
                 }
                 if (-not $Location)
                 {
@@ -583,7 +583,7 @@ function Get-TDTicket
                     # Rooms can only be looked up within a single building
                     if ($LocationIDs.Count -eq 1)
                     {
-                        $Location = Get-TDLocation -ID $LocationIDs[0] -RoomLike $RoomLike -Exact:$ExactLocation -AuthenticationToken $AuthenticationToken -Environment $Environment
+                        $Location = $TDBuildingsRooms.GetRoom($LocationIDs[0],$RoomLike,$Environment)
                         if (-not $Location)
                         {
                             Write-ActivityHistory -MessageChannel 'Error' -ThrowError -Message "Unable to find LocationLike or RoomLike location in location ID $LocationIDs."
@@ -1286,10 +1286,10 @@ function Set-TDTicket
             @{
                 Name        = 'AppName'
                 Type        = 'string'
-                ValidateSet = ($TDApplications | Where-Object AppClass -eq 'TDTickets').Name
+                ValidateSet = $TDApplications.GetByAppClass('TDTickets').Name
                 HelpText    = 'Name of application'
                 IDParameter = 'AppID'
-                IDsMethod   = '$TDApplications'
+                IDsMethod   = '$TDApplications.GetAll($Environment)'
             }
         )
         $DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
@@ -1327,12 +1327,12 @@ function Set-TDTicket
             # Location and room specified
             if ($LocationRoomName)
             {
-                $Location = Get-TDLocation -NameLike $LocationName -RoomLike $LocationRoomName -Exact -AuthenticationToken $AuthenticationToken -Environment $Environment
+                $Location = $TDBuildingsRooms.GetRoom($LocationName,$LocationRoomName,$Environment)
             }
             # Location specified
             else
             {
-                $Location = Get-TDLocation -NameLike $LocationName -Exact -AuthenticationToken $AuthenticationToken -Environment $Environment
+                $Location = $TDBuildingsRooms.Get($LocationName,$Environment)
             }
             if (-not $Location)
             {
@@ -1344,7 +1344,7 @@ function Set-TDTicket
         {
             if ($LocationID)
             {
-                $Location = Get-TDLocation -ID $LocationID -RoomLike $LocationRoomName -Exact -AuthenticationToken $AuthenticationToken -Environment $Environment
+                $Location = $TDBuildingsRooms.GetRoom($LocationID,$LocationRoomName,$Environment)
                 if (-not $Location)
                 {
                     Write-ActivityHistory -MessageChannel 'Error' -ThrowError -Message "Unable to find LocationName or LocationRoomName location in location ID $LocationID."
@@ -1690,10 +1690,10 @@ function New-TDTicket
             @{
                 Name        = 'AppName'
                 Type        = 'string'
-                ValidateSet = ($TDApplications | Where-Object AppClass -eq 'TDTickets').Name
+                ValidateSet = $TDApplications.GetByAppClass('TDTickets').Name
                 HelpText    = 'Name of application'
                 IDParameter = 'AppID'
-                IDsMethod   = '$TDApplications'
+                IDsMethod   = '$TDApplications.GetAll($Environment)'
             }
         )
         $DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
@@ -1731,12 +1731,12 @@ function New-TDTicket
             # Location and room specified
             if ($LocationRoomName)
             {
-                $Location = Get-TDLocation -NameLike $LocationName -RoomLike $LocationRoomName -Exact -AuthenticationToken $AuthenticationToken -Environment $Environment
+                $Location = $TDBuildingsRooms.GetRoom($LocationName,$LocationRoomName,$Environment)
             }
             # Location specified
             else
             {
-                $Location = Get-TDLocation -NameLike $LocationName -Exact -AuthenticationToken $AuthenticationToken -Environment $Environment
+                $Location = $TDBuildingsRooms.Get($LocationName,$Environment)
             }
             if (-not $Location)
             {
@@ -1748,7 +1748,7 @@ function New-TDTicket
         {
             if ($LocationID)
             {
-                $Location = Get-TDLocation -ID $LocationID -RoomLike $LocationRoomName -Exact -AuthenticationToken $AuthenticationToken -Environment $Environment
+                $Location = $TDBuildingsRooms.GetRoom($LocationID,$LocationRoomName,$Environment)
                 if (-not $Location)
                 {
                     Write-ActivityHistory -MessageChannel 'Error' -ThrowError -Message "Unable to find LocationName or LocationRoomName location in location ID $LocationID."
@@ -1819,7 +1819,7 @@ function Get-TDTicketType
     (
         # Select based on whether type is active
         [Parameter(Mandatory=$false)]
-        [boolean]
+        [System.Nullable[boolean]]
         $IsActive,
 
         # Set ID of application for ticketing app
@@ -1871,7 +1871,7 @@ function Get-TDTicketSource
     (
         # Select based on whether source is active
         [Parameter(Mandatory=$false)]
-        [boolean]
+        [System.Nullable[boolean]]
         $IsActive,
 
         # Set ID of application for ticketing app
@@ -1923,7 +1923,7 @@ function Get-TDTicketImpact
     (
         # Select based on whether impact is active
         [Parameter(Mandatory=$false)]
-        [boolean]
+        [System.Nullable[boolean]]
         $IsActive,
 
         # Set ID of application for ticketing app
@@ -1975,7 +1975,7 @@ function Get-TDTicketPriority
     (
         # Select based on whether priority is active
         [Parameter(Mandatory=$false)]
-        [boolean]
+        [System.Nullable[boolean]]
         $IsActive,
 
         # Set ID of application for ticketing app
@@ -2027,7 +2027,7 @@ function Get-TDTicketUrgency
     (
         # Select based on whether urgency is active
         [Parameter(Mandatory=$false)]
-        [boolean]
+        [System.Nullable[boolean]]
         $IsActive,
 
         # Set ID of application for ticketing app
@@ -2320,10 +2320,10 @@ function Update-TDTicket
             @{
                 Name        = 'AppName'
                 Type        = 'string'
-                ValidateSet = ($TDApplications | Where-Object AppClass -eq 'TDTickets').Name
+                ValidateSet = $TDApplications.GetByAppClass('TDTickets').Name
                 HelpText    = 'Name of application'
                 IDParameter = 'AppID'
-                IDsMethod   = '$TDApplications'
+                IDsMethod   = '$TDApplications.GetAll($Environment)'
             }
         )
         $DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
@@ -2541,10 +2541,10 @@ function New-TDBlackoutWindow
             @{
                 Name        = 'AppName'
                 Type        = 'string'
-                ValidateSet = ($TDApplications | Where-Object AppClass -eq 'TDTickets').Name
+                ValidateSet = $TDApplications.GetByAppClass('TDTickets').Name
                 HelpText    = 'Name of application'
                 IDParameter = 'AppID'
-                IDsMethod   = '$TDApplications'
+                IDsMethod   = '$TDApplications.GetAll($Environment)'
             }
         )
         $DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
@@ -2660,10 +2660,10 @@ function Set-TDBlackoutWindow
             @{
                 Name        = 'AppName'
                 Type        = 'string'
-                ValidateSet = ($TDApplications | Where-Object AppClass -eq 'TDTickets').Name
+                ValidateSet = $TDApplications.GetByAppClass('TDTickets').Name
                 HelpText    = 'Name of application'
                 IDParameter = 'AppID'
-                IDsMethod   = '$TDApplications'
+                IDsMethod   = '$TDApplications.GetAll($Environment)'
             }
         )
         $DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList

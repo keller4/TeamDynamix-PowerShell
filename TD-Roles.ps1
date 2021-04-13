@@ -287,10 +287,10 @@ function Get-TDSecurityRole
             @{
                 Name        = 'AppName'
                 Type        = 'string'
-                ValidateSet = $TDApplications.Name
+                ValidateSet = $TDApplications.GetByAppClass('TDAssets').Name
                 HelpText    = 'Name of application'
                 IDParameter = 'AppID'
-                IDsMethod   = '$TDApplications'
+                IDsMethod   = '$TDApplications.GetAll($Environment)'
             }
         )
         $DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList

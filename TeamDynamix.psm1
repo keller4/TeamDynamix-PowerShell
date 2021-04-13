@@ -13,10 +13,12 @@
 
 # Operational note on maintaining help documentation
 #  Requires PlatyPS module to update
+#   Import-Module PlatyPS
 #  Help files are stored as markdown files in .\Docs
+#  When new modules are created or their help is updated in comment-based help, issue the following command
+#   Update-MarkdownHelpModule .\docs
 #  Issue the following commands to update XML help file
-#  Import-Module PlatyPS
-#  New-ExternalHelp -Path .\Docs -OutputPath .\en-US\ -Force
+#   New-ExternalHelp -Path .\Docs -OutputPath .\en-US\ -Force
 
 Write-Progress -ID 100 -Activity 'Loading module' -Status 'Setting up environment' -PercentComplete 0
 
@@ -13221,17 +13223,17 @@ class TeamDynamix_Api_Issues_IssueUpdate
 
 class TD_TeamDynamix_Api_Issues_IssueUpdate
 {
-        [Int32]   $IssueId
-        [String]  $TimeEntryDate
-        [Double]  $HoursWorked
-        [Int32]   $TimeTypeId
-        [Int32]   $ParentId
-        [Int32]   $ProjectId
-        [Int32]   $StatusID
-        [String[]]$Notify
-        [String]  $Comments
-        [TeamDynamix_Api_CustomAttributes_CustomAttribute[]]$Attributes
-        [Boolean] $IsPrivate
+    [Int32]   $IssueId
+    [String]  $TimeEntryDate
+    [Double]  $HoursWorked
+    [Int32]   $TimeTypeId
+    [Int32]   $ParentId
+    [Int32]   $ProjectId
+    [Int32]   $StatusID
+    [String[]]$Notify
+    [String]  $Comments
+    [TeamDynamix_Api_CustomAttributes_CustomAttribute[]]$Attributes
+    [Boolean] $IsPrivate
 
     # Constructor from object (such as a return from REST API)
     TD_TeamDynamix_Api_Issues_IssueUpdate ([psobject]$IssueUpdate)
@@ -13406,9 +13408,9 @@ class TeamDynamix_Api_Briefcase_File
 
 class TeamDynamix_Api_Users_UserGroupsBulkManagementParameters
 {
-        [Guid[]] $UserUIDs
-        [Int32[]]$GroupIDs
-        [Boolean]$RemoveOtherGroups
+    [Guid[]] $UserUIDs
+    [Int32[]]$GroupIDs
+    [Boolean]$RemoveOtherGroups
 
     # Default constructor
     TeamDynamix_Api_Users_UserGroupsBulkManagementParameters ()
@@ -13443,9 +13445,9 @@ class TeamDynamix_Api_Users_UserGroupsBulkManagementParameters
 
     # Full constructor
     TeamDynamix_Api_Users_UserGroupsBulkManagementParameters(
-                [Guid[]] $UserUIDs,
-                [Int32[]]$GroupIDs,
-                [Boolean]$RemoveOtherGroups)
+        [Guid[]] $UserUIDs,
+        [Int32[]]$GroupIDs,
+        [Boolean]$RemoveOtherGroups)
     {
         foreach ($Parameter in ([TeamDynamix_Api_Users_UserGroupsBulkManagementParameters]::new() | Get-Member -MemberType Property))
         {
@@ -13473,9 +13475,9 @@ class TeamDynamix_Api_Users_UserGroupsBulkManagementParameters
 
 class TeamDynamix_Api_Users_UserOrgApplicationsBulkManagementParameters
 {
-        [Guid[]] $UserUids
-        [TeamDynamix_Api_Apps_UserApplication[]]$OrgApplications
-        [Boolean]$ReplaceExistingOrgApplications
+    [Guid[]] $UserUids
+    [TeamDynamix_Api_Apps_UserApplication[]]$OrgApplications
+    [Boolean]$ReplaceExistingOrgApplications
 
     # Default constructor
     TeamDynamix_Api_Users_UserOrgApplicationsBulkManagementParameters ()
@@ -13510,9 +13512,9 @@ class TeamDynamix_Api_Users_UserOrgApplicationsBulkManagementParameters
 
     # Full constructor
     TeamDynamix_Api_Users_UserOrgApplicationsBulkManagementParameters(
-                [Guid[]] $UserUids,
-                [TeamDynamix_Api_Apps_UserApplication[]]$OrgApplications,
-                [Boolean]$ReplaceExistingOrgApplications)
+        [Guid[]] $UserUids,
+        [TeamDynamix_Api_Apps_UserApplication[]]$OrgApplications,
+        [Boolean]$ReplaceExistingOrgApplications)
     {
         foreach ($Parameter in ([TeamDynamix_Api_Users_UserOrgApplicationsBulkManagementParameters]::new() | Get-Member -MemberType Property))
         {
@@ -13540,9 +13542,9 @@ class TeamDynamix_Api_Users_UserOrgApplicationsBulkManagementParameters
 
 class TeamDynamix_Api_Users_UserApplicationsBulkManagementParameters
 {
-        [Guid[]]  $UserUids
-        [String[]]$ApplicationNames
-        [Boolean] $ReplaceExistingApplications
+    [Guid[]]  $UserUids
+    [String[]]$ApplicationNames
+    [Boolean] $ReplaceExistingApplications
 
     # Default constructor
     TeamDynamix_Api_Users_UserApplicationsBulkManagementParameters ()
@@ -13577,9 +13579,9 @@ class TeamDynamix_Api_Users_UserApplicationsBulkManagementParameters
 
     # Full constructor
     TeamDynamix_Api_Users_UserApplicationsBulkManagementParameters(
-                [Guid[]]  $UserUids,
-                [String[]]$ApplicationNames,
-                [Boolean] $ReplaceExistingApplications)
+        [Guid[]]  $UserUids,
+        [String[]]$ApplicationNames,
+        [Boolean] $ReplaceExistingApplications)
     {
         foreach ($Parameter in ([TeamDynamix_Api_Users_UserApplicationsBulkManagementParameters]::new() | Get-Member -MemberType Property))
         {
@@ -13607,9 +13609,9 @@ class TeamDynamix_Api_Users_UserApplicationsBulkManagementParameters
 
 class TeamDynamix_Api_Users_UserAccountsBulkManagementParameters
 {
-        [Guid[]] $UserUids
-        [Int32[]]$AccountIDs
-        [Boolean]$ReplaceExistingAccounts
+    [Guid[]] $UserUids
+    [Int32[]]$AccountIDs
+    [Boolean]$ReplaceExistingAccounts
 
     # Default constructor
     TeamDynamix_Api_Users_UserAccountsBulkManagementParameters ()
@@ -13644,9 +13646,9 @@ class TeamDynamix_Api_Users_UserAccountsBulkManagementParameters
 
     # Full constructor
     TeamDynamix_Api_Users_UserAccountsBulkManagementParameters(
-                [Guid[]] $UserUids,
-                [Int32[]]$AccountIDs,
-                [Boolean]$ReplaceExistingAccounts)
+        [Guid[]] $UserUids,
+        [Int32[]]$AccountIDs,
+        [Boolean]$ReplaceExistingAccounts)
     {
         foreach ($Parameter in ([TeamDynamix_Api_Users_UserAccountsBulkManagementParameters]::new() | Get-Member -MemberType Property))
         {
@@ -13839,61 +13841,35 @@ class TD_UserInfo
     }
 }
 
-# Stores location (building/room) data
-class TD_Location_Cache
+# Base class for caching TeamDynamix object data
+class Object_Cache
 {
     # $WorkingEnvironment points at the working environment cache
-    hidden [TeamDynamix_Api_Locations_Location[]]$WorkingEnvironment
-    hidden [TeamDynamix_Api_Locations_Location[]]$Production
-    hidden [TeamDynamix_Api_Locations_Location[]]$Sandbox
-    hidden [TeamDynamix_Api_Locations_Location[]]$Preview
+    hidden [system.array]$WorkingEnvironment
+    hidden [system.array]$Production
+    hidden [system.array]$Sandbox
+    hidden [system.array]$Preview
 
     # Default constructor
-    TD_Location_Cache ()
+    Object_Cache ()
     {
+        $type = $this.GetType()
+
+        if ($type -eq [Object_Cache])
+        {
+            throw "Class $type must be inherited"
+        }
     }
 
     # Methods
     #  Add by target object - all add commands pass through here
     hidden [void]Add(
-        [TeamDynamix_Api_Locations_Location]$TargetObject,
+        [System.Object]$TargetObject,
         [EnvironmentChoices]$Environment,
         [switch]$Detail,
         [switch]$CheckCache)
     {
-        # Add
-        #  Add new items, or replace existing items if detail information isn't present
-        $CachedTargetObject = $null
-        if ($CheckCache)
-        {
-            # This check is skipped when bulk-loading data, since the cache is empty when that happens
-            $CachedTargetObject = $this.GetCached($TargetObject.Name,$Environment)
-        }
-        if (-not $CachedTargetObject)
-        {
-            if ($Detail)
-            {
-                # Look up detail data if not present
-                if (-not $TargetObject.Rooms)
-                {
-                    $TargetObject = Get-TDLocation -ID $TargetObject.ID -Environment $Environment
-                }
-            }
-            $this.$Environment += $TargetObject
-        }
-        else
-        {
-            if ($Detail)
-            {
-                # Look up detail data if not present
-                if (-not $CachedTargetObject.Rooms)
-                {
-                    #Replace existing entry with one that contains detail data
-                    $this.Replace((Get-TDLocation -ID $TargetObject.ID -Environment $Environment),$Environment)
-                }
-            }
-        }
-        $this.WorkingEnvironment = $this.$script:WorkingEnvironment
+        throw "Must override this method"
     }
     #  Add multiple targets
     hidden [void]Add(
@@ -13913,8 +13889,7 @@ class TD_Location_Cache
         [EnvironmentChoices]$Environment,
         [switch]$Detail)
     {
-        # Look up by name
-        $this.Add((Get-TDLocation -NameLike $TargetName -Exact -Environment $Environment),$Environment,$Detail,$true)
+        throw "Must override this method"
     }
     #  Add by target ID
     hidden [void]Add(
@@ -13922,7 +13897,7 @@ class TD_Location_Cache
         [EnvironmentChoices]$Environment,
         [switch]$Detail)
     {
-        $this.Add((Get-TDLocation -ID $TargetID -Environment $Environment),$Environment,$Detail,$true)
+        throw "Must override this method"
     }
     #  Delegating methods for Add
     hidden [void]Add(
@@ -13941,7 +13916,7 @@ class TD_Location_Cache
         $this.Add($TargetObject,$script:WorkingEnvironment,$true,$true)
     }
     hidden [void]Add(
-        [TeamDynamix_Api_Locations_Location]$TargetObject)
+        [System.Object]$TargetObject)
     {
         $this.Add($TargetObject,$script:WorkingEnvironment,$true,$true)
     }
@@ -13991,7 +13966,7 @@ class TD_Location_Cache
     # Replace
     #  Replace $TargetObject in cache by removing it and re-adding it
     hidden [void]Replace(
-        [TeamDynamix_Api_Locations_Location]$TargetObject,
+        [system.object]$TargetObject,
         [EnvironmentChoices]$Environment)
     {
         # Remove entry with matching ID from cache
@@ -14001,14 +13976,14 @@ class TD_Location_Cache
     }
     #  Delegating method for replace
     hidden [void]Replace(
-        [TeamDynamix_Api_Locations_Location]$TargetObject)
+        [system.object]$TargetObject)
     {
         $this.Replace($TargetObject.ID,$script:WorkingEnvironment)
     }
 
     # GetCached
     #  Get a target from the cache, by name
-    hidden [TeamDynamix_Api_Locations_Location]GetCached(
+    hidden [system.object]GetCached(
         [string]$TargetName,
         [EnvironmentChoices]$Environment)
     {
@@ -14020,7 +13995,7 @@ class TD_Location_Cache
         return $this.$Environment | Where-Object Name -eq $TargetName
     }
     #  Get a target from the cache, by ID
-    hidden [TeamDynamix_Api_Locations_Location]GetCached(
+    hidden [system.object]GetCached(
         [int]$TargetID,
         [EnvironmentChoices]$Environment)
     {
@@ -14033,13 +14008,13 @@ class TD_Location_Cache
     }
     # Delegating methods for GetCached
     #  Get a target from the cache, by name
-    hidden [TeamDynamix_Api_Locations_Location]GetCached(
+    hidden [system.object]GetCached(
         [string]$TargetName)
     {
         return $this.GetCached($TargetName,$script:WorkingEnvironment)
     }
     #  Get a target from the cache, by ID
-    hidden [TeamDynamix_Api_Locations_Location]GetCached(
+    hidden [system.object]GetCached(
         [int]$TargetID)
     {
         return $this.GetCached($TargetID,$script:WorkingEnvironment)
@@ -14047,7 +14022,135 @@ class TD_Location_Cache
 
     # Get
     #  Get a target from the cache, if present; if not retrieve and add to cache - by name
-    [TeamDynamix_Api_Locations_Location]Get(
+    [system.object]Get(
+        [string]$TargetName,
+        [EnvironmentChoices]$Environment)
+    {
+        throw "Must override this method"
+    }
+    #  Get a target from the cache, if present, if not retrieve and add to cache - by ID
+    [system.object]Get(
+        [int]$TargetID,
+        [EnvironmentChoices]$Environment)
+    {
+        throw "Must override this method"
+    }
+    #  Delegating methods for Get
+    [system.object]Get(
+        [int]$TargetID)
+    {
+        return $this.Get($TargetID,$script:WorkingEnvironment)
+    }
+    [system.object]Get(
+        [string]$TargetName)
+    {
+        return $this.Get($TargetName,$script:WorkingEnvironment)
+    }
+
+    # GetAll
+    #  Get all targets from the cache for an environment, if present; if not retrieve and add to cache
+    [system.object[]]GetAll(
+        [EnvironmentChoices]$Environment)
+    {
+        if (-not $this.$Environment)
+        {
+            $this.LoadTargets($Environment)
+        }
+        return $this.$Environment
+    }
+    #  Delegating methods for GetAll
+    [system.object[]]GetAll()
+    {
+        return $this.GetAll($script:WorkingEnvironment)
+    }
+    [system.object[]]Get()
+    {
+        return $this.GetAll($script:WorkingEnvironment)
+    }
+
+    # LoadTargets
+    #  Load existing targets into cache, no detail data
+    [void]LoadTargets(
+        [EnvironmentChoices]$Environment)
+    {
+        throw "Must override this method"
+    }
+    #  Delegating method for LoadTargets
+    [void]LoadTargets()
+    {
+        $this.LoadTargets($script:WorkingEnvironment)
+    }
+}
+
+# Stores location (building/room) data
+class TD_Location_Cache : Object_Cache
+{
+    # Default constructor
+    TD_Location_Cache ()
+    {
+    }
+
+    # Override methods
+    #  Add by target object - all add commands pass through here
+    hidden [void]Add(
+        [TeamDynamix_Api_Locations_Location]$TargetObject,
+        [EnvironmentChoices]$Environment,
+        [switch]$Detail,
+        [switch]$CheckCache)
+    {
+        # Add
+        #  Add new items, or replace existing items if detail information isn't present
+        $CachedTargetObject = $null
+        if ($CheckCache)
+        {
+            # This check is skipped when bulk-loading data, since the cache is empty when that happens
+            $CachedTargetObject = $this.GetCached($TargetObject.Name,$Environment)
+        }
+        if (-not $CachedTargetObject)
+        {
+            if ($Detail)
+            {
+                # Look up detail data if not present
+                if (-not $TargetObject.Rooms)
+                {
+                    $TargetObject = Get-TDLocation -ID $TargetObject.ID -Environment $Environment
+                }
+            }
+            $this.$Environment += $TargetObject
+        }
+        else
+        {
+            if ($Detail)
+            {
+                # Look up detail data if not present
+                if (-not $CachedTargetObject.Rooms)
+                {
+                    #Replace existing entry with one that contains detail data
+                    $this.Replace((Get-TDLocation -ID $TargetObject.ID -Environment $Environment),$Environment)
+                }
+            }
+        }
+        $this.WorkingEnvironment = $this.$script:WorkingEnvironment
+    }
+    #  Add by target name
+    hidden [void]Add(
+        [string]$TargetName,
+        [EnvironmentChoices]$Environment,
+        [switch]$Detail)
+    {
+        # Look up by name
+        $this.Add((Get-TDLocation -NameLike $TargetName -Exact -Environment $Environment),$Environment,$Detail,$true)
+    }
+    #  Add by target ID
+    hidden [void]Add(
+        [int]$TargetID,
+        [EnvironmentChoices]$Environment,
+        [switch]$Detail)
+    {
+        $this.Add((Get-TDLocation -ID $TargetID -Environment $Environment),$Environment,$Detail,$true)
+    }
+    #  Get a target from the cache, if present; if not retrieve and add to cache - by name
+    [system.object]Get(
         [string]$TargetName,
         [EnvironmentChoices]$Environment)
     {
@@ -14066,7 +14169,7 @@ class TD_Location_Cache
         }
     }
     #  Get a target from the cache, if present, if not retrieve and add to cache - by ID
-    [TeamDynamix_Api_Locations_Location]Get(
+    [system.object]Get(
         [int]$TargetID,
         [EnvironmentChoices]$Environment)
     {
@@ -14084,39 +14187,6 @@ class TD_Location_Cache
             return $this.GetCached($TargetID)
         }
     }
-    #  Delegating methods for Get
-    [TeamDynamix_Api_Locations_Location]Get(
-        [int]$TargetID)
-    {
-        return $this.Get($TargetID,$script:WorkingEnvironment)
-    }
-    [TeamDynamix_Api_Locations_Location]Get(
-        [string]$TargetName)
-    {
-        return $this.Get($TargetName,$script:WorkingEnvironment)
-    }
-
-    # GetAll
-    #  Get all targets from the cache for an environment, if present; if not retrieve and add to cache
-    [TeamDynamix_Api_Locations_Location[]]GetAll(
-        [EnvironmentChoices]$Environment)
-    {
-        if (-not $this.$Environment)
-        {
-            $this.LoadLocations($Environment)
-        }
-        return $this.$Environment
-    }
-    #  Delegating methods for GetAll
-    [TeamDynamix_Api_Locations_Location[]]GetAll()
-    {
-        return $this.GetAll($script:WorkingEnvironment)
-    }
-    [TeamDynamix_Api_Locations_Location[]]Get()
-    {
-        return $this.GetAll($script:WorkingEnvironment)
-    }
-
     # LoadTargets
     #  Load existing targets into cache, no detail data
     [void]LoadTargets(
@@ -14128,11 +14198,7 @@ class TD_Location_Cache
             $this.Add((Get-TDLocation -Environment $Environment),$Environment,$false,$false)
         }
     }
-    #  Delegating method for LoadTargets
-    [void]LoadTargets()
-    {
-        $this.LoadTargets($script:WorkingEnvironment)
-    }
+
     # Custom methods
     # GetByExternalID
     #  Get a target from the cache by external ID
@@ -14141,7 +14207,7 @@ class TD_Location_Cache
         [EnvironmentChoices]$Environment)
     {
         # Find target
-        $Target = $this.$Environment | Where-Object {[int]$_.ExternalID -eq $ExternalID}
+        $Target = $this.Get() | Where-Object {[int]$_.ExternalID -eq $ExternalID}
         # Ensure detail data in included by passing through Get
         return $this.Get($Target.ID,$Environment)
     }
@@ -14150,6 +14216,196 @@ class TD_Location_Cache
         [int]$ExternalID)
     {
         return $this.GetByExternalID($ExternalID,$script:WorkingEnvironment)
+    }
+    # GetRoom
+    #  Get a room from the cache by location ID and room ID and Environment
+    [TeamDynamix_Api_Locations_LocationRoom]GetRoom(
+        [int]$LocationID,
+        [int]$RoomID,
+        [EnvironmentChoices]$Environment)
+    {
+        # Get the target (side-effect collects detail data)
+        $TargetObject = $this.Get($LocationID,$Environment)
+        # Match room
+        $DetailObject = $TargetObject.Rooms | Where-Object ID -eq $RoomID
+        return $DetailObject
+    }
+    #  Get a room from the cache by location name and room ID and Environment
+    [TeamDynamix_Api_Locations_LocationRoom]GetRoom(
+        [string]$LocationName,
+        [int]$RoomID,
+        [EnvironmentChoices]$Environment)
+    {
+        # Get the target (side-effect collects detail data)
+        $TargetObject = $this.Get($LocationName,$Environment)
+        # Match room
+        $DetailObject = $TargetObject.Rooms | Where-Object ID -eq $RoomID
+        return $DetailObject
+    }
+    #  Get a room from the cache by location ID and room name and Environment
+    [TeamDynamix_Api_Locations_LocationRoom]GetRoom(
+        [int]$LocationID,
+        [string]$RoomName,
+        [EnvironmentChoices]$Environment)
+    {
+        # Get the target (side-effect collects detail data)
+        $TargetObject = $this.Get($LocationID,$Environment)
+        # Match room
+        $DetailObject = $TargetObject.Rooms | Where-Object Name -eq $RoomName
+        return $DetailObject
+    }
+    #  Get a room from the cache by location name and room name and Environment
+    [TeamDynamix_Api_Locations_LocationRoom]GetRoom(
+        [string]$LocationName,
+        [string]$RoomName,
+        [EnvironmentChoices]$Environment)
+    {
+        # Get the target (side-effect collects detail data)
+        $TargetObject = $this.Get($LocationName,$Environment)
+        # Match room
+        $DetailObject = $TargetObject.Rooms | Where-Object Name -eq $RoomName
+        return $DetailObject
+    }
+    #  Delegating method for GetByExternalID
+    [TeamDynamix_Api_Locations_LocationRoom]GetRoom(
+        [int]$LocationID,
+        [int]$RoomID)
+    {
+        $DetailObject = $this.GetRoom($LocationID,$RoomID,$script:WorkingEnvironment)
+        return $DetailObject
+    }
+    [TeamDynamix_Api_Locations_LocationRoom]GetRoom(
+        [string]$LocationName,
+        [int]$RoomID)
+    {
+        $DetailObject = $this.GetRoom($LocationName,$RoomID,$script:WorkingEnvironment)
+        return $DetailObject
+    }
+    [TeamDynamix_Api_Locations_LocationRoom]GetRoom(
+        [int]$LocationID,
+        [string]$RoomName)
+    {
+        $DetailObject = $this.GetRoom($LocationID,$RoomName,$script:WorkingEnvironment)
+        return $DetailObject
+    }
+    [TeamDynamix_Api_Locations_LocationRoom]GetRoom(
+        [string]$LocationName,
+        [string]$RoomName)
+    {
+        $DetailObject = $this.GetRoom($LocationName,$RoomName,$script:WorkingEnvironment)
+        return $DetailObject
+    }
+}
+
+# Stores application data
+class TD_Application_Cache : Object_Cache
+{
+    # Default constructor
+    TD_Application_Cache ()
+    {
+    }
+
+    # Override methods
+    #  Add by target object - all add commands pass through here
+    hidden [void]Add(
+        [TeamDynamix_Api_Apps_OrgApplication]$TargetObject,
+        [EnvironmentChoices]$Environment,
+        [switch]$Detail,
+        [switch]$CheckCache)
+    {
+        # Add
+        #  Add new items, or replace existing items if detail information isn't present
+        $CachedTargetObject = $null
+        if ($CheckCache)
+        {
+            # This check is skipped when bulk-loading data, since the cache is empty when that happens
+            $TargetObject | Add-Member -MemberType AliasProperty -Name ID -Value AppID
+            $CachedTargetObject = $this.GetCached($TargetObject.Name,$Environment)
+        }
+        if (-not $CachedTargetObject)
+        {
+            $TargetObject | Add-Member -MemberType AliasProperty -Name ID -Value AppID
+            $this.$Environment += $TargetObject
+        }
+        $this.WorkingEnvironment = $this.$script:WorkingEnvironment
+    }
+    #  Add by target name
+    hidden [void]Add(
+        [string]$TargetName,
+        [EnvironmentChoices]$Environment,
+        [switch]$Detail)
+    {
+        throw 'Invalid cache action.'
+    }
+    #  Add by target ID
+    hidden [void]Add(
+        [int]$TargetID,
+        [EnvironmentChoices]$Environment,
+        [switch]$Detail)
+    {
+        throw 'Invalid cache action.'
+    }
+    #  Get a target from the cache, if present; if not retrieve and add to cache - by name
+    [system.object]Get(
+        [string]$TargetName,
+        [EnvironmentChoices]$Environment)
+    {
+        $Target = $this.GetCached($TargetName,$Environment)
+        return $Target
+    }
+    #  Get a target from the cache, if present, if not retrieve and add to cache - by ID
+    [system.object]Get(
+        [int]$TargetID,
+        [EnvironmentChoices]$Environment)
+    {
+        $Target = $this.GetCached($TargetID,$Environment)
+        return $Target
+    }
+    # LoadTargets
+    #  Load existing targets into cache, no detail data
+    [void]LoadTargets(
+        [EnvironmentChoices]$Environment)
+    {
+        # Only load existing targets if there's nothing in the cache - don't load detail data, skip cache checks
+        if (-not $this.$Environment)
+        {
+            $this.Add((Get-TDApplication -Environment $Environment),$Environment,$false,$false)
+        }
+    }
+
+    # Custom methods
+    # GetByType
+    #  Get a target from the cache by type
+    [TeamDynamix_Api_Apps_OrgApplication[]]GetByType(
+        [string]$Type,
+        [EnvironmentChoices]$Environment)
+    {
+        # Ensure cache is loaded
+        # Find target
+        $Target = $this.Get() | Where-Object {$_.Type -eq $Type}
+        return $Target
+    }
+    #  Delegating method for GetByType
+    [TeamDynamix_Api_Apps_OrgApplication[]]GetByType(
+        [string]$Type)
+    {
+        return $this.GetByType($Type,$script:WorkingEnvironment)
+    }
+    # GetByAppClass
+    #  Get a target from the cache by application class
+    [TeamDynamix_Api_Apps_OrgApplication[]]GetByAppClass(
+        [string]$AppClass,
+        [EnvironmentChoices]$Environment)
+    {
+        # Find target
+        $Target = $this.Get() | Where-Object {$_.AppClass -eq $AppClass}
+        return $Target
+    }
+    #  Delegating method for GetByAppClass
+    [TeamDynamix_Api_Apps_OrgApplication[]]GetByAppClass(
+        [string]$AppClass)
+    {
+        return $this.GetByAppClass($AppClass,$script:WorkingEnvironment)
     }
 }
 #endregion
@@ -14165,7 +14421,7 @@ Write-Progress -ID 100 -Activity 'Loading module' -Status 'Authenticating' -Perc
 if (-not $Credential)
 {
     # Prompt user for authentication information
-    $GUILogin = Set-TDAuthentication -GUI -Passthru
+    $GUILogin = Set-TDAuthentication -GUI -Passthru -NoInvalidateCache
     switch ($GUILogin.Site)
     {
         Production {$WorkingEnvironment = 'Production'}
@@ -14180,11 +14436,11 @@ else
     {
         'string'
         {
-            Set-TDAuthentication -CredentialPath $Credential -Environment $WorkingEnvironment
+            Set-TDAuthentication -CredentialPath $Credential -Environment $WorkingEnvironment -NoInvalidateCache
         }
         'PSCredential'
         {
-            Set-TDAuthentication -Credential     $Credential -Environment $WorkingEnvironment
+            Set-TDAuthentication -Credential     $Credential -Environment $WorkingEnvironment -NoInvalidateCache
         }
         default
         {
@@ -14200,40 +14456,40 @@ Write-Progress -ID 100 -Activity 'Loading module' -Status 'Loading applications'
 # Load applications list - order dependent
 try
 {
-    $script:TDApplications = Get-TDApplication -AuthenticationToken $TDAuthentication -Environment $WorkingEnvironment
-    $TicketingAppID = ($TDApplications | Where-Object Name -eq $TDConfig.DefaultTicketingApp).AppID
-    $AssetCIAppID   = ($TDApplications | Where-Object Name -eq $TDConfig.DefaultAssetCIsApp ).AppID
-    $ClientPortalID = ($TDApplications | Where-Object Name -eq $TDConfig.DefaultPortalApp   ).AppID
+    $script:TDApplications = [TD_Application_Cache]::new()
+    $TicketingAppID = ($TDApplications.Get($TDConfig.DefaultTicketingApp)).AppID
+    $AssetCIAppID   = ($TDApplications.Get($TDConfig.DefaultAssetCIsApp )).AppID
+    $ClientPortalID = ($TDApplications.Get($TDConfig.DefaultPortalApp   )).AppID
 
     Write-Progress -ID 100 -Activity 'Loading module' -Status 'Loading asset statuses' -PercentComplete 30
-    $script:TDAssetStatuses         = Get-TDAssetStatus    -IsActive $true -AuthenticationToken $TDAuthentication -Environment $WorkingEnvironment | Sort-Object Name
+    $script:TDAssetStatuses       = Get-TDAssetStatus    -IsActive $true -AuthenticationToken $TDAuthentication -Environment $WorkingEnvironment | Sort-Object Name
 
     Write-Progress -ID 100 -Activity 'Loading module' -Status 'Loading ticket types and statuses' -PercentComplete 40
-    $script:TDTicketStatuses        = Get-TDTicketStatus   -IsActive $true -AuthenticationToken $TDAuthentication -Environment $WorkingEnvironment | Sort-Object Name
-    $script:TDTicketStatusClasses   = Get-TDTicketStatusClass              -AuthenticationToken $TDAuthentication -Environment $WorkingEnvironment | Sort-Object Name
-    $script:TDTicketTypes           = Get-TDTicketType     -IsActive $true -AuthenticationToken $TDAuthentication -Environment $WorkingEnvironment | Sort-Object Name
-    $script:TDTicketSources         = Get-TDTicketSource   -IsActive $true -AuthenticationToken $TDAuthentication -Environment $WorkingEnvironment | Sort-Object Name
-    $script:TDTicketPriorities      = Get-TDTicketPriority -IsActive $true -AuthenticationToken $TDAuthentication -Environment $WorkingEnvironment
-    $script:TDTicketUrgencies       = Get-TDTicketUrgency  -IsActive $true -AuthenticationToken $TDAuthentication -Environment $WorkingEnvironment
-    $script:TDTicketImpacts         = Get-TDTicketImpact   -IsActive $true -AuthenticationToken $TDAuthentication -Environment $WorkingEnvironment
+    $script:TDTicketStatuses      = Get-TDTicketStatus   -IsActive $true -AuthenticationToken $TDAuthentication -Environment $WorkingEnvironment | Sort-Object Name
+    $script:TDTicketStatusClasses = Get-TDTicketStatusClass              -AuthenticationToken $TDAuthentication -Environment $WorkingEnvironment | Sort-Object Name
+    $script:TDTicketTypes         = Get-TDTicketType     -IsActive $true -AuthenticationToken $TDAuthentication -Environment $WorkingEnvironment | Sort-Object Name
+    $script:TDTicketSources       = Get-TDTicketSource   -IsActive $true -AuthenticationToken $TDAuthentication -Environment $WorkingEnvironment | Sort-Object Name
+    $script:TDTicketPriorities    = Get-TDTicketPriority -IsActive $true -AuthenticationToken $TDAuthentication -Environment $WorkingEnvironment
+    $script:TDTicketUrgencies     = Get-TDTicketUrgency  -IsActive $true -AuthenticationToken $TDAuthentication -Environment $WorkingEnvironment
+    $script:TDTicketImpacts       = Get-TDTicketImpact   -IsActive $true -AuthenticationToken $TDAuthentication -Environment $WorkingEnvironment
 
     Write-Progress -ID 100 -Activity 'Loading module' -Status 'Loading vendors' -PercentComplete 50
-    $script:TDVendors          = Get-TDVendor         -IsActive $true -AuthenticationToken $TDAuthentication -Environment $WorkingEnvironment | Sort-Object Name
+    $script:TDVendors       = Get-TDVendor         -IsActive $true -AuthenticationToken $TDAuthentication -Environment $WorkingEnvironment | Sort-Object Name
 
     Write-Progress -ID 100 -Activity 'Loading module' -Status 'Loading product types and models' -PercentComplete 60
-    $script:TDProductTypes     = Get-TDProductTypeInt                 -AuthenticationToken $TDAuthentication -Environment $WorkingEnvironment | Sort-Object Name
-    $script:TDProductModels    = Get-TDProductModel   -IsActive $true -AuthenticationToken $TDAuthentication -Environment $WorkingEnvironment | Sort-Object Name
+    $script:TDProductTypes  = Get-TDProductTypeInt                 -AuthenticationToken $TDAuthentication -Environment $WorkingEnvironment | Sort-Object Name
+    $script:TDProductModels = Get-TDProductModel   -IsActive $true -AuthenticationToken $TDAuthentication -Environment $WorkingEnvironment | Sort-Object Name
 
     Write-Progress -ID 100 -Activity 'Loading module' -Status 'Loading departments' -PercentComplete 70
-    $script:TDAccounts         = Get-TDAccount        -IsActive $true -AuthenticationToken $TDAuthentication -Environment $WorkingEnvironment | Sort-Object Name
+    $script:TDAccounts      = Get-TDAccount        -IsActive $true -AuthenticationToken $TDAuthentication -Environment $WorkingEnvironment | Sort-Object Name
 
     Write-Progress -ID 100 -Activity 'Loading module' -Status 'Loading groups and forms' -PercentComplete 78
-    $script:TDGroups           = Get-TDGroup          -IsActive $true -AuthenticationToken $TDAuthentication -Environment $WorkingEnvironment | Sort-Object Name
-    $script:TDForms            = Get-TDForm           -IsActive $true -AuthenticationToken $TDAuthentication -Environment $WorkingEnvironment | Sort-Object Name
+    $script:TDGroups        = Get-TDGroup          -IsActive $true -AuthenticationToken $TDAuthentication -Environment $WorkingEnvironment | Sort-Object Name
+    $script:TDForms         = Get-TDForm           -IsActive $true -AuthenticationToken $TDAuthentication -Environment $WorkingEnvironment | Sort-Object Name
 
     Write-Progress -ID 100 -Activity 'Loading module' -Status 'Loading searches' -PercentComplete 80
-    $script:TDAssetSearches    = Get-TDAssetSearch                    -AuthenticationToken $TDAuthentication -Environment $WorkingEnvironment | Sort-Object Name
-    $script:TDTimeZones        = Get-TDTimeZoneInformation -SortByGMTOffset
+    $script:TDAssetSearches = Get-TDAssetSearch                    -AuthenticationToken $TDAuthentication -Environment $WorkingEnvironment | Sort-Object Name
+    $script:TDTimeZones     = Get-TDTimeZoneInformation -SortByGMTOffset
 
     Write-Progress -ID 100 -Activity 'Loading module' -Status 'Loading configuration types' -PercentComplete 90
     $script:TDConfigurationItemTypes = Get-TDConfigurationItemType -IsActive $true -AuthenticationToken $TDAuthentication -Environment $WorkingEnvironment | Sort-Object Name
@@ -14242,7 +14498,7 @@ try
     $script:TDSecurityRoles = Get-TDSecurityRole -AuthenticationToken $TDAuthentication -Environment $WorkingEnvironment | Sort-Object Name
 
     Write-Progress -ID 100 -Activity 'Initiating data caches' -Status 'Initializing location cache' -PercentComplete 94
-    $script:TDBuildingRoomCache = [TD_Location_Cache]::new()
+    $script:TDBuildingsRooms = [TD_Location_Cache]::new()
 }
 catch
 {
