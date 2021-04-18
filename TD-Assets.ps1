@@ -314,10 +314,10 @@ function Get-TDAsset
             }
             @{
                 Name        = 'ProductModelNames'
-                ValidateSet = $TDProductModels.Name
+                ValidateSet = $TDProductModels.GetAll($AssetCIAppID,$WorkingEnvironment,$true).Name
                 HelpText    = 'Names of product models'
                 IDParameter = 'ProductModelIDs'
-                IDsMethod   = '$TDProductModels'
+                IDsMethod   = '$TDProductModels.GetAll($AssetCIAppID,$WorkingEnvironment,$true)'
             }
             @{
                 Name        = 'StatusNames'
@@ -741,10 +741,10 @@ function New-TDAsset
 			@{
 				Name        = 'ProductModelName'
                 Type        = 'string'
-				ValidateSet = $TDProductModels.Name
+				ValidateSet = $TDProductModels.GetAll($AssetCIAppID,$WorkingEnvironment,$true).Name
 				HelpText    = 'Name of product model'
                 IDParameter = 'ProductModelID'
-                IDsMethod   = '$TDProductModels'
+                IDsMethod   = '$TDProductModels.GetAll($AssetCIAppID,$WorkingEnvironment,$true)'
 			}
 			@{
 				Name        = 'StatusName'
@@ -1144,11 +1144,11 @@ function Set-TDAsset
 			}
 			@{
 				Name        = 'ProductModelName'
-				ValidateSet = $TDProductModels.Name
+				ValidateSet = $TDProductModels.GetAll($AssetCIAppID,$WorkingEnvironment,$true).Name
 				HelpText    = 'Name of product model'
                 ParameterSetName = 'Non-Bulk'
                 IDParameter = 'ProductModelID'
-                IDsMethod   = '$TDProductModels'
+                IDsMethod   = '$TDProductModels.GetAll($AssetCIAppID,$WorkingEnvironment,$true)'
 			}
 			@{
 				Name        = 'StatusName'
@@ -2087,6 +2087,12 @@ function Get-TDProductModel
         [switch]
         $Detail,
 
+        # Return only exact matches on search
+        [Parameter(ParameterSetName='Search',
+                   Mandatory=$false)]
+        [switch]
+        $Exact,
+
         # TeamDynamix authentication token
         [Parameter(Mandatory=$false)]
         [hashtable]
@@ -2153,11 +2159,22 @@ function Get-TDProductModel
             AuthenticationToken = $AuthenticationToken
         }
         $Return = $InvokeParams | Invoke-Get
-        if ($Detail)
+        # Local modifications to return set
+        if ($Return)
         {
-            if ($Return)
+            if ($Exact)
             {
-                $Return = $Return.ID | Get-TDProductModel -AuthenticationToken $AuthenticationToken -Environment $Environment
+                if (-not [string]::IsNullOrWhiteSpace($SearchText))
+                {
+                    $Return = $Return | Where-Object {$SearchText -eq $_.Name}
+                }
+            }
+            if ($Detail)
+            {
+                if ($Return)
+                {
+                    $Return = $Return.ID | Get-TDProductModel -AuthenticationToken $AuthenticationToken -Environment $Environment
+                }
             }
         }
         return $Return
