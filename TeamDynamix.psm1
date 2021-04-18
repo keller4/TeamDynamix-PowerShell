@@ -31,7 +31,7 @@ Write-Progress -ID 100 -Activity 'Loading module' -Status 'Setting up environmen
 $UpdatedConfiguration = Update-ConfigurationFile
 if ($UpdatedConfiguration)
 {
-    Write-Error 'Configuration file updated. Check settings.'
+    Write-Host 'Configuration file updated. Check settings.'
 }
 
 # Import configuration and check validity
@@ -13845,10 +13845,11 @@ class TD_UserInfo
 class Object_Cache
 {
     # $WorkingEnvironment points at the working environment cache
-    hidden [system.array]$WorkingEnvironment
-    hidden [system.array]$Production
-    hidden [system.array]$Sandbox
-    hidden [system.array]$Preview
+    hidden [hashtable]$WorkingEnvironment
+    hidden [hashtable]$Production
+    hidden [hashtable]$Sandbox
+    hidden [hashtable]$Preview
+    hidden [int]      $DefaultAppID
 
     # Default constructor
     Object_Cache ()
@@ -13864,221 +13865,387 @@ class Object_Cache
     # Methods
     #  Add by target object - all add commands pass through here
     hidden [void]Add(
-        [System.Object]$TargetObject,
+        [System.Object]     $TargetObject,
+        [int]               $AppID,
         [EnvironmentChoices]$Environment,
-        [switch]$Detail,
-        [switch]$CheckCache)
+        [switch]            $Detail,
+        [switch]            $CheckCache
+        )
     {
         throw "Must override this method"
     }
     #  Add multiple targets
     hidden [void]Add(
-        [System.Object[]]$TargetObject,
+        [System.Object[]]   $TargetObject,
+        [int]               $AppID,
         [EnvironmentChoices]$Environment,
-        [switch]$Detail,
-        [switch]$CheckCache)
+        [switch]            $Detail,
+        [switch]            $CheckCache
+        )
     {
         foreach ($Target in $TargetObject)
         {
-            $this.Add($Target,$Environment,$Detail,$CheckCache)
+            $this.Add($Target,$AppID,$Environment,$Detail,$CheckCache)
         }
     }
     #  Add by target name
     hidden [void]Add(
-        [string]$TargetName,
+        [string]            $TargetName,
+        [int]               $AppID,
         [EnvironmentChoices]$Environment,
-        [switch]$Detail)
+        [switch]            $Detail
+        )
     {
         throw "Must override this method"
     }
     #  Add by target ID
     hidden [void]Add(
-        [int]$TargetID,
+        [int]               $TargetID,
+        [int]               $AppID,
         [EnvironmentChoices]$Environment,
-        [switch]$Detail)
+        [switch]            $Detail
+        )
     {
         throw "Must override this method"
     }
     #  Delegating methods for Add
+    #  Add by target object, default AppID
     hidden [void]Add(
-        [int]$TargetID)
+        [System.Object]     $TargetObject,
+        [EnvironmentChoices]$Environment,
+        [switch]            $Detail,
+        [switch]            $CheckCache
+        )
     {
-        $this.Add($TargetID,$script:WorkingEnvironment,$true,$true)
+        $this.Add($TargetObject,$this.DefaultAppID,$Environment,$Detail,$CheckCache)
     }
+    #  Add multiple targets, default AppID
     hidden [void]Add(
-        [string]$TargetName)
+        [System.Object[]]   $TargetObject,
+        [EnvironmentChoices]$Environment,
+        [switch]            $Detail,
+        [switch]            $CheckCache
+        )
+    {
+        foreach ($Target in $TargetObject)
+        {
+            $this.Add($TargetObject,$this.DefaultAppID,$Environment,$Detail,$CheckCache)
+        }
+    }
+    #  Add by target name, default AppID
+    hidden [void]Add(
+        [string]            $TargetName,
+        [EnvironmentChoices]$Environment,
+        [switch]            $Detail
+        )
+    {
+        $this.Add($TargetName,$this.DefaultAppID,$Environment,$Detail)
+    }
+    #  Add by target ID, default AppID
+    hidden [void]Add(
+        [int]               $TargetID,
+        [EnvironmentChoices]$Environment,
+        [switch]            $Detail
+        )
+    {
+        $this.Add($TargetID,$this.DefaultAppID,$Environment,$Detail)
+    }
+    #  Add by target object, default Environment
+    hidden [void]Add(
+        [System.Object]$TargetObject,
+        [int]          $AppID,
+        [switch]       $Detail,
+        [switch]       $CheckCache
+        )
+    {
+        $this.Add($TargetObject,$AppID,$script:WorkingEnvironment,$Detail,$CheckCache)
+    }
+    #  Add multiple targets, default Environment
+    hidden [void]Add(
+        [System.Object[]]$TargetObject,
+        [int]            $AppID,
+        [switch]         $Detail,
+        [switch]         $CheckCache
+        )
+    {
+        foreach ($Target in $TargetObject)
+        {
+            $this.Add($TargetObject,$AppID,$script:WorkingEnvironment,$Detail,$CheckCache)
+        }
+    }
+    #  Add by target name, default Environment
+    hidden [void]Add(
+        [string]$TargetName,
+        [int]   $AppID,
+        [switch]$Detail
+        )
+    {
+        $this.Add($TargetName,$AppID,$script:WorkingEnvironment,$Detail)
+    }
+    #  Add by target ID, default Environment
+    hidden [void]Add(
+        [int]   $TargetID,
+        [int]   $AppID,
+        [switch]$Detail
+        )
+    {
+        $this.Add($TargetID,$AppID,$script:WorkingEnvironment,$Detail)
+    }
+    #  Add by target object, default AppID and Environment
+    hidden [void]Add(
+        [System.Object]$TargetObject
+        )
+    {
+        $this.Add($TargetObject,$script:WorkingEnvironment,$true,$true)
+    }
+    #  Add by target object array, default AppID and Environment
+    hidden [void]Add(
+        [System.Object[]]$TargetObject
+        )
+    {
+        $this.Add($TargetObject,$script:WorkingEnvironment,$true,$true)
+    }
+    #  Add by target name, default AppID and Environment
+    hidden [void]Add(
+        [string]$TargetName
+        )
     {
         $this.Add($TargetName,$script:WorkingEnvironment,$true,$true)
     }
+    #  Add by target ID, default AppID and Environment
     hidden [void]Add(
-        [System.Object[]]$TargetObject)
+        [int]$TargetID
+        )
     {
-        $this.Add($TargetObject,$script:WorkingEnvironment,$true,$true)
-    }
-    hidden [void]Add(
-        [System.Object]$TargetObject)
-    {
-        $this.Add($TargetObject,$script:WorkingEnvironment,$true,$true)
+        $this.Add($TargetID,$script:WorkingEnvironment,$true,$true)
     }
 
     # Remove
     #  Remove $TargetObject in cache by creating temporary copy, clearing existing list and adding everything back, except the one to delete
     hidden [void]Remove(
-        [int]$TargetID,
-        [EnvironmentChoices]$Environment)
+        [int]               $TargetID,
+        [int]               $AppID,
+        [EnvironmentChoices]$Environment
+        )
     {
         # Copy targets to temporary array
-        $TemporaryTargets = $this.$Environment.Clone()
+        $TemporaryTargets = $this.$Environment."AppID$AppID".Clone()
         # Erase targets array
-        $this.FlushCache($Environment)
+        $this.FlushCache($AppID,$Environment)
         # Add targets back from temporary array
         foreach ($Target in $TemporaryTargets)
         {
             # Exclude desired target
             if ($Target.ID -ne $TargetID)
             {
-                $this.$Environment += $Target
+                $this.Add($Target,$AppID,$Environment,$false,$false)
             }
         }
-        $this.WorkingEnvironment = $this.$script:WorkingEnvironment
     }
-    #  Delegating method for remove
+    #  Delegating methods for remove
     hidden [void]Remove(
-        [int]$TargetID)
+        [int]$TargetID
+        )
     {
-        $this.Remove($TargetID,$script:WorkingEnvironment)
+        $this.Remove($TargetID,$this.DefaultAppID,$script:WorkingEnvironment)
     }
 
     # FlushCache
     #  Remove all cached targets
     [void]FlushCache(
-        [EnvironmentChoices]$Environment)
+        [int]               $AppID,
+        [EnvironmentChoices]$Environment
+        )
     {
-        $this.$Environment = $null
-        $this.WorkingEnvironment = $this.$script:WorkingEnvironment
+        $this.$Environment."AppID$AppID" = $null
     }
     #  Delegating method for FlushCache
     [void]FlushCache()
     {
-        $this.FlushCache($script:WorkingEnvironment)
+        $this.FlushCache($this.DefaultAppID,$script:WorkingEnvironment)
     }
 
     # Replace
     #  Replace $TargetObject in cache by removing it and re-adding it
     hidden [void]Replace(
-        [system.object]$TargetObject,
-        [EnvironmentChoices]$Environment)
+        [system.object]     $TargetObject,
+        [int]               $AppID,
+        [EnvironmentChoices]$Environment
+        )
     {
         # Remove entry with matching ID from cache
-        $this.Remove($TargetObject.ID,$Environment)
+        $this.Remove($TargetObject.ID,$AppID,$Environment)
         # Add replacement entry to cache
-        $this.Add($TargetObject,$Environment,$false,$true)
+        $this.Add($TargetObject,$AppID,$Environment,$false,$true)
     }
     #  Delegating method for replace
     hidden [void]Replace(
-        [system.object]$TargetObject)
+        [system.object]$TargetObject
+        )
     {
-        $this.Replace($TargetObject.ID,$script:WorkingEnvironment)
+        $this.Replace($TargetObject.ID,$this.DefaultAppID,$script:WorkingEnvironment)
     }
 
     # GetCached
     #  Get a target from the cache, by name
     hidden [system.object]GetCached(
-        [string]$TargetName,
-        [EnvironmentChoices]$Environment)
+        [string]            $TargetName,
+        [int]               $AppID,
+        [EnvironmentChoices]$Environment
+        )
     {
         # If there's nothing in the cache, load basic target data
-        if (-not $this.$Environment)
+        if (-not $this.$Environment."AppID$AppID")
         {
-            $this.LoadTargets($Environment)
+            $this.LoadTargets($AppID,$Environment)
         }
-        return $this.$Environment | Where-Object Name -eq $TargetName
+        return $this.$Environment."AppID$AppID" | Where-Object Name -eq $TargetName
     }
     #  Get a target from the cache, by ID
     hidden [system.object]GetCached(
-        [int]$TargetID,
-        [EnvironmentChoices]$Environment)
+        [int]               $TargetID,
+        [int]               $AppID,
+        [EnvironmentChoices]$Environment
+        )
     {
         # If there's nothing in the cache, load basic target data
-        if (-not $this.$Environment)
+        if (-not $this.$Environment."AppID$AppID")
         {
-            $this.LoadTargets($Environment)
+            $this.LoadTargets($AppID,$Environment)
         }
-        return $this.$Environment | Where-Object ID -eq $TargetID
+        return $this.$Environment."AppID$AppID" | Where-Object ID -eq $TargetID
     }
     # Delegating methods for GetCached
     #  Get a target from the cache, by name
     hidden [system.object]GetCached(
-        [string]$TargetName)
+        [string]$TargetName
+        )
     {
-        return $this.GetCached($TargetName,$script:WorkingEnvironment)
+        return $this.GetCached($TargetName,$this.DefaultAppID,$script:WorkingEnvironment)
     }
     #  Get a target from the cache, by ID
     hidden [system.object]GetCached(
-        [int]$TargetID)
+        [int]$TargetID
+        )
     {
-        return $this.GetCached($TargetID,$script:WorkingEnvironment)
+        return $this.GetCached($TargetID,$this.DefaultAppID,$script:WorkingEnvironment)
     }
 
     # Get
     #  Get a target from the cache, if present; if not retrieve and add to cache - by name
     [system.object]Get(
-        [string]$TargetName,
-        [EnvironmentChoices]$Environment)
+        [string]            $TargetName,
+        [int]               $AppID,
+        [EnvironmentChoices]$Environment
+        )
     {
         throw "Must override this method"
     }
     #  Get a target from the cache, if present, if not retrieve and add to cache - by ID
     [system.object]Get(
-        [int]$TargetID,
-        [EnvironmentChoices]$Environment)
+        [int]               $TargetID,
+        [int]               $AppID,
+        [EnvironmentChoices]$Environment
+        )
     {
         throw "Must override this method"
     }
     #  Delegating methods for Get
     [system.object]Get(
-        [int]$TargetID)
+        [int]               $TargetID,
+        [EnvironmentChoices]$Environment
+        )
     {
-        return $this.Get($TargetID,$script:WorkingEnvironment)
+        return $this.Get($TargetID,$this.DefaultAppID,$Environment)
     }
     [system.object]Get(
-        [string]$TargetName)
+        [string]            $TargetName,
+        [EnvironmentChoices]$Environment
+        )
     {
-        return $this.Get($TargetName,$script:WorkingEnvironment)
+        return $this.Get($TargetName,$this.DefaultAppID,$Environment)
+    }
+    [system.object]Get(
+        [int]$TargetID,
+        [int]$AppID
+        )
+    {
+        return $this.Get($TargetID,$AppID,$script:WorkingEnvironment)
+    }
+    [system.object]Get(
+        [string]$TargetName,
+        [int]   $AppID
+        )
+    {
+        return $this.Get($TargetName,$AppID,$script:WorkingEnvironment)
+    }
+    [system.object]Get(
+        [int]$TargetID
+        )
+    {
+        return $this.Get($TargetID,$this.DefaultAppID,$script:WorkingEnvironment)
+    }
+    [system.object]Get(
+        [string]$TargetName
+        )
+    {
+        return $this.Get($TargetName,$this.DefaultAppID,$script:WorkingEnvironment)
     }
 
     # GetAll
     #  Get all targets from the cache for an environment, if present; if not retrieve and add to cache
     [system.object[]]GetAll(
-        [EnvironmentChoices]$Environment)
+        [int]                     $AppID,
+        [EnvironmentChoices]      $Environment,
+        [system.nullable[boolean]]$IsActive
+        )
     {
-        if (-not $this.$Environment)
+        # Retrieve data for cache
+        if (-not $this.$Environment."AppID$AppID")
         {
-            $this.LoadTargets($Environment)
+            $this.LoadTargets($AppID,$Environment)
         }
-        return $this.$Environment
+        # Check for entry IsActive status
+        if (-not $null -eq $IsActive)
+        {
+            $Return = $this.$Environment."AppID$AppID" | Where-Object IsActive -eq $IsActive
+        }
+        else
+        {
+            $Return = $this.$Environment."AppID$AppID"
+        }
+        return $Return
     }
     #  Delegating methods for GetAll
+    [system.object[]]GetAll(
+        [int]               $AppID,
+        [EnvironmentChoices]$Environment
+        )
+    {
+        return $this.GetAll($this.DefaultAppID,$script:WorkingEnvironment,$null)
+    }
     [system.object[]]GetAll()
     {
-        return $this.GetAll($script:WorkingEnvironment)
+        return $this.GetAll($this.DefaultAppID,$script:WorkingEnvironment,$null)
     }
     [system.object[]]Get()
     {
-        return $this.GetAll($script:WorkingEnvironment)
+        return $this.GetAll($this.DefaultAppID,$script:WorkingEnvironment,$null)
     }
 
     # LoadTargets
     #  Load existing targets into cache, no detail data
     [void]LoadTargets(
-        [EnvironmentChoices]$Environment)
+        [int]               $AppID,
+        [EnvironmentChoices]$Environment
+        )
     {
         throw "Must override this method"
     }
     #  Delegating method for LoadTargets
     [void]LoadTargets()
     {
-        $this.LoadTargets($script:WorkingEnvironment)
+        $this.LoadTargets($this.DefaultAppID,$script:WorkingEnvironment)
     }
 }
 
@@ -14088,15 +14255,18 @@ class TD_Location_Cache : Object_Cache
     # Default constructor
     TD_Location_Cache ()
     {
+        $this.DefaultAppID = 0
     }
 
     # Override methods
     #  Add by target object - all add commands pass through here
     hidden [void]Add(
         [TeamDynamix_Api_Locations_Location]$TargetObject,
+        [int]               $AppID,
         [EnvironmentChoices]$Environment,
-        [switch]$Detail,
-        [switch]$CheckCache)
+        [switch]            $Detail,
+        [switch]            $CheckCache
+        )
     {
         # Add
         #  Add new items, or replace existing items if detail information isn't present
@@ -14104,7 +14274,7 @@ class TD_Location_Cache : Object_Cache
         if ($CheckCache)
         {
             # This check is skipped when bulk-loading data, since the cache is empty when that happens
-            $CachedTargetObject = $this.GetCached($TargetObject.Name,$Environment)
+            $CachedTargetObject = $this.GetCached($TargetObject.Name,$AppID,$Environment)
         }
         if (-not $CachedTargetObject)
         {
@@ -14116,7 +14286,12 @@ class TD_Location_Cache : Object_Cache
                     $TargetObject = Get-TDLocation -ID $TargetObject.ID -Environment $Environment
                 }
             }
-            $this.$Environment += $TargetObject
+            # Create the array holder for the data, if none exists
+            if (-not $this.$Environment."AppID$AppID")
+            {
+                $this.$Environment = @{"AppID$AppID" = @()}
+            }
+            $this.$Environment."AppID$AppID" += $TargetObject
         }
         else
         {
@@ -14126,7 +14301,7 @@ class TD_Location_Cache : Object_Cache
                 if (-not $CachedTargetObject.Rooms)
                 {
                     #Replace existing entry with one that contains detail data
-                    $this.Replace((Get-TDLocation -ID $TargetObject.ID -Environment $Environment),$Environment)
+                    $this.Replace((Get-TDLocation -ID $TargetObject.ID -Environment $Environment),$AppID,$Environment)
                 }
             }
         }
@@ -14134,27 +14309,33 @@ class TD_Location_Cache : Object_Cache
     }
     #  Add by target name
     hidden [void]Add(
-        [string]$TargetName,
+        [string]            $TargetName,
+        [int]               $AppID,
         [EnvironmentChoices]$Environment,
-        [switch]$Detail)
+        [switch]            $Detail
+        )
     {
         # Look up by name
-        $this.Add((Get-TDLocation -NameLike $TargetName -Exact -Environment $Environment),$Environment,$Detail,$true)
+        $this.Add((Get-TDLocation -NameLike $TargetName -Exact -Environment $Environment),$AppID,$Environment,$Detail,$true)
     }
     #  Add by target ID
     hidden [void]Add(
-        [int]$TargetID,
+        [int]               $TargetID,
+        [int]               $AppID,
         [EnvironmentChoices]$Environment,
-        [switch]$Detail)
+        [switch]            $Detail
+        )
     {
-        $this.Add((Get-TDLocation -ID $TargetID -Environment $Environment),$Environment,$Detail,$true)
+        $this.Add((Get-TDLocation -ID $TargetID -Environment $Environment),$AppID,$Environment,$Detail,$true)
     }
     #  Get a target from the cache, if present; if not retrieve and add to cache - by name
     [system.object]Get(
-        [string]$TargetName,
-        [EnvironmentChoices]$Environment)
+        [string]            $TargetName,
+        [int]               $AppID,
+        [EnvironmentChoices]$Environment
+        )
     {
-        $Target = $this.GetCached($TargetName,$Environment)
+        $Target = $this.GetCached($TargetName,$AppID,$Environment)
         # Check to see if target and detail data exist
         if ($Target.Rooms)
         {
@@ -14163,17 +14344,19 @@ class TD_Location_Cache : Object_Cache
         else
         {
             # No target or detail data, add target with detail to cache
-            $this.Add($TargetName,$Environment,$true)
+            $this.Add($TargetName,$AppID,$Environment,$true)
             # Extract newly-added/updated entry from cache
-            return $this.GetCached($TargetName)
+            return $this.GetCached($TargetName,$AppID,$Environment)
         }
     }
     #  Get a target from the cache, if present, if not retrieve and add to cache - by ID
     [system.object]Get(
-        [int]$TargetID,
-        [EnvironmentChoices]$Environment)
+        [int]               $TargetID,
+        [int]               $AppID,
+        [EnvironmentChoices]$Environment
+        )
     {
-        $Target = $this.GetCached($TargetID,$Environment)
+        $Target = $this.GetCached($TargetID,$AppID,$Environment)
         # Check to see if target and detail data exist
         if ($Target.Rooms)
         {
@@ -14182,20 +14365,22 @@ class TD_Location_Cache : Object_Cache
         else
         {
             # No target or no detail data, add target with detail to cache
-            $this.Add($TargetID,$Environment,$true)
+            $this.Add($TargetID,$AppID,$Environment,$true)
             # Extract newly-added/updated entry from cache
-            return $this.GetCached($TargetID)
+            return $this.GetCached($TargetID,$AppID,$Environment)
         }
     }
     # LoadTargets
     #  Load existing targets into cache, no detail data
     [void]LoadTargets(
-        [EnvironmentChoices]$Environment)
+        [int]               $AppID,
+        [EnvironmentChoices]$Environment
+        )
     {
         # Only load existing targets if there's nothing in the cache - don't load detail data, skip cache checks
-        if (-not $this.$Environment)
+        if (-not $this.$Environment."AppID$AppID")
         {
-            $this.Add((Get-TDLocation -Environment $Environment),$Environment,$false,$false)
+            $this.Add((Get-TDLocation -Environment $Environment),$AppID,$Environment,$false,$false)
         }
     }
 
@@ -14203,65 +14388,71 @@ class TD_Location_Cache : Object_Cache
     # GetByExternalID
     #  Get a target from the cache by external ID
     [TeamDynamix_Api_Locations_Location]GetByExternalID(
-        [int]$ExternalID,
-        [EnvironmentChoices]$Environment)
+        [int]               $ExternalID,
+        [EnvironmentChoices]$Environment
+        )
     {
         # Find target
-        $Target = $this.Get() | Where-Object {[int]$_.ExternalID -eq $ExternalID}
-        # Ensure detail data in included by passing through Get
-        return $this.Get($Target.ID,$Environment)
+        $Target = $this.GetAll($this.DefaultAppID,$Environment) | Where-Object {[int]$_.ExternalID -eq $ExternalID}
+        # Ensure detail data in included by passing through Get by ID, which pulls detail data
+        return $this.Get($Target.ID,$this.DefaultAppID,$Environment)
     }
     #  Delegating method for GetByExternalID
     [TeamDynamix_Api_Locations_Location]GetByExternalID(
-        [int]$ExternalID)
+        [int]$ExternalID
+        )
     {
         return $this.GetByExternalID($ExternalID,$script:WorkingEnvironment)
     }
     # GetRoom
     #  Get a room from the cache by location ID and room ID and Environment
     [TeamDynamix_Api_Locations_LocationRoom]GetRoom(
-        [int]$LocationID,
-        [int]$RoomID,
-        [EnvironmentChoices]$Environment)
+        [int]               $LocationID,
+        [int]               $RoomID,
+        [EnvironmentChoices]$Environment
+        )
     {
         # Get the target (side-effect collects detail data)
-        $TargetObject = $this.Get($LocationID,$Environment)
+        $TargetObject = $this.Get($LocationID,$this.DefaultAppID,$Environment)
         # Match room
         $DetailObject = $TargetObject.Rooms | Where-Object ID -eq $RoomID
         return $DetailObject
     }
     #  Get a room from the cache by location name and room ID and Environment
     [TeamDynamix_Api_Locations_LocationRoom]GetRoom(
-        [string]$LocationName,
-        [int]$RoomID,
-        [EnvironmentChoices]$Environment)
+        [string]            $LocationName,
+        [int]               $RoomID,
+        [EnvironmentChoices]$Environment
+        )
     {
         # Get the target (side-effect collects detail data)
-        $TargetObject = $this.Get($LocationName,$Environment)
+        $TargetObject = $this.Get($LocationName,$this.DefaultAppID,$Environment)
         # Match room
         $DetailObject = $TargetObject.Rooms | Where-Object ID -eq $RoomID
         return $DetailObject
     }
     #  Get a room from the cache by location ID and room name and Environment
     [TeamDynamix_Api_Locations_LocationRoom]GetRoom(
-        [int]$LocationID,
-        [string]$RoomName,
-        [EnvironmentChoices]$Environment)
+        [int]               $LocationID,
+        [string]            $RoomName,
+        [EnvironmentChoices]$Environment
+        )
     {
         # Get the target (side-effect collects detail data)
-        $TargetObject = $this.Get($LocationID,$Environment)
+        $TargetObject = $this.Get($LocationID,$this.DefaultAppID,$Environment)
         # Match room
         $DetailObject = $TargetObject.Rooms | Where-Object Name -eq $RoomName
         return $DetailObject
     }
     #  Get a room from the cache by location name and room name and Environment
     [TeamDynamix_Api_Locations_LocationRoom]GetRoom(
-        [string]$LocationName,
-        [string]$RoomName,
-        [EnvironmentChoices]$Environment)
+        [string]            $LocationName,
+        [string]            $RoomName,
+        [EnvironmentChoices]$Environment
+        )
     {
         # Get the target (side-effect collects detail data)
-        $TargetObject = $this.Get($LocationName,$Environment)
+        $TargetObject = $this.Get($LocationName,$this.DefaultAppID,$Environment)
         # Match room
         $DetailObject = $TargetObject.Rooms | Where-Object Name -eq $RoomName
         return $DetailObject
@@ -14269,28 +14460,32 @@ class TD_Location_Cache : Object_Cache
     #  Delegating method for GetByExternalID
     [TeamDynamix_Api_Locations_LocationRoom]GetRoom(
         [int]$LocationID,
-        [int]$RoomID)
+        [int]$RoomID
+        )
     {
         $DetailObject = $this.GetRoom($LocationID,$RoomID,$script:WorkingEnvironment)
         return $DetailObject
     }
     [TeamDynamix_Api_Locations_LocationRoom]GetRoom(
         [string]$LocationName,
-        [int]$RoomID)
+        [int]   $RoomID
+        )
     {
         $DetailObject = $this.GetRoom($LocationName,$RoomID,$script:WorkingEnvironment)
         return $DetailObject
     }
     [TeamDynamix_Api_Locations_LocationRoom]GetRoom(
-        [int]$LocationID,
-        [string]$RoomName)
+        [int]   $LocationID,
+        [string]$RoomName
+        )
     {
         $DetailObject = $this.GetRoom($LocationID,$RoomName,$script:WorkingEnvironment)
         return $DetailObject
     }
     [TeamDynamix_Api_Locations_LocationRoom]GetRoom(
         [string]$LocationName,
-        [string]$RoomName)
+        [string]$RoomName
+        )
     {
         $DetailObject = $this.GetRoom($LocationName,$RoomName,$script:WorkingEnvironment)
         return $DetailObject
@@ -14303,15 +14498,18 @@ class TD_Application_Cache : Object_Cache
     # Default constructor
     TD_Application_Cache ()
     {
+        $this.DefaultAppID = 0
     }
 
     # Override methods
     #  Add by target object - all add commands pass through here
     hidden [void]Add(
         [TeamDynamix_Api_Apps_OrgApplication]$TargetObject,
+        [int]               $AppID,
         [EnvironmentChoices]$Environment,
-        [switch]$Detail,
-        [switch]$CheckCache)
+        [switch]            $Detail,
+        [switch]            $CheckCache
+        )
     {
         # Add
         #  Add new items, or replace existing items if detail information isn't present
@@ -14320,56 +14518,75 @@ class TD_Application_Cache : Object_Cache
         {
             # This check is skipped when bulk-loading data, since the cache is empty when that happens
             $TargetObject | Add-Member -MemberType AliasProperty -Name ID -Value AppID
-            $CachedTargetObject = $this.GetCached($TargetObject.Name,$Environment)
+            $CachedTargetObject = $this.GetCached($TargetObject.Name,$AppID,$Environment)
         }
         if (-not $CachedTargetObject)
         {
-            $TargetObject | Add-Member -MemberType AliasProperty -Name ID -Value AppID
-            $this.$Environment += $TargetObject
+            # Add an ID property alias to AppID if the ID is not already present
+            if (-not $TargetObject.ID)
+            {
+                $TargetObject | Add-Member -MemberType AliasProperty -Name ID -Value AppID
+            }
+            # Create the array holder for the data, if none exists
+            if (-not $this.$Environment."AppID$AppID")
+            {
+                $this.$Environment = @{"AppID$AppID" = @()}
+            }
+            $this.$Environment."AppID$AppID" += $TargetObject
         }
         $this.WorkingEnvironment = $this.$script:WorkingEnvironment
     }
     #  Add by target name
     hidden [void]Add(
-        [string]$TargetName,
+        [string]            $TargetName,
+        [int]               $AppID,
         [EnvironmentChoices]$Environment,
-        [switch]$Detail)
+        [switch]            $Detail
+        )
     {
         throw 'Invalid cache action.'
     }
     #  Add by target ID
     hidden [void]Add(
-        [int]$TargetID,
+        [int]               $TargetID,
+        [int]               $AppID,
         [EnvironmentChoices]$Environment,
-        [switch]$Detail)
+        [switch]            $Detail
+        )
     {
         throw 'Invalid cache action.'
     }
     #  Get a target from the cache, if present; if not retrieve and add to cache - by name
     [system.object]Get(
-        [string]$TargetName,
-        [EnvironmentChoices]$Environment)
+        [string]            $TargetName,
+        [int]               $AppID,
+        [EnvironmentChoices]$Environment
+        )
     {
-        $Target = $this.GetCached($TargetName,$Environment)
+        $Target = $this.GetCached($TargetName,$AppID,$Environment)
         return $Target
     }
     #  Get a target from the cache, if present, if not retrieve and add to cache - by ID
     [system.object]Get(
-        [int]$TargetID,
-        [EnvironmentChoices]$Environment)
+        [int]               $TargetID,
+        [int]               $AppID,
+        [EnvironmentChoices]$Environment
+        )
     {
-        $Target = $this.GetCached($TargetID,$Environment)
+        $Target = $this.GetCached($TargetID,$AppID,$Environment)
         return $Target
     }
     # LoadTargets
     #  Load existing targets into cache, no detail data
     [void]LoadTargets(
-        [EnvironmentChoices]$Environment)
+        [int]               $AppID,
+        [EnvironmentChoices]$Environment
+        )
     {
         # Only load existing targets if there's nothing in the cache - don't load detail data, skip cache checks
-        if (-not $this.$Environment)
+        if (-not $this.$Environment."AppID$AppID")
         {
-            $this.Add((Get-TDApplication -Environment $Environment),$Environment,$false,$false)
+            $this.Add((Get-TDApplication -Environment $Environment),$AppID,$Environment,$false,$false)
         }
     }
 
@@ -14377,35 +14594,229 @@ class TD_Application_Cache : Object_Cache
     # GetByType
     #  Get a target from the cache by type
     [TeamDynamix_Api_Apps_OrgApplication[]]GetByType(
-        [string]$Type,
-        [EnvironmentChoices]$Environment)
+        [string]            $Type,
+        [EnvironmentChoices]$Environment
+        )
     {
-        # Ensure cache is loaded
         # Find target
-        $Target = $this.Get() | Where-Object {$_.Type -eq $Type}
+        $Target = $this.GetAll($this.DefaultAppID,$Environment) | Where-Object {$_.Type -eq $Type}
         return $Target
     }
     #  Delegating method for GetByType
     [TeamDynamix_Api_Apps_OrgApplication[]]GetByType(
-        [string]$Type)
+        [string]$Type
+        )
     {
         return $this.GetByType($Type,$script:WorkingEnvironment)
     }
     # GetByAppClass
     #  Get a target from the cache by application class
     [TeamDynamix_Api_Apps_OrgApplication[]]GetByAppClass(
-        [string]$AppClass,
-        [EnvironmentChoices]$Environment)
+        [string]            $AppClass,
+        [EnvironmentChoices]$Environment
+        )
     {
         # Find target
-        $Target = $this.Get() | Where-Object {$_.AppClass -eq $AppClass}
+        $Target = $this.GetAll($this.DefaultAppID,$Environment) | Where-Object {$_.AppClass -eq $AppClass}
         return $Target
     }
     #  Delegating method for GetByAppClass
     [TeamDynamix_Api_Apps_OrgApplication[]]GetByAppClass(
-        [string]$AppClass)
+        [string]$AppClass
+        )
     {
         return $this.GetByAppClass($AppClass,$script:WorkingEnvironment)
+    }
+}
+
+# Stores product model data
+#  Cache by AppID, get by ProductType and Manufacturer
+class TD_TDProductModel_Cache : Object_Cache
+{
+    # Default constructor
+    TD_TDProductModel_Cache ()
+    {
+        $this.DefaultAppID = 0
+    }
+
+    TD_TDProductModel_Cache ([int]$AppID)
+    {
+        $this.DefaultAppID = $AppID
+    }
+
+    # Override methods
+    #  Add by target object - all add commands pass through here
+    hidden [void]Add(
+        [TeamDynamix_Api_Assets_ProductModel]$TargetObject,
+        [int]               $AppID,
+        [EnvironmentChoices]$Environment,
+        [switch]            $Detail,
+        [switch]            $CheckCache
+        )
+    {
+        # Add
+        #  Add new items, or replace existing items if detail information isn't present
+        $CachedTargetObject = $null
+        if ($CheckCache)
+        {
+            # This check is skipped when bulk-loading data, since the cache is empty when that happens
+            $CachedTargetObject = $this.GetCached($TargetObject.Name,$AppID,$Environment)
+        }
+        if (-not $CachedTargetObject)
+        {
+            # Create the array holder for the data, if none exists
+            if (-not $this.$Environment."AppID$AppID")
+            {
+                $this.$Environment = @{"AppID$AppID" = @()}
+            }
+            $this.$Environment."AppID$AppID" += $TargetObject
+        }
+        $this.WorkingEnvironment = $this.$script:WorkingEnvironment
+    }
+    #  Add by target name
+    hidden [void]Add(
+        [string]            $TargetName,
+        [int]               $AppID,
+        [EnvironmentChoices]$Environment,
+        [switch]            $Detail
+        )
+    {
+        # Look up by name
+        $this.Add((Get-TDProductModel -SearchText $TargetName -Exact -Environment $Environment),$AppID,$Environment,$Detail,$true)
+    }
+    #  Add by target ID
+    hidden [void]Add(
+        [int]               $TargetID,
+        [int]               $AppID,
+        [EnvironmentChoices]$Environment,
+        [switch]            $Detail
+        )
+    {
+        $this.Add((Get-TDProductModel -ID $TargetID -Environment $Environment),$AppID,$Environment,$Detail,$true)
+    }
+    #  Get a target from the cache, if present; if not retrieve and add to cache - by name
+    [system.object]Get(
+        [string]            $TargetName,
+        [int]               $AppID,
+        [EnvironmentChoices]$Environment
+        )
+    {
+        $Target = $this.GetCached($TargetName,$AppID,$Environment)
+        return $Target
+    }
+    #  Get a target from the cache, if present, if not retrieve and add to cache - by ID
+    [system.object]Get(
+        [int]               $TargetID,
+        [int]               $AppID,
+        [EnvironmentChoices]$Environment
+        )
+    {
+        $Target = $this.GetCached($TargetID,$AppID,$Environment)
+        return $Target
+    }
+    # LoadTargets
+    #  Load existing targets into cache, no detail data
+    [void]LoadTargets(
+        [int]               $AppID,
+        [EnvironmentChoices]$Environment
+        )
+    {
+        # Only load existing targets if there's nothing in the cache - don't load detail data, skip cache checks
+        if (-not $this.$Environment)
+        {
+            $this.Add((Get-TDProductModel -Environment $Environment),$AppID,$Environment,$false,$false)
+        }
+    }
+
+    # Custom methods
+    # GetByType
+    #  Get a target from the cache by type
+    [TeamDynamix_Api_Assets_ProductModel[]]GetByType(
+        [string]            $TypeName,
+        [int]               $AppID,
+        [EnvironmentChoices]$Environment
+        )
+    {
+        # Find target
+        $Target = $this.GetAll($AppID,$Environment) | Where-Object {$_.ProductTypeName -eq $TypeName}
+        return $Target
+    }
+    [TeamDynamix_Api_Assets_ProductModel[]]GetByType(
+        [int]               $TypeID,
+        [int]               $AppID,
+        [EnvironmentChoices]$Environment
+        )
+    {
+        # Find target
+        $Target = $this.GetAll($AppID,$Environment) | Where-Object {$_.ProductTypeID -eq $TypeID}
+        return $Target
+    }
+    #  Delegating method for GetByType
+    [TeamDynamix_Api_Assets_ProductModel[]]GetByType(
+        [string]$TypeName
+        )
+    {
+        return $this.GetByType($TypeName,$this.DefaultAppID,$script:WorkingEnvironment)
+    }
+    [TeamDynamix_Api_Assets_ProductModel[]]GetByType(
+        [int]$TypeID
+        )
+    {
+        return $this.GetByType($TypeID,$this.DefaultAppID,$script:WorkingEnvironment)
+    }
+    # GetByManufacturer
+    #  Get a target from the cache by manufacturer
+    [TeamDynamix_Api_Assets_ProductModel[]]GetByManufacturer(
+        [string]            $ManufacturerName,
+        [int]               $AppID,
+        [EnvironmentChoices]$Environment
+        )
+    {
+        # Find target
+        $Target = $this.GetAll($AppID,$Environment) | Where-Object {$_.ManufacturerName -eq $ManufacturerName}
+        return $Target
+    }
+    [TeamDynamix_Api_Assets_ProductModel[]]GetByManufacturer(
+        [int]               $ManufacturerID,
+        [int]               $AppID,
+        [EnvironmentChoices]$Environment
+        )
+    {
+        # Find target
+        $Target = $this.GetAll($AppID,$Environment) | Where-Object {$_.ManufacturerID -eq $ManufacturerID}
+        return $Target
+    }
+    #  Delegating method for GetByManufacturer
+    [TeamDynamix_Api_Assets_ProductModel[]]GetByManufacturer(
+        [string]$TypeName
+        )
+    {
+        return $this.GetByManufacturer($TypeName,$this.DefaultAppID,$script:WorkingEnvironment)
+    }
+    [TeamDynamix_Api_Assets_ProductModel[]]GetByManufacturer(
+        [int]$TypeID
+        )
+    {
+        return $this.GetByManufacturer($TypeID,$this.DefaultAppID,$script:WorkingEnvironment)
+    }
+    # GetByPartNumber
+    #  Get a target from the cache by part number
+    [TeamDynamix_Api_Assets_ProductModel[]]GetByPartNumber(
+        [string]            $PartNumber,
+        [int]               $AppID,
+        [EnvironmentChoices]$Environment
+        )
+    {
+        # Find target
+        $Target = $this.GetAll($AppID,$Environment) | Where-Object {$_.PartNumber -eq $PartNumber}
+        return $Target
+    }
+    #  Delegating method for GetByPartNumber
+    [TeamDynamix_Api_Assets_ProductModel[]]GetByPartNumber(
+        [string]$PartNumber
+        )
+    {
+        return $this.GetByPartNumber($PartNumber,$this.DefaultAppID,$script:WorkingEnvironment)
     }
 }
 #endregion
@@ -14478,7 +14889,7 @@ try
 
     Write-Progress -ID 100 -Activity 'Loading module' -Status 'Loading product types and models' -PercentComplete 60
     $script:TDProductTypes  = Get-TDProductTypeInt                 -AuthenticationToken $TDAuthentication -Environment $WorkingEnvironment | Sort-Object Name
-    $script:TDProductModels = Get-TDProductModel   -IsActive $true -AuthenticationToken $TDAuthentication -Environment $WorkingEnvironment | Sort-Object Name
+    $script:TDProductModels = [TD_TDProductModel_Cache]::new($AssetCIAppID)
 
     Write-Progress -ID 100 -Activity 'Loading module' -Status 'Loading departments' -PercentComplete 70
     $script:TDAccounts      = Get-TDAccount        -IsActive $true -AuthenticationToken $TDAuthentication -Environment $WorkingEnvironment | Sort-Object Name

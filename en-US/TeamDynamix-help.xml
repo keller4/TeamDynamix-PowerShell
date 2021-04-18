@@ -14331,6 +14331,17 @@ C:\&gt;$Groups | Get-TDGroupMember -AuthenticationToken $Authentication</dev:cod
           <dev:defaultValue>False</dev:defaultValue>
         </command:parameter>
         <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+          <maml:name>Exact</maml:name>
+          <maml:description>
+            <maml:para>Return only an exact match for product model.</maml:para>
+          </maml:description>
+          <dev:type>
+            <maml:name>SwitchParameter</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>False</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
           <maml:name>AuthenticationToken</maml:name>
           <maml:description>
             <maml:para>Hashtable with one key: "Authorization" and value of "Bearer" followed by the JSON bearer web token. See Set-TDAuthentication.</maml:para>
@@ -14486,6 +14497,18 @@ C:\&gt;$Groups | Get-TDGroupMember -AuthenticationToken $Authentication</dev:cod
         <maml:name>Detail</maml:name>
         <maml:description>
           <maml:para>Return full detail for product model.</maml:para>
+        </maml:description>
+        <command:parameterValue required="false" variableLength="false">SwitchParameter</command:parameterValue>
+        <dev:type>
+          <maml:name>SwitchParameter</maml:name>
+          <maml:uri />
+        </dev:type>
+        <dev:defaultValue>False</dev:defaultValue>
+      </command:parameter>
+      <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+        <maml:name>Exact</maml:name>
+        <maml:description>
+          <maml:para>Return only an exact match for product model.</maml:para>
         </maml:description>
         <command:parameterValue required="false" variableLength="false">SwitchParameter</command:parameterValue>
         <dev:type>

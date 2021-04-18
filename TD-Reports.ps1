@@ -560,7 +560,7 @@ function Get-TDForm
     (
         # Select based on whether form is active
         [Parameter(Mandatory=$false)]
-        [boolean]
+        [system.nullable[boolean]]
         $IsActive,
 
         # Set ID of application for configuration item
