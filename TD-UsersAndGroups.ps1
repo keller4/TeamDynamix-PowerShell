@@ -212,28 +212,6 @@ function Set-TDAuthentication
     if (-not $NoInvalidateCache)
     {
         Clear-TDLocalCache
-        <#
-        # Caching variables
-        $CacheVariables = @()
-        # List all script-scoped variables
-        $ScopedVariables = Get-Variable -Scope script
-        foreach ($ScopedVariable in $ScopedVariables)
-        {
-            if ($ScopedVariable.Value)
-            {
-                if ($ScopedVariable.Value.GetType().Name -like 'TD_*_Cache')
-                {
-                    # Collect caching variables
-                    $CacheVariables += $ScopedVariable
-                }
-            }
-        }
-        foreach ($Environ in [System.Enum]::GetNames('EnvironmentChoices'))
-        {
-            # Flush caches for all environments
-            $CacheVariables | ForEach-Object {$_.Value.FlushCache($Environ)}
-        }
-        #>
     }
 
     # Update or return authentication information
@@ -499,28 +477,28 @@ function Get-TDUser
             @{
                 Name             = 'AppName'
                 Type             = 'string'
-                ValidateSet      = $TDApplications.GetAll().Name
+                ValidateSet      = $TDApplications.GetAll($WorkingEnvironment,$true).Name
                 HelpText         = 'Return users who have been granted access to the application'
                 ParameterSetName = 'Search'
                 IDParameter      = 'AppID'
-                IDsMethod        = '$TDApplications.GetAll($Environment)'
+                IDsMethod        = '$TDApplications.GetAll($WorkingEnvironment,$true)'
             }
             @{
                 Name             = 'AccountNames'
-                ValidateSet      = $TDAccounts.Name
+                ValidateSet      = $TDAccounts.GetAll($WorkingEnvironment,$true).Name
                 HelpText         = 'Names of departments'
                 ParameterSetName = 'Search'
                 IDParameter      = 'AccountID'
-                IDsMethod        = '$TDAccounts'
+                IDsMethod        = '$TDAccounts.GetAll($WorkingEnvironment,$true)'
             }
             @{
                 Name             = 'SecurityRoleName'
                 Type             = 'string'
-                ValidateSet      = $TDSecurityRoles.Name
+                ValidateSet      = $TDSecurityRoles.GetAll($WorkingEnvironment,$null).Name
                 HelpText         = 'Name of security role'
                 ParameterSetName = 'Search'
                 IDParameter      = 'SecurityRoleID'
-                IDsMethod        = '$TDSecurityRoles'
+                IDsMethod        = '$TDSecurityRoles.GetAll($WorkingEnvironment,$null)'
             }
         )
         $DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
@@ -589,6 +567,10 @@ function Get-TDUser
         }
         return $Return
     }
+    end
+    {
+        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
+    }
 }
 
 function Get-TDDepartment
@@ -646,6 +628,12 @@ function Get-TDDepartment
         [System.Nullable[int]]
         $ParentAccountID,
 
+        # Parent account name filter
+        [Parameter(Mandatory=$false,
+                   ParameterSetName='Search')]
+        [string]
+        $ParentAccountName,
+
         # Return detailed information on account
         [Parameter(Mandatory=$false,
                    ParameterSetName='Search')]
@@ -668,23 +656,6 @@ function Get-TDDepartment
         [EnvironmentChoices]
         $Environment = $WorkingEnvironment
     )
-    DynamicParam
-    {
-        #List dynamic parameters
-        $DynamicParameterList = @(
-            @{
-                Name             = 'ParentAccountName'
-                Type             = 'string'
-                ValidateSet      = $TDAccounts.Name
-                HelpText         = 'Name of parent department'
-                ParameterSetName = 'Search'
-                IDParameter      = 'ParentAccountID'
-                IDsMethod        = '$TDAccounts'
-            }
-        )
-        $DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
-        return $DynamicParameterDictionary
-    }
 
     Begin
     {
@@ -719,7 +690,6 @@ function Get-TDDepartment
             }
         }
         # Local modifications to return set
-
         if ($Return)
         {
             if ($Exact)
@@ -739,6 +709,10 @@ function Get-TDDepartment
             $Return = ($Return | ForEach-Object {[TeamDynamix_Api_Accounts_Account]::new($_)})
         }
         return $Return
+    }
+    end
+    {
+        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
     }
 }
 
@@ -906,6 +880,10 @@ function New-TDDepartment
             return $Return
         }
     }
+    end
+    {
+        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
+    }
 }
 
 function Set-TDDepartment
@@ -1059,12 +1037,12 @@ function Set-TDDepartment
 			@{
 				Name             = 'DepartmentName'
                 Type             = 'string'
-				ValidateSet      = $TDAccounts.Name
+				ValidateSet      = $TDAccounts.GetAll($WorkingEnvironment,$true).Name
 				HelpText         = 'Name of department to edit'
                 Mandatory        = $true
                 ParameterSetName = 'Name'
                 IDParameter      = 'ID'
-                IDsMethod        = '$TDAccounts'
+                IDsMethod        = '$TDAccounts.GetAll($WorkingEnvironment,$true)'
 			}
 		)
 		$DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
@@ -1094,6 +1072,10 @@ function Set-TDDepartment
         }
         $Return = $InvokeParams | Invoke-New
         return $Return
+    }
+    end
+    {
+        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
     }
 }
 function Get-TDGroup
@@ -1212,6 +1194,10 @@ function Get-TDGroup
         }
         return $Return
     }
+    end
+    {
+        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
+    }
 }
 
 function New-TDGroup
@@ -1288,6 +1274,10 @@ function New-TDGroup
             return $Return
         }
     }
+    end
+    {
+        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
+    }
 }
 function Set-TDGroup
 {
@@ -1350,12 +1340,12 @@ function Set-TDGroup
 			@{
 				Name             = 'GroupName'
                 Type             = 'string'
-				ValidateSet      = $TDGroups.Name
+				ValidateSet      = $TDGroups.GetAll($WorkingEnvironment,$true).Name
 				HelpText         = 'Name of group to edit'
                 Mandatory        = $true
                 ParameterSetName = 'Name'
                 IDParameter      = 'ID'
-                IDsMethod        = '$TDGroups'
+                IDsMethod        = '$TDGroups.GetAll($WorkingEnvironment,$true)'
 			}
 		)
 		$DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
@@ -1385,6 +1375,10 @@ function Set-TDGroup
         }
         $Return = $InvokeParams | Invoke-New
         return $Return
+    }
+    end
+    {
+        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
     }
 }
 
@@ -1430,6 +1424,10 @@ function Get-TDUserGroupMember
             $Return = ($Return | ForEach-Object {[TeamDynamix_Api_Users_UserGroup]::new($_)})
         }
         return $Return
+    }
+    end
+    {
+        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
     }
 }
 
@@ -1526,6 +1524,10 @@ function Remove-TDGroupMember
             }
         }
         return $Return
+    }
+    end
+    {
+        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
     }
 }
 
@@ -1648,6 +1650,10 @@ function Add-TDGroupMember
         }
         return $Return
     }
+    end
+    {
+        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
+    }
 }
 
 function Get-TDGroupMember
@@ -1680,12 +1686,12 @@ function Get-TDGroupMember
 			@{
 				Name             = 'GroupName'
                 Type             = 'string'
-				ValidateSet      = $TDGroups.Name
+				ValidateSet      = $TDGroups.GetAll($WorkingEnvironment,$true).Name
 				HelpText         = 'Name of group'
                 Mandatory        = $true
                 ParameterSetName = 'Name'
                 IDParameter      = 'GroupID'
-                IDsMethod        = '$TDGroups'
+                IDsMethod        = '$TDGroups.GetAll($WorkingEnvironment,$true)'
 			}
 		)
 		$DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
@@ -1716,6 +1722,10 @@ function Get-TDGroupMember
         }
         $Return = $InvokeParams | Invoke-Get
         return $Return
+    }
+    end
+    {
+        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
     }
 }
 
@@ -2172,6 +2182,10 @@ function New-TDUser
             Write-ActivityHistory -MessageChannel 'Error' -Message "Active user $Username already exists in TeamDynamix"
         }
     }
+    end
+    {
+        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
+    }
 }
 
 function Set-TDUser
@@ -2604,37 +2618,37 @@ function Set-TDUser
                 Name             = 'SecurityRoleName'
                 Mandatory        = $false
                 Type             = 'string'
-                ValidateSet      = $TDSecurityRoles.Name
+                ValidateSet      = $TDApplications.GetAll($WorkingEnvironment,$true).Name
                 HelpText         = 'User security role name'
                 IDParameter      = 'SecurityRoleID'
-                IDsMethod        = '$TDSecurityRoles'
+                IDsMethod        = '$TDApplications.GetAll($WorkingEnvironment,$true)'
             }
             @{
                 Name             = 'DefaultAccountName'
                 Mandatory        = $false
                 Type             = 'string'
-                ValidateSet      = $TDAccounts.Name
+                ValidateSet      = $TDAccounts.GetAll($WorkingEnvironment,$true).Name
                 HelpText         = 'User default account (department) name'
                 IDParameter      = 'DefaultAccountID'
-                IDsMethod        = '$TDAccounts'
+                IDsMethod        = '$TDAccounts.GetAll($WorkingEnvironment,$true)'
             }
             @{
                 Name             = 'GroupNames'
                 Mandatory        = $false
                 Type             = 'string[]'
-                ValidateSet      = $TDGroups.Name
+                ValidateSet      = $TDGroups.GetAll($WorkingEnvironment,$true).Name
                 HelpText         = 'User group names'
                 IDParameter      = 'GroupIDs'
-                IDsMethod        = '$TDGroups'
+                IDsMethod        = '$TDGroups.GetAll($WorkingEnvironment,$true)'
             }
             @{
                 Name             = 'LocationName'
                 Mandatory        = $false
                 Type             = 'string'
-                ValidateSet      = $TDBuildingsRooms.GetAll().Name
+                ValidateSet      = $TDBuildingsRooms.GetAll($true).Name
                 HelpText         = 'Remove these applications from specified group'
                 IDParameter      = 'LocationID'
-                IDsMethod        = '$TDBuildingsRooms.GetAll()'
+                IDsMethod        = '$TDBuildingsRooms.GetAll($true)'
             }
             @{
                 Name             = 'TimeZoneName'
@@ -2807,6 +2821,10 @@ function Set-TDUser
             }
         }
     }
+    end
+    {
+        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
+    }
 }
 
 function Disable-TDUser
@@ -2891,6 +2909,10 @@ function Disable-TDUser
                 Write-Output (Get-TDUser -UID $UserID -AuthenticationToken $AuthenticationToken -Environment $Environment)
             }
         }
+    }
+    end
+    {
+        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
     }
 }
 
@@ -2977,6 +2999,10 @@ function Enable-TDUser
                     Write-Output (Get-TDUser -UID $UserID -AuthenticationToken $AuthenticationToken -Environment $Environment)
                 }
         }
+    }
+    end
+    {
+        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
     }
 }
 
@@ -3161,6 +3187,10 @@ function Set-TDBulkUser
             return $Return
         }
     }
+    end
+    {
+        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
+    }
 }
 
 function Add-TDGroupApplication
@@ -3199,19 +3229,19 @@ function Add-TDGroupApplication
                 Name             = 'GroupName'
                 Mandatory        = $true
                 Type             = 'string'
-                ValidateSet      = $TDGroups.Name
+                ValidateSet      = $TDGroups.GetAll($WorkingEnvironment,$true).Name
                 HelpText         = 'Remove applications from this group'
                 IDParameter      = 'GroupID'
-                IDsMethod        = '$TDGroups'
+                IDsMethod        = '$TDGroups.GetAll($WorkingEnvironment,$true)'
             }
             @{
                 Name             = 'AppNames'
                 Mandatory        = $true
                 Type             = 'string[]'
-                ValidateSet      = $TDApplications.GetAll().Name
+                ValidateSet      = $TDApplications.GetAll($WorkingEnvironment,$true).Name
                 HelpText         = 'Remove these applications from specified group'
                 IDParameter      = 'AppIDs'
-                IDsMethod        = '$TDApplications.GetAll($Environment)'
+                IDsMethod        = '$TDApplications.GetAll($WorkingEnvironment,$true)'
             }
         )
         $DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
@@ -3246,6 +3276,10 @@ function Add-TDGroupApplication
         }
         return $Return
     }
+    end
+    {
+        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
+    }
 }
 
 function Get-TDGroupApplication
@@ -3279,11 +3313,11 @@ function Get-TDGroupApplication
                 Name             = 'GroupName'
                 Mandatory        = $true
                 Type             = 'string'
-                ValidateSet      = $TDGroups.Name
+                ValidateSet      = $TDGroups.GetAll($WorkingEnvironment,$true).Name
                 HelpText         = 'Return applications assigned to this group'
                 ParameterSetName = 'Name'
                 IDParameter      = 'GroupID'
-                IDsMethod        = '$TDGroups'
+                IDsMethod        = '$TDGroups.GetAll($WorkingEnvironment,$true)'
             }
         )
         $DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
@@ -3315,6 +3349,10 @@ function Get-TDGroupApplication
             $Return = ($Return | ForEach-Object {[TeamDynamix_Api_Users_GroupApplication]::new($_)})
         }
         return $Return
+    }
+    end
+    {
+        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
     }
 }
 
@@ -3355,19 +3393,19 @@ function Remove-TDGroupApplication
                 Name             = 'GroupName'
                 Mandatory        = $true
                 Type             = 'string'
-                ValidateSet      = $TDGroups.Name
+                ValidateSet      = $TDGroups.GetAll($WorkingEnvironment,$true).Name
                 HelpText         = 'Remove applications from this group'
                 IDParameter      = 'GroupID'
-                IDsMethod        = '$TDGroups'
+                IDsMethod        = '$TDGroups.GetAll($WorkingEnvironment,$true)'
             }
             @{
                 Name             = 'AppNames'
                 Mandatory        = $true
                 Type             = 'string[]'
-                ValidateSet      = $TDApplications.GetAll().Name
+                ValidateSet      = $TDApplications.GetAll($WorkingEnvironment,$true).Name
                 HelpText         = 'Remove these applications from specified group'
                 IDParameter      = 'AppIDs'
-                IDsMethod        = '$TDApplications.GetAll($Environment)'
+                IDsMethod        = '$TDApplications.GetAll($WorkingEnvironment,$true)'
             }
         )
         $DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
@@ -3405,6 +3443,10 @@ function Remove-TDGroupApplication
             return $Return
         }
     }
+    end
+    {
+        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
+    }
 }
 
 function New-TDGroupApplication
@@ -3426,5 +3468,9 @@ function New-TDGroupApplication
         $GroupApplication = [TeamDynamix_Api_Users.GroupApplication]::new()
         $GroupApplication.AppID = $AppID
         return $UserApplication
+    }
+    end
+    {
+        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
     }
 }

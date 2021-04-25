@@ -250,6 +250,10 @@ function Get-TDLocation
         }
         return $Return
     }
+    end
+    {
+        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
+    }
 }
 
 function Remove-TDRoom
@@ -298,6 +302,10 @@ function Remove-TDRoom
             $Return = Invoke-RESTCall -Uri "$BaseURI/locations/$LocationID/rooms/$RoomID" -ContentType $ContentType -Method Delete -Headers $AuthenticationToken
             return $Return
         }
+    }
+    end
+    {
+        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
     }
 }
 
@@ -422,6 +430,10 @@ function New-TDLocation
             }
             return $Return
         }
+    }
+    end
+    {
+        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
     }
 }
 
@@ -568,6 +580,10 @@ function Set-TDLocation
             return $Return
         }
     }
+    end
+    {
+        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
+    }
 }
 
 function New-TDRoom
@@ -655,6 +671,10 @@ function New-TDRoom
             }
             return $Return
         }
+    }
+    end
+    {
+        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
     }
 }
 
@@ -764,5 +784,9 @@ function Set-TDRoom
             }
             return $Return
         }
+    }
+    end
+    {
+        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
     }
 }

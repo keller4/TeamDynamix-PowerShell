@@ -451,10 +451,10 @@ function Get-TDTicket
         $DynamicParameterList = @(
             @{
                 Name        = 'StatusNames'
-                ValidateSet = $TDTicketStatuses.Name
+                ValidateSet = $TDTicketStatuses.GetAll($TicketingAppID,$WorkingEnvironment,$true).Name
                 HelpText    = 'Names of statuses'
                 IDParameter = 'StatusIDs'
-                IDsMethod   = '$TDTicketStatuses'
+                IDsMethod   = '$TDTicketStatuses.GetAll($TicketingAppID,$WorkingEnvironment,$true)'
             }
             @{
                 Name        = 'StatusClassNames'
@@ -465,67 +465,67 @@ function Get-TDTicket
             }
             @{
                 Name        = 'PastStatusNames'
-                ValidateSet = $TDTicketStatuses.Name
+                ValidateSet = $TDTicketStatuses.GetAll($TicketingAppID,$WorkingEnvironment,$true).Name
                 HelpText    = 'Names of past statuses'
                 IDParameter = 'PastStatusIDs'
-                IDsMethod   = '$TDTicketStatuses'
+                IDsMethod   = '$TDTicketStatuses.GetAll($TicketingAppID,$WorkingEnvironment,$true)'
             }
             @{
                 Name        = 'PriorityNames'
-                ValidateSet = $TDTicketPriorities.Name
+                ValidateSet = $TDTicketPriorities.GetAll($TicketingAppID,$WorkingEnvironment,$true).Name
                 HelpText    = 'Names of ticket priorities'
                 IDParameter = 'PriorityIDs'
-                IDsMethod   = '$TDTicketPriorities'
+                IDsMethod   = '$TDTicketPriorities.GetAll($TicketingAppID,$WorkingEnvironment,$true)'
             }
             @{
                 Name        = 'UrgencyNames'
-                ValidateSet = $TDTicketUrgencies.Name
+                ValidateSet = $TDTicketUrgencies.GetAll($TicketingAppID,$WorkingEnvironment,$true).Name
                 HelpText    = 'Names of ticket urgencies'
                 IDParameter = 'UrgencyIDs'
-                IDsMethod   = '$TDTicketUrgencies'
+                IDsMethod   = '$TDTicketUrgencies.GetAll($TicketingAppID,$WorkingEnvironment,$true)'
             }
             @{
                 Name        = 'ImpactNames'
-                ValidateSet = $TDTicketImpacts.Name
+                ValidateSet = $TDTicketImpacts.GetAll($TicketingAppID,$WorkingEnvironment,$true).Name
                 HelpText    = 'Names of ticket impacts'
                 IDParameter = 'ImpactIDs'
-                IDsMethod   = '$TDTicketImpacts'
+                IDsMethod   = '$TDTicketImpacts.GetAll($TicketingAppID,$WorkingEnvironment,$true)'
             }
             @{
                 Name        = 'AccountNames'
-                ValidateSet = $TDAccounts.Name
+                ValidateSet = $TDAccounts.GetAll($TicketingAppID,$WorkingEnvironment,$true).Name
                 HelpText    = 'Names of departments'
                 IDParameter = 'AccountIDs'
-                IDsMethod   = '$TDAccounts'
+                IDsMethod   = '$TDAccounts.GetAll($TicketingAppID,$WorkingEnvironment,$true)'
             }
             @{
                 Name        = 'TypeNames'
-                ValidateSet = $TDTicketTypes.Name
+                ValidateSet = $TDTicketTypes.GetAll($TicketingAppID,$WorkingEnvironment,$true).Name
                 HelpText    = 'Names of ticket types'
                 IDParameter = 'TypeIDs'
-                IDsMethod   = '$TDTicketTypes'
+                IDsMethod   = '$TDTicketTypes.GetAll($TicketingAppID,$WorkingEnvironment,$true)'
             }
             @{
                 Name        = 'SourceNames'
-                ValidateSet = $TDTicketSources.Name
+                ValidateSet = $TDTicketSources.GetAll($TicketingAppID,$WorkingEnvironment,$true).Name
                 HelpText    = 'Names of ticket sources'
                 IDParameter = 'SourceIDs'
-                IDsMethod   = '$TDTicketSources'
+                IDsMethod   = '$TDTicketSources.GetAll($TicketingAppID,$WorkingEnvironment,$true)'
             }
             @{
                 Name        = 'ResponsibilityGroupNames'
-                ValidateSet = $TDGroups.Name
+                ValidateSet = $TDGroups.GetAll($TicketingAppID,$WorkingEnvironment,$true).Name
                 HelpText    = 'Names of responsible groups'
                 IDParameter = 'ResponsibilityGroupIDs'
-                IDsMethod   = '$TDGroups'
+                IDsMethod   = '$TDGroups.GetAll($TicketingAppID,$WorkingEnvironment,$true)'
             }
             @{
                 Name        = 'AppName'
                 Type        = 'string'
-                ValidateSet = $TDApplications.GetByAppClass('TDTickets').Name
+                ValidateSet = $TDApplications.GetByAppClass('TDTickets',$true).Name
                 HelpText    = 'Name of application'
                 IDParameter = 'AppID'
-                IDsMethod   = '$TDApplications.GetAll($Environment)'
+                IDsMethod   = '$TDApplications.GetAll($WorkingEnvironment,$true)'
             }
         )
         $DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
@@ -609,8 +609,8 @@ function Get-TDTicket
                 SearchType       = 'TeamDynamix_Api_Tickets_TicketSearch'
                 ReturnType       = 'TeamDynamix_Api_Tickets_Ticket'
                 AllEndpoint      = $null
-                SearchEndpoint   = "$AppID/tickets/search"
-                IDEndpoint       = "$AppID/tickets/$ID"
+                SearchEndpoint   = '$AppID/tickets/search'
+                IDEndpoint       = '$AppID/tickets/$ID'
                 AppID            = $AppID
                 DynamicParameterDictionary = $DynamicParameterDictionary
                 DynamicParameterList       = $DynamicParameterList
@@ -647,23 +647,28 @@ function Get-TDTicket
         }
         return $Return
     }
+    end
+    {
+        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
+    }
 }
 
 function Get-TDTicketStatus
 {
-    [CmdletBinding(DefaultParameterSetName='Filter')]
+    [CmdletBinding(DefaultParameterSetName='Search')]
     Param
     (
         # Ticket status ID
-        [Parameter(Mandatory=$true,
+        [Parameter(Mandatory=$false,
                    ValueFromPipeline=$true,
-                   ParameterSetName='ID')]
+                   ParameterSetName='ID',
+                   Position=0)]
         [int]
         $ID,
 
         # Filter ticket status name, substring
         [Parameter(Mandatory=$false,
-                   ParameterSetName='Filter')]
+                   ParameterSetName='Search')]
         [ValidateLength(1,50)]
         [alias('Filter')]
         [string]
@@ -671,25 +676,25 @@ function Get-TDTicketStatus
 
         # Filter ticket status based on whether it is active or inactive
         [Parameter(Mandatory=$false,
-                   ParameterSetName='Filter')]
+                   ParameterSetName='Search')]
         [System.Nullable[boolean]]
         $IsActive = $true,
 
         # Filter ticket status based on whether it is the default status
         [Parameter(Mandatory=$false,
-                   ParameterSetName='Filter')]
+                   ParameterSetName='Search')]
         [System.Nullable[boolean]]
         $IsDefault,
 
         # Filter ticket status based on status class
         [Parameter(Mandatory=$false,
-                   ParameterSetName='Filter')]
+                   ParameterSetName='Search')]
         [TeamDynamix_Api_Statuses_StatusClass]
         $StatusClass,
 
         # Filter ticket status based on whether it requires the ticket to go off hold
         [Parameter(Mandatory=$false,
-                   ParameterSetName='Filter')]
+                   ParameterSetName='Search')]
         [System.Nullable[boolean]]
         $RequiresGoesOffHold,
 
@@ -697,6 +702,12 @@ function Get-TDTicketStatus
         [Parameter(Mandatory=$false)]
         [int]
         $AppID = $TicketingAppID,
+
+        # Return only exact match to SearchText
+        [Parameter(ParameterSetName='Search',
+                   Mandatory=$false)]
+        [switch]
+        $Exact,
 
         # TeamDynamix authentication token
         [Parameter(Mandatory=$false)]
@@ -708,49 +719,57 @@ function Get-TDTicketStatus
         [EnvironmentChoices]
         $Environment = $WorkingEnvironment
     )
+    DynamicParam
+    {
+        #List dynamic parameters
+		$DynamicParameterList = @(
+            @{
+                Name        = 'AppName'
+                Type        = 'string'
+                ValidateSet = $TDApplications.GetByAppClass('TDTickets',$true).Name
+                HelpText    = 'Name of application'
+                IDParameter = 'AppID'
+                IDsMethod   = '$TDApplications.GetAll($WorkingEnvironment,$true)'
+            }
+		)
+		$DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
+		return $DynamicParameterDictionary
+    }
 
     Begin
     {
         Write-ActivityHistory "-----`nIn $($MyInvocation.MyCommand.Name)"
-        $ContentType = 'application/json; charset=utf-8'
-        $BaseURI = Get-URI -Environment $Environment
-        if (-not $AuthenticationToken)
-        {
-            Write-ActivityHistory -MessageChannel 'Error' -ThrowError -Message 'Authentication required. Specify -AuthenticationToken value. See Get-Help Set-TDAuthentication for more assistance.'
-        }
-        # Manage parameters
-        #  Identify local parameters to be ignored
-        $LocalIgnoreParameters = @('ID','AppID')
     }
     Process
     {
-        switch ($PSCmdlet.ParameterSetName)
-        {
-            'Filter'
-            {
-                Write-ActivityHistory "Retrieving filtered list ticket statuses from TeamDynamix"
-                if (($SearchText -eq '') -and ($IsActive -eq $true))
-                {
-                    $Return = Invoke-RESTCall -Uri "$BaseURI/$AppID/tickets/statuses" -ContentType $ContentType -Method Get -Headers $AuthenticationToken
-                }
-                else
-                {
-                    $Query = [TeamDynamix_Api_Tickets_TicketStatusSearch]::new()
-                    Update-Object -InputObject $Query -ParameterList (Get-Command $MyInvocation.MyCommand.Name).Parameters.Keys -BoundParameterList $MyInvocation.BoundParameters.Keys -IgnoreList ($LocalIgnoreParameters + $GlobalIgnoreParameters) -AuthenticationToken $AuthenticationToken -Environment $Environment
-                    $Return = Invoke-RESTCall -Uri "$BaseURI/$AppID/tickets/statuses/search" -ContentType $ContentType -Method Post -Headers $AuthenticationToken -Body (ConvertTo-Json $Query -Depth 10)
-                }
-            }
-            'ID'
-            {
-                Write-ActivityHistory "Retrieving a ticket status from TeamDynamix"
-                $Return = Invoke-RESTCall -Uri "$BaseURI/$AppID/tickets/statuses/$ID" -ContentType $ContentType -Method Get -Headers $AuthenticationToken
-            }
+
+        $InvokeParams = [pscustomobject]@{
+            # Configurable parameters
+            SearchType       = 'TeamDynamix_Api_Tickets_TicketStatusSearch'
+            ReturnType       = 'TeamDynamix_Api_Tickets_TicketStatus'
+            AllEndpoint      = '$AppID/tickets/statuses'
+            SearchEndpoint   = '$AppID/tickets/statuses/search'
+            IDEndpoint       = '$AppID/tickets/statuses/$ID'
+            AppID            = $AppID
+            DynamicParameterDictionary = $DynamicParameterDictionary
+            DynamicParameterList       = $DynamicParameterList
+            # Fixed parameters
+            ParameterSetName    = $pscmdlet.ParameterSetName
+            BoundParameters     = $MyInvocation.BoundParameters.Keys
+            Environment         = $Environment
+            AuthenticationToken = $AuthenticationToken
         }
-        if ($Return)
+        $Return = $InvokeParams | Invoke-Get
+        # Return only exact match to NameLike
+        if ($Exact)
         {
-            $Return = ($Return | ForEach-Object {[TeamDynamix_Api_Tickets_TicketStatus]::new($_)})
+            $Return = $Return | Where-Object Name -eq $SearchText
         }
         return $Return
+    }
+    end
+    {
+        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
     }
 }
 
@@ -837,6 +856,10 @@ function New-TDTicketStatus
                 Write-Output $Return
             }
         }
+    }
+    end
+    {
+        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
     }
 }
 
@@ -943,6 +966,10 @@ function Set-TDTicketStatus
             return $Return
         }
     }
+    end
+    {
+        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
+    }
 }
 function Add-TDTicketAttachment
 {
@@ -1020,6 +1047,10 @@ function Add-TDTicketAttachment
             }
             return $Return
         }
+    }
+    end
+    {
+        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
     }
 }
 
@@ -1214,82 +1245,82 @@ function Set-TDTicket
             @{
                 Name        = 'StatusName'
                 Type        = 'string'
-                ValidateSet = $TDTicketStatuses.Name
+                ValidateSet = $TDTicketStatuses.GetAll($TicketingAppID,$WorkingEnvironment,$true).Name
                 HelpText    = 'Name of ticket status'
                 IDParameter = 'StatusID'
-                IDsMethod   = '$TDTicketStatuses'
+                IDsMethod   = '$TDTicketStatuses.GetAll($TicketingAppID,$WorkingEnvironment,$true)'
             }
             @{
                 Name        = 'PriorityName'
                 Type        = 'string'
-                ValidateSet = $TDTicketPriorities.Name
+                ValidateSet = $TDTicketPriorities.GetAll($TicketingAppID,$WorkingEnvironment,$true).Name
                 HelpText    = 'Name of ticket priority'
                 IDParameter = 'PriorityID'
-                IDsMethod   = '$TDTicketPriorities'
+                IDsMethod   = '$TDTicketPriorities.GetAll($TicketingAppID,$WorkingEnvironment,$true)'
             }
             @{
                 Name        = 'UrgencyName'
                 Type        = 'string'
-                ValidateSet = $TDTicketUrgencies.Name
+                ValidateSet = $TDTicketUrgencies.GetAll($TicketingAppID,$WorkingEnvironment,$true).Name
                 HelpText    = 'Name of ticket urgency'
                 IDParameter = 'UrgencyID'
-                IDsMethod   = '$TDTicketUrgencies'
+                IDsMethod   = '$TDTicketUrgencies.GetAll($TicketingAppID,$WorkingEnvironment,$true)'
             }
             @{
                 Name        = 'ImpactNames'
                 Type        = 'string'
-                ValidateSet = $TDTicketImpacts.Name
+                ValidateSet = $TDTicketImpacts.GetAll($TicketingAppID,$WorkingEnvironment,$true).Name
                 HelpText    = 'Name of ticket impact'
                 IDParameter = 'ImpactID'
-                IDsMethod   = '$TDTicketImpacts'
+                IDsMethod   = '$TDTicketImpacts.GetAll($TicketingAppID,$WorkingEnvironment,$true)'
             }
             @{
                 Name        = 'AccountName'
                 Type        = 'string'
-                ValidateSet = $TDAccounts.Name
+                ValidateSet = $TDAccounts.GetAll($WorkingEnvironment,$true).Name
                 HelpText    = 'Name of department'
                 IDParameter = 'AccountID'
-                IDsMethod   = '$TDAccounts'
+                IDsMethod   = '$TDAccounts.GetAll($WorkingEnvironment,$true)'
             }
             @{
                 Name        = 'TypeName'
                 Type        = 'string'
-                ValidateSet = $TDTicketTypes.Name
+                ValidateSet = $TDTicketTypes.GetAll($WorkingEnvironment,$true).Name
                 HelpText    = 'Name of ticket type'
                 IDParameter = 'TypeID'
-                IDsMethod   = '$TDTicketTypes'
+                IDsMethod   = '$TDTicketTypes.GetAll($WorkingEnvironment,$true)'
             }
             @{
                 Name        = 'SourceName'
                 Type        = 'string'
-                ValidateSet = $TDTicketSources.Name
+                ValidateSet = $TDTicketSources.GetAll($WorkingEnvironment,$true).Name
                 HelpText    = 'Name of ticket source'
                 IDParameter = 'SourceID'
-                IDsMethod   = '$TDTicketSources'
+                IDsMethod   = '$TDTicketSources.GetAll($WorkingEnvironment,$true)'
             }
             @{
                 Name        = 'ResponsibleGroupName'
                 Type        = 'string'
-                ValidateSet = $TDGroups.Name
+                ValidateSet = $TDGroups.GetAll($WorkingEnvironment,$true).Name
                 HelpText    = 'Name of responsible group'
                 IDParameter = 'ResponsibleGroupID'
-                IDsMethod   = '$TDGroups'
+                IDsMethod   = '$TDGroups.GetAll($WorkingEnvironment,$true)'
             }
             @{
                 Name        = 'FormName'
                 Type        = 'string'
-                ValidateSet = $TDForms.Name
+                ValidateSet = $TDForms.GetAll($TicketingAppID,$WorkingEnvironment,$true).Name
                 HelpText    = 'Name of ticket form'
                 IDParameter = 'FormID'
-                IDsMethod   = '$TDForms'
+                IDsMethod   = '$TDForms.GetAll($TicketingAppID,$WorkingEnvironment,$true)'
             }
             @{
                 Name        = 'AppName'
                 Type        = 'string'
-                ValidateSet = $TDApplications.GetByAppClass('TDTickets').Name
+                ValidateSet = $TDApplications.GetByAppClass('TDTickets',$true).Name
                 HelpText    = 'Name of application'
                 IDParameter = 'AppID'
-                IDsMethod   = '$TDApplications.GetAll($Environment)'
+                IDsMethod   = '$TDApplications.GetAll($WorkingEnvironment,$true)'
             }
         )
         $DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
@@ -1412,6 +1443,10 @@ function Set-TDTicket
             }
         }
         return $Return
+    }
+    end
+    {
+        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
     }
 }
 
@@ -1618,82 +1653,82 @@ function New-TDTicket
             @{
                 Name        = 'StatusName'
                 Type        = 'string'
-                ValidateSet = $TDTicketStatuses.Name
+                ValidateSet = $TDTicketStatuses.GetAll($TicketingAppID,$WorkingEnvironment,$true).Name
                 HelpText    = 'Name of ticket status'
                 IDParameter = 'StatusID'
-                IDsMethod   = '$TDTicketStatuses'
+                IDsMethod   = '$TDTicketStatuses.GetAll($TicketingAppID,$WorkingEnvironment,$true)'
             }
             @{
                 Name        = 'PriorityName'
                 Type        = 'string'
-                ValidateSet = $TDTicketPriorities.Name
+                ValidateSet = $TDTicketPriorities.GetAll($TicketingAppID,$WorkingEnvironment,$true).Name
                 HelpText    = 'Name of ticket priority'
                 IDParameter = 'PriorityID'
-                IDsMethod   = '$TDTicketPriorities'
+                IDsMethod   = '$TDTicketPriorities.GetAll($TicketingAppID,$WorkingEnvironment,$true)'
             }
             @{
                 Name        = 'UrgencyName'
                 Type        = 'string'
-                ValidateSet = $TDTicketUrgencies.Name
+                ValidateSet = $TDTicketUrgencies.GetAll($TicketingAppID,$WorkingEnvironment,$true).Name
                 HelpText    = 'Name of ticket urgency'
                 IDParameter = 'UrgencyID'
-                IDsMethod   = '$TDTicketUrgencies'
+                IDsMethod   = '$TDTicketUrgencies.GetAll($TicketingAppID,$WorkingEnvironment,$true)'
             }
             @{
                 Name        = 'ImpactNames'
                 Type        = 'string'
-                ValidateSet = $TDTicketImpacts.Name
+                ValidateSet = $TDTicketImpacts.GetAll($TicketingAppID,$WorkingEnvironment,$true).Name
                 HelpText    = 'Name of ticket impact'
                 IDParameter = 'ImpactID'
-                IDsMethod   = '$TDTicketImpacts'
+                IDsMethod   = '$TDTicketImpacts.GetAll($TicketingAppID,$WorkingEnvironment,$true)'
             }
             @{
                 Name        = 'AccountName'
                 Type        = 'string'
-                ValidateSet = $TDAccounts.Name
+                ValidateSet = $TDAccounts.GetAll($WorkingEnvironment,$true).Name
                 HelpText    = 'Name of department'
                 IDParameter = 'AccountID'
-                IDsMethod   = '$TDAccounts'
+                IDsMethod   = '$TDAccounts.GetAll($WorkingEnvironment,$true)'
             }
             @{
                 Name        = 'TypeName'
                 Type        = 'string'
-                ValidateSet = $TDTicketTypes.Name
+                ValidateSet = $TDTicketTypes.GetAll($WorkingEnvironment,$true).Name
                 HelpText    = 'Name of ticket type'
                 IDParameter = 'TypeID'
-                IDsMethod   = '$TDTicketTypes'
+                IDsMethod   = '$TDTicketTypes.GetAll($WorkingEnvironment,$true)'
             }
             @{
                 Name        = 'SourceName'
                 Type        = 'string'
-                ValidateSet = $TDTicketSources.Name
+                ValidateSet = $TDTicketSources.GetAll($WorkingEnvironment,$true).Name
                 HelpText    = 'Name of ticket source'
                 IDParameter = 'SourceID'
-                IDsMethod   = '$TDTicketSources'
+                IDsMethod   = '$TDTicketSources.GetAll($WorkingEnvironment,$true)'
             }
             @{
                 Name        = 'ResponsibleGroupName'
                 Type        = 'string'
-                ValidateSet = $TDGroups.Name
+                ValidateSet = $TDGroups.GetAll($WorkingEnvironment,$true).Name
                 HelpText    = 'Name of responsible group'
                 IDParameter = 'ResponsibleGroupID'
-                IDsMethod   = '$TDGroups'
+                IDsMethod   = '$TDGroups.GetAll($WorkingEnvironment,$true)'
             }
             @{
                 Name        = 'FormName'
                 Type        = 'string'
-                ValidateSet = $TDForms.Name
+                ValidateSet = $TDForms.GetAll($TicketingAppID,$WorkingEnvironment,$true).Name
                 HelpText    = 'Name of ticket form'
                 IDParameter = 'FormID'
-                IDsMethod   = '$TDForms'
+                IDsMethod   = '$TDForms.GetAll($TicketingAppID,$WorkingEnvironment,$true)'
             }
             @{
                 Name        = 'AppName'
                 Type        = 'string'
-                ValidateSet = $TDApplications.GetByAppClass('TDTickets').Name
+                ValidateSet = $TDApplications.GetByAppClass('TDTickets',$true).Name
                 HelpText    = 'Name of application'
                 IDParameter = 'AppID'
-                IDsMethod   = '$TDApplications.GetAll($Environment)'
+                IDsMethod   = '$TDApplications.GetAll($WorkingEnvironment,$true)'
             }
         )
         $DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
@@ -1810,6 +1845,10 @@ function New-TDTicket
         }
         return $Return
     }
+    end
+    {
+        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
+    }
 }
 
 function Get-TDTicketType
@@ -1861,6 +1900,10 @@ function Get-TDTicketType
             return ($Return | ForEach-Object {[TeamDynamix_Api_Tickets_TicketType]::new($_)})
         }
         return $Return
+    }
+    end
+    {
+        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
     }
 }
 
@@ -1914,6 +1957,10 @@ function Get-TDTicketSource
         }
         return $Return
     }
+    end
+    {
+        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
+    }
 }
 
 function Get-TDTicketImpact
@@ -1965,6 +2012,10 @@ function Get-TDTicketImpact
             $Return = ($Return | ForEach-Object {[TeamDynamix_Api_PriorityFactors_Impact]::new($_)})
         }
         return $Return
+    }
+    end
+    {
+        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
     }
 }
 
@@ -2018,6 +2069,10 @@ function Get-TDTicketPriority
         }
         return $Return
     }
+    end
+    {
+        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
+    }
 }
 
 function Get-TDTicketUrgency
@@ -2069,6 +2124,10 @@ function Get-TDTicketUrgency
             $Return = ($Return | ForEach-Object {[TeamDynamix_Api_PriorityFactors_Urgency]::new($_)})
         }
         return $Return
+    }
+    end
+    {
+        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
     }
 }
 
@@ -2133,6 +2192,10 @@ function Get-TDTicketContact
         }
         return $Return
     }
+    end
+    {
+        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
+    }
 }
 
 function Remove-TDTicketContact
@@ -2190,6 +2253,10 @@ function Remove-TDTicketContact
             return $Return
         }
     }
+    end
+    {
+        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
+    }
 }
 
 function Add-TDTicketContact
@@ -2246,6 +2313,10 @@ function Add-TDTicketContact
             $Return = Invoke-RESTCall -Uri "$BaseURI/$AppID/tickets/$ID/contacts/$UID" -ContentType $ContentType -Method POST -Headers $AuthenticationToken
             return $Return
         }
+    }
+    end
+    {
+        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
     }
 }
 
@@ -2312,18 +2383,18 @@ function Update-TDTicket
             @{
                 Name        = 'NewStatusName'
                 Type        = 'string'
-                ValidateSet = $TDTicketStatuses.Name
+                ValidateSet = $TDTicketStatuses.GetAll($TicketingAppID,$WorkingEnvironment,$true).Name
                 HelpText    = 'Name of new ticket status'
                 IDParameter = 'NewStatusID'
-                IDsMethod   = '$TDTicketStatuses'
+                IDsMethod   = '$TDTicketStatuses.GetAll($TicketingAppID,$WorkingEnvironment,$true)'
             }
             @{
                 Name        = 'AppName'
                 Type        = 'string'
-                ValidateSet = $TDApplications.GetByAppClass('TDTickets').Name
+                ValidateSet = $TDApplications.GetByAppClass('TDTickets',$true).Name
                 HelpText    = 'Name of application'
                 IDParameter = 'AppID'
-                IDsMethod   = '$TDApplications.GetAll($Environment)'
+                IDsMethod   = '$TDApplications.GetAll($WorkingEnvironment,$true)'
             }
         )
         $DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
@@ -2361,7 +2432,7 @@ function Update-TDTicket
         {
             if ($Status)
             {
-                $TicketUpdate.NewStatusID = ($TDTicketStatuses | Where-Object Name -eq $Status.Value).ID
+                $TicketUpdate.NewStatusID = ($TDTicketStatuses.GetAll($AppID,$Environment,$true) | Where-Object Name -eq $Status.Value).ID
             }
             else
             {
@@ -2378,6 +2449,7 @@ function Update-TDTicket
     }
     End
     {
+        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
     }
 }
 
@@ -2478,6 +2550,10 @@ function Get-TDBlackoutWindow
         }
         return $Return
     }
+    end
+    {
+        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
+    }
 }
 
 function New-TDBlackoutWindow
@@ -2541,10 +2617,10 @@ function New-TDBlackoutWindow
             @{
                 Name        = 'AppName'
                 Type        = 'string'
-                ValidateSet = $TDApplications.GetByAppClass('TDTickets').Name
+                ValidateSet = $TDApplications.GetByAppClass('TDTickets',$true).Name
                 HelpText    = 'Name of application'
                 IDParameter = 'AppID'
-                IDsMethod   = '$TDApplications.GetAll($Environment)'
+                IDsMethod   = '$TDApplications.GetAll($WorkingEnvironment,$true)'
             }
         )
         $DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
@@ -2590,6 +2666,10 @@ function New-TDBlackoutWindow
                 Write-Output $Return
             }
         }
+    }
+    end
+    {
+        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
     }
 }
 
@@ -2660,10 +2740,10 @@ function Set-TDBlackoutWindow
             @{
                 Name        = 'AppName'
                 Type        = 'string'
-                ValidateSet = $TDApplications.GetByAppClass('TDTickets').Name
+                ValidateSet = $TDApplications.GetByAppClass('TDTickets',$true).Name
                 HelpText    = 'Name of application'
                 IDParameter = 'AppID'
-                IDsMethod   = '$TDApplications.GetAll($Environment)'
+                IDsMethod   = '$TDApplications.GetAll($WorkingEnvironment,$true)'
             }
         )
         $DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
@@ -2716,6 +2796,10 @@ function Set-TDBlackoutWindow
             return $Return
         }
     }
+    end
+    {
+        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
+    }
 }
 
 function Get-TDTicketAsset
@@ -2765,6 +2849,10 @@ function Get-TDTicketAsset
             $Return = ($Return | ForEach-Object {[TeamDynamix_Api_Cmdb_ConfigurationItem]::new($_)})
         }
         return $Return
+    }
+    end
+    {
+        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
     }
 }
 
@@ -2823,6 +2911,10 @@ function Remove-TDTicketAsset
             return $Return
         }
     }
+    end
+    {
+        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
+    }
 }
 
 function Add-TDTicketAsset
@@ -2879,6 +2971,10 @@ function Add-TDTicketAsset
             $Return = Invoke-RESTCall -Uri "$BaseURI/$AppID/tickets/$ID/assets/$AssetID" -ContentType $ContentType -Method POST -Headers $AuthenticationToken
             return $Return
         }
+    }
+    end
+    {
+        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
     }
 }
 
@@ -2963,6 +3059,10 @@ function Get-TDTicketTask
         }
         return $Return
     }
+    end
+    {
+        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
+    }
 }
 
 function Get-TDTicketTaskFeed
@@ -3021,6 +3121,10 @@ function Get-TDTicketTaskFeed
         }
         return $Return
     }
+    end
+    {
+        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
+    }
 }
 
 function Remove-TDTicketTask
@@ -3077,6 +3181,10 @@ function Remove-TDTicketTask
             $Return = Invoke-RESTCall -Uri "$BaseURI/$AppID/tickets/$ID/tasks/$TaskID" -ContentType $ContentType -Method DELETE -Headers $AuthenticationToken
             return $Return
         }
+    }
+    end
+    {
+        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
     }
 }
 
@@ -3205,6 +3313,10 @@ function New-TDTicketTask
                 }
             }
         }
+    }
+    end
+    {
+        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
     }
 }
 
@@ -3343,6 +3455,10 @@ function Set-TDTicketTask
             }
             return $Return
         }
+    }
+    end
+    {
+        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
     }
 }
 

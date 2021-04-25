@@ -1207,12 +1207,12 @@ function Get-TDOpenTicketActivity
 		$DynamicParameterList = @(
             @{
                 Name        = 'UnitName'
-                ValidateSet = $TDAccounts.Name
+                ValidateSet = $TDAccounts.GetAll($WorkingEnvironment,$true).Name
                 HelpText    = 'Name of unit(s)'
             }
             @{
                 Name        = 'GroupName'
-                ValidateSet = $TDGroups.Name
+                ValidateSet = $TDGroups.GetAll($WorkingEnvironment,$true).Name
                 HelpText    = 'Name of support group(s)'
             }
 		)
@@ -3843,9 +3843,9 @@ function Get-URI {
             # Configurable parameters
             SearchType       = 'TeamDynamix_Api_Assets_AssetStatusSearch'
             ReturnType       = 'TeamDynamix_Api_Assets_AssetStatus'
-            AllEndpoint      = "$AppID/assets/statuses"
-            SearchEndpoint   = "$AppID/assets/statuses/search"
-            IDEndpoint       = "$AppID/assets/statuses/$ID"
+            AllEndpoint      = '$AppID/assets/statuses'
+            SearchEndpoint   = '$AppID/assets/statuses/search'
+            IDEndpoint       = '$AppID/assets/statuses/$ID'
             AppID            = $AppID
             DynamicParameterDictionary = $DynamicParameterDictionary
             # Fixed parameters
@@ -3953,7 +3953,7 @@ function Invoke-Get {
         'ID|Name'
         {
             # Return ID number, if one is present, else pull the first variable name from the endpoint, or failing that, just list the endpoint
-            Write-ActivityHistory ("Retrieving ID {0}" -f $(if ($ID) {$ID} elseif ($IDEndpoint -match '\$(\w[\w-]+)') {(Get-Variable $Matches[1]).Value} else {$IDEndpoint}))
+            Write-ActivityHistory ("Retrieving ID {0}" -f $(if ($ID) {$ID} elseif ((Invoke-Expression "`"$IDEndpoint`"") -match '\$(\w[\w-]+)') {(Get-Variable $Matches[1]).Value} else {$IDEndpoint}))
             # Use this URI syntax to allow for late binding of the variable name in the IDEndpoint spec (required for dynamic variables)
             $Return = Invoke-RESTCall -Uri ("{0}/{1}" -f $BaseURI,(Invoke-Expression "`"$IDEndpoint`"")) -ContentType $ContentType -Method Get -Headers $AuthenticationToken
         }
@@ -3964,13 +3964,15 @@ function Invoke-Get {
             if ($AllEndpoint -and (-not ($BoundParameters | Where-Object {$_ -notin $Params.Ignore})) -and (-not ($BoundParameters | Where-Object {$_ -in $DynamicParameterDictionary.Keys})))
             {
                 Write-ActivityHistory 'Retrieving all TeamDynamix items'
-                $Return = Invoke-RESTCall -Uri "$BaseURI/$AllEndpoint" -ContentType $ContentType -Method Get -Headers $AuthenticationToken
+                # Use this URI syntax to allow for late binding of the variable name in the AllEndpoint spec (required for dynamic variables)
+                $Return = Invoke-RESTCall -Uri ("{0}/{1}" -f $BaseURI,(Invoke-Expression "`"$AllEndpoint`"")) -ContentType $ContentType -Method Get -Headers $AuthenticationToken
             }
             else
             {
                 $Search = Invoke-Expression "[$SearchType]::new()"
                 Update-Object -InputObject $Search -ParameterList $Params.Command -BoundParameterList $BoundParameters -IgnoreList $Params.Ignore -AuthenticationToken $AuthenticationToken -Environment $WorkingEnvironment
                 # Reformat object for upload to TD if needed, include proper date format
+                #  Check to see if there is a type that starts with "TD" defined, if so, use that because it uses the correct date format
                 if (([System.AppDomain]::CurrentDomain.GetAssemblies()| Where-Object Location -eq $null).GetTypes().Name | Where-Object {$_ -eq "TD_$SearchType"})
                 {
                     $SearchTD = Invoke-Expression "[TD_$SearchType]::new(`$Search)"
@@ -3981,7 +3983,8 @@ function Invoke-Get {
                     $SearchTD = $Search
                 }
                 Write-ActivityHistory 'Retrieving matching TeamDynamix items'
-                $Return = Invoke-RESTCall -Uri "$BaseURI/$SearchEndpoint" -ContentType $ContentType -Method Post -Headers $AuthenticationToken -Body (ConvertTo-Json $SearchTD -Depth 10)
+                # Use this URI syntax to allow for late binding of the variable name in the SearchEndpoint spec (required for dynamic variables)
+                $Return = Invoke-RESTCall -Uri ("{0}/{1}" -f $BaseURI,(Invoke-Expression "`"$SearchEndpoint`"")) -ContentType $ContentType -Method Post -Headers $AuthenticationToken -Body (ConvertTo-Json $SearchTD -Depth 10)
             }
         }
     }
@@ -4472,7 +4475,7 @@ function Clear-TDLocalCache
     [CmdletBinding()]
     Param
     (
-        # Asset
+        # Environment
         [Parameter(Mandatory=$false)]
         [EnvironmentChoices[]]
         $Environment = [System.Enum]::GetNames('EnvironmentChoices')

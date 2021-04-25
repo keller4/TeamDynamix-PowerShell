@@ -721,6 +721,10 @@ function Add-TDKBAttachment
             }
         }
     }
+    end
+    {
+        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
+    }
 }
 
 function Add-TDKBArticleRelationship
@@ -771,6 +775,10 @@ function Add-TDKBArticleRelationship
             return $Return
         }
     }
+    end
+    {
+        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
+    }
 }
 
 function Remove-TDKBArticleRelationship
@@ -820,6 +828,10 @@ function Remove-TDKBArticleRelationship
             $Return = Invoke-RESTCall -Uri "$BaseURI/knowledgebase/$ID/related/$RelatedArticleID" -ContentType $ContentType -Method Delete -Headers $AuthenticationToken
             return $Return
         }
+    }
+    end
+    {
+        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
     }
 }
 
@@ -872,6 +884,10 @@ function Get-TDKBCategory
         {
             return ($Return | ForEach-Object {[TeamDynamix_Api_KnowledgeBase_ArticleCategory]::new($_)})
         }
+    }
+    end
+    {
+        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
     }
 }
 
@@ -960,6 +976,10 @@ function New-TDKBCategory
             }
         }
     }
+    end
+    {
+        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
+    }
 }
 
 function Remove-TDKBCategory
@@ -1003,6 +1023,10 @@ function Remove-TDKBCategory
             $Return = Invoke-RESTCall -Uri "$BaseURI/knowledgebase/categories/$ID" -ContentType $ContentType -Method Delete -Headers $AuthenticationToken
             return $Return
         }
+    }
+    end
+    {
+        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
     }
 }
 
@@ -1111,5 +1135,9 @@ function Set-TDKBCategory
                 return [TeamDynamix_Api_KnowledgeBase_ArticleCategory]::new($Return)
             }
         }
+    }
+    end
+    {
+        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
     }
 }

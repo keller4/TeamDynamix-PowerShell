@@ -51,4 +51,8 @@ function Get-TDService
             return ($Return | ForEach-Object {[TeamDynamix_Api_ServiceCatalog_Service]::new($_)})
         }
     }
+    end
+    {
+        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
+    }
 }

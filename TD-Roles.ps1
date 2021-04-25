@@ -56,6 +56,10 @@ function Get-TDFunctionalRole
             return [TeamDynamix_Api_Roles_FunctionalRole]::new($Return)
         }
     }
+    end
+    {
+        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
+    }
 }
 
 function New-TDFunctionalRole
@@ -127,6 +131,10 @@ function New-TDFunctionalRole
                 return [TeamDynamix_Api_Roles_FunctionalRole]::new($Return)
             }
         }
+    }
+    end
+    {
+        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
     }
 }
 
@@ -228,6 +236,10 @@ function Set-TDFunctionalRole
             Write-ActivityHistory -MessageChannel 'Error' -Message "Role ID, $ID, not found on TeamDynamix"
         }
     }
+    end
+    {
+        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
+    }
 }
 
 function Get-TDSecurityRole
@@ -287,10 +299,10 @@ function Get-TDSecurityRole
             @{
                 Name        = 'AppName'
                 Type        = 'string'
-                ValidateSet = $TDApplications.GetByAppClass('TDAssets').Name
+                ValidateSet = $TDApplications.GetByAppClass('TDAssets',$true).Name
                 HelpText    = 'Name of application'
                 IDParameter = 'AppID'
-                IDsMethod   = '$TDApplications.GetAll($Environment)'
+                IDsMethod   = '$TDApplications.GetAll($WorkingEnvironment,$true)'
             }
         )
         $DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
@@ -327,6 +339,10 @@ function Get-TDSecurityRole
             $Return = $Return | Where-Object Name -eq $NameLike
         }
         return $Return
+    }
+    end
+    {
+        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
     }
 }
 
@@ -403,6 +419,10 @@ function New-TDSecurityRole
                 return [TeamDynamix_Api_Roles_SecurityRole]::new($Return)
             }
         }
+    }
+    end
+    {
+        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
     }
 }
 
@@ -502,6 +522,10 @@ function Set-TDSecurityRole
             }
         }
     }
+    end
+    {
+        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
+    }
 }
 
 function Get-TDSecurityRolePermissions
@@ -580,6 +604,10 @@ function Get-TDSecurityRolePermissions
             return ($Return | ForEach-Object {[TeamDynamix_Api_Roles_Permission]::new($_)})
         }
     }
+    end
+    {
+        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
+    }
 }
 
 
@@ -650,6 +678,10 @@ function Get-TDUserFunctionalRole
         {
             return ($Return | ForEach-Object {[TeamDynamix_Api_Roles_UserFunctionalRole]::new($_)})
         }
+    }
+    end
+    {
+        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
     }
 }
 
@@ -733,6 +765,10 @@ function Remove-TDUserFunctionalRole
             Write-ActivityHistory -MessageChannel 'Error' -Message "Username, $Username, not found or matched more than one user."
         }
     }
+    end
+    {
+        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
+    }
 }
 
 function Add-TDUserFunctionalRole
@@ -740,14 +776,14 @@ function Add-TDUserFunctionalRole
     [CmdletBinding(DefaultParameterSetName='UID')]
     Param
     (
-        # User ID to add to group
+        # Add functional role to user UID
         [Parameter(Mandatory=$true,
                    ValueFromPipeline=$true,
                    ParameterSetName='UID')]
         [guid]
         $UID,
 
-        # Username to add to group
+        # Add functional role to user name
         [Parameter(Mandatory=$true,
                    ValueFromPipelineByPropertyName=$true,
                    ParameterSetName='Username')]
@@ -816,5 +852,9 @@ function Add-TDUserFunctionalRole
         {
             Write-ActivityHistory -MessageChannel 'Error' -Message "Username, $Username, not found."
         }
+    }
+    end
+    {
+        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
     }
 }

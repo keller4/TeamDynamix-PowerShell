@@ -58,6 +58,10 @@ function Get-TDAttachment
         }
         return $Attachment # Return attachment info
     }
+    end
+    {
+        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
+    }
 }
 
 function Remove-TDAttachment
@@ -99,5 +103,9 @@ function Remove-TDAttachment
         {
             Invoke-RESTCall -Uri "$BaseURI/attachments/$ID" -ContentType $ContentType -Method Delete -Headers $AuthenticationToken
         }
+    }
+    end
+    {
+        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
     }
 }

@@ -224,7 +224,7 @@
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>Add-TDAssetAttachment -ID 111 -FilePath C:\temp\1.jpg -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Add-TDAssetAttachment -ID 111 -FilePath C:\temp\1.jpg</dev:code>
         <dev:remarks>
           <maml:para>Attaches the file c:\temp\1.jpg to asset ID 111 in TeamDynamix.</maml:para>
         </dev:remarks>
@@ -457,7 +457,7 @@
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>Add-TDAssetComment -ID 1055 -Comment "Don't update this system without consult." -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Add-TDAssetComment -ID 1055 -Comment "Don't update this system without consult."</dev:code>
         <dev:remarks>
           <maml:para>Adds the comment to not update the system without consultation to asset ID 1055 in TeamDynamix.</maml:para>
         </dev:remarks>
@@ -643,7 +643,7 @@
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>Add-TDAssetResource -ID 1055 -ResourceID 5039 -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Add-TDAssetResource -ID 1055 -ResourceID 5039</dev:code>
         <dev:remarks>
           <maml:para>Adds resource 5039 to asset ID 1055in TeamDynamix.</maml:para>
         </dev:remarks>
@@ -875,7 +875,7 @@
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>Add-TDConfigurationItemAttachment -ID 111 -FilePath C:\temp\1.jpg -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Add-TDConfigurationItemAttachment -ID 111 -FilePath C:\temp\1.jpg</dev:code>
         <dev:remarks>
           <maml:para>Attaches the file c:\temp\1.jpg to configuration item ID 111 in TeamDynamix.</maml:para>
         </dev:remarks>
@@ -1133,7 +1133,7 @@
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>Add-TDConfigurationItemRelationship -ID 1055 -TypeID 9945 -OtherItemID 7010 -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Add-TDConfigurationItemRelationship -ID 1055 -TypeID 9945 -OtherItemID 7010</dev:code>
         <dev:remarks>
           <maml:para>Adds a relationship of type with ID 9945 between configuration item ID 9945 and other item ID 1055 in TeamDynamix.</maml:para>
         </dev:remarks>
@@ -1365,7 +1365,7 @@
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>Add-TDCustomAttributeChoice -ID 365 -Name 'Choice 1' -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Add-TDCustomAttributeChoice -ID 365 -Name 'Choice 1'</dev:code>
         <dev:remarks>
           <maml:para>Adds a choice, "Choice 1" to custom attribute ID 365 in TeamDynamix.</maml:para>
         </dev:remarks>
@@ -1577,7 +1577,7 @@
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>Add-TDGroupApplication -GroupID 559 -AppIDs @(17922,17932) -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Add-TDGroupApplication -GroupID 559 -AppIDs @(17922,17932)</dev:code>
         <dev:remarks>
           <maml:para>Associates applications with IDs 17922 and 17932 with group ID 559.</maml:para>
         </dev:remarks>
@@ -1934,14 +1934,14 @@
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>Add-TDGroupMember -UID XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX -GroupID YYYY -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Add-TDGroupMember -UID XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX -GroupID YYYY</dev:code>
         <dev:remarks>
           <maml:para>Adds user XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX to group YYYY.</maml:para>
         </dev:remarks>
       </command:example>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 2 --------------------------</maml:title>
-        <dev:code>Add-TDGroupMember -UID XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX -GroupID YYYY -IsPrimary -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Add-TDGroupMember -UID XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX -GroupID YYYY -IsPrimary</dev:code>
         <dev:remarks>
           <maml:para>Adds user XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX to group YYYY and makes group YYYY the primary group for the user.</maml:para>
         </dev:remarks>
@@ -1949,7 +1949,7 @@
       <command:example>
         <maml:title>-------------------------- EXAMPLE 3 --------------------------</maml:title>
         <dev:code>$AddUserToGroup = @{$UID='XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX';$GID='YYYY'}
-C:\&gt;$AddUserToGroup | Remove-TDGroupMember -AuthenticationToken $Authentication</dev:code>
+$AddUserToGroup | Remove-TDGroupMember</dev:code>
         <dev:remarks>
           <maml:para>Adds user XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX to group YYYY using the pipeline.</maml:para>
         </dev:remarks>
@@ -2133,7 +2133,7 @@ C:\&gt;$AddUserToGroup | Remove-TDGroupMember -AuthenticationToken $Authenticati
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>Add-TDKBArticleRelationship -ID 7 -RelatedArticleID 24 -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Add-TDKBArticleRelationship -ID 7 -RelatedArticleID 24</dev:code>
         <dev:remarks>
           <maml:para>Adds a relationship between KnowledgeBase article with ID number 7 and article 24 in TeamDynamix.</maml:para>
         </dev:remarks>
@@ -2317,7 +2317,7 @@ C:\&gt;$AddUserToGroup | Remove-TDGroupMember -AuthenticationToken $Authenticati
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>Add-TDKBAttachment -ID 111 -FilePath C:\temp\1.jpg -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Add-TDKBAttachment -ID 111 -FilePath C:\temp\1.jpg</dev:code>
         <dev:remarks>
           <maml:para>Attaches the file c:\temp\1.jpg to KnowledgeBase article ID 111 in TeamDynamix.</maml:para>
         </dev:remarks>
@@ -2733,7 +2733,7 @@ C:\&gt;$AddUserToGroup | Remove-TDGroupMember -AuthenticationToken $Authenticati
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>Add-TDTicketAsset -ID 99432 -AssetID 55421 -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Add-TDTicketAsset -ID 99432 -AssetID 55421</dev:code>
         <dev:remarks>
           <maml:para>Adds asset with ID 55421 to ticket wth ID 99432 in TeamDynamix.</maml:para>
         </dev:remarks>
@@ -2941,7 +2941,7 @@ C:\&gt;$AddUserToGroup | Remove-TDGroupMember -AuthenticationToken $Authenticati
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>Add-TDTicketAttachment -ID 111 -FilePath C:\temp\1.jpg -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Add-TDTicketAttachment -ID 111 -FilePath C:\temp\1.jpg</dev:code>
         <dev:remarks>
           <maml:para>Attaches the file c:\temp\1.jpg to ticket ID 111 in TeamDynamix.</maml:para>
         </dev:remarks>
@@ -3149,7 +3149,7 @@ C:\&gt;$AddUserToGroup | Remove-TDGroupMember -AuthenticationToken $Authenticati
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>Add-TDTicketContact -ID 99432 -UID XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Add-TDTicketContact -ID 99432 -UID XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX</dev:code>
         <dev:remarks>
           <maml:para>Adds contact with UID XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX to ticket ID 99432 in TeamDynamix.</maml:para>
         </dev:remarks>
@@ -3415,21 +3415,21 @@ C:\&gt;$AddUserToGroup | Remove-TDGroupMember -AuthenticationToken $Authenticati
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>Add-TDFunctionalRole -UID XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX -RoleID 176 -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Add-TDFunctionalRole -UID XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX -RoleID 176</dev:code>
         <dev:remarks>
           <maml:para>Adds user XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX to functional role 176.</maml:para>
         </dev:remarks>
       </command:example>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 2 --------------------------</maml:title>
-        <dev:code>Add-TDFunctionalRole -Username smith@domain -RoleID 176 -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Add-TDFunctionalRole -Username smith@domain -RoleID 176</dev:code>
         <dev:remarks>
           <maml:para>Adds user smith@domain to functional role 176. Note that the username must be unique. Best practice is to use username@domain to ensure uniqueness.</maml:para>
         </dev:remarks>
       </command:example>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 3 --------------------------</maml:title>
-        <dev:code>Add-TDFunctionalRole -UID XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX -RoleID 176 -IsPrimary -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Add-TDFunctionalRole -UID XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX -RoleID 176 -IsPrimary</dev:code>
         <dev:remarks>
           <maml:para>Adds user XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX to functional role 176 and makes group YYYY the primary group for the user.</maml:para>
         </dev:remarks>
@@ -3437,7 +3437,7 @@ C:\&gt;$AddUserToGroup | Remove-TDGroupMember -AuthenticationToken $Authenticati
       <command:example>
         <maml:title>-------------------------- EXAMPLE 4 --------------------------</maml:title>
         <dev:code>$AddUserToFunctionalRole = @{$UID='XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX';$RoleID=176}
-C:\&gt;$AddUserToFunctionalRole | Remove-TDFunctionalRole -AuthenticationToken $Authentication</dev:code>
+$AddUserToFunctionalRole | Remove-TDFunctionalRole</dev:code>
         <dev:remarks>
           <maml:para>Adds user XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX to functional role 176 using the pipeline.</maml:para>
         </dev:remarks>
@@ -3789,14 +3789,14 @@ C:\&gt;$AddUserToFunctionalRole | Remove-TDFunctionalRole -AuthenticationToken $
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>ConvertFrom-ADtoTDUser -ADUser user1 -AuthenticationToken $Authentication -ADDomainName $ADDomainName</dev:code>
+        <dev:code>ConvertFrom-ADtoTDUser -ADUser user1 -ADDomainName $ADDomainName</dev:code>
         <dev:remarks>
           <maml:para>Look up AD user, "user1", and return formatted data for TD user.</maml:para>
         </dev:remarks>
       </command:example>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 2 --------------------------</maml:title>
-        <dev:code>'user1','user2','user3','user4' | ConvertFrom-ADtoTDUser -AuthenticationToken $Authentication</dev:code>
+        <dev:code>'user1','user2','user3','user4' | ConvertFrom-ADtoTDUser</dev:code>
         <dev:remarks>
           <maml:para>Look up AD users from the pipeline and return formatted data for TD users.</maml:para>
         </dev:remarks>
@@ -4600,21 +4600,21 @@ C:\&gt;$AddUserToFunctionalRole | Remove-TDFunctionalRole -AuthenticationToken $
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>Disable-TDUser -Username name@host.edu -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Disable-TDUser -Username name@host.edu</dev:code>
         <dev:remarks>
           <maml:para>Disables the user account for name@host.edu in TeamDynamix.</maml:para>
         </dev:remarks>
       </command:example>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 2 --------------------------</maml:title>
-        <dev:code>Disable-TDUser -UID XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Disable-TDUser -UID XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX</dev:code>
         <dev:remarks>
           <maml:para>Disables the user account with UID XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX in TeamDynamix.</maml:para>
         </dev:remarks>
       </command:example>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 3 --------------------------</maml:title>
-        <dev:code>'user1@host.edu', 'user2@host.edu' | Disable-TDUser -AuthenticationToken $Authentication</dev:code>
+        <dev:code>'user1@host.edu', 'user2@host.edu' | Disable-TDUser</dev:code>
         <dev:remarks>
           <maml:para>Disables user1@host.edu and user2@host.edu in TeamDynamix</maml:para>
         </dev:remarks>
@@ -4886,21 +4886,21 @@ C:\&gt;$AddUserToFunctionalRole | Remove-TDFunctionalRole -AuthenticationToken $
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>Enable-TDUser -Username name@host.edu -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Enable-TDUser -Username name@host.edu</dev:code>
         <dev:remarks>
           <maml:para>Enables the user account for name@host.edu in TeamDynamix.</maml:para>
         </dev:remarks>
       </command:example>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 2 --------------------------</maml:title>
-        <dev:code>Enable-TDUser -UID XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Enable-TDUser -UID XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX</dev:code>
         <dev:remarks>
           <maml:para>Enables the user account with UID XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX in TeamDynamix.</maml:para>
         </dev:remarks>
       </command:example>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 3 --------------------------</maml:title>
-        <dev:code>'user1@host.edu', 'user2@host.edu' | Enable-TDUser -AuthenticationToken $Authentication</dev:code>
+        <dev:code>'user1@host.edu', 'user2@host.edu' | Enable-TDUser</dev:code>
         <dev:remarks>
           <maml:para>Enables user1@host.edu and user2@host.edu in TeamDynamix</maml:para>
         </dev:remarks>
@@ -7219,21 +7219,21 @@ C:\&gt;$AddUserToFunctionalRole | Remove-TDFunctionalRole -AuthenticationToken $
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>Get-TDAsset -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Get-TDAsset</dev:code>
         <dev:remarks>
           <maml:para>Retrieves all assets from TeamDynamix.</maml:para>
         </dev:remarks>
       </command:example>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 2 --------------------------</maml:title>
-        <dev:code>Get-TDAsset -ID 1752 -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Get-TDAsset -ID 1752</dev:code>
         <dev:remarks>
           <maml:para>Retrieves asset number 1752 from TeamDynamix with full detail.</maml:para>
         </dev:remarks>
       </command:example>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 3 --------------------------</maml:title>
-        <dev:code>Get-TDAsset -SearchText cisco -Detail -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Get-TDAsset -SearchText cisco -Detail</dev:code>
         <dev:remarks>
           <maml:para>Retrieves first 50 assets containing the text "cisco" from TeamDynamix, with full detail.</maml:para>
         </dev:remarks>
@@ -7241,14 +7241,14 @@ C:\&gt;$AddUserToFunctionalRole | Remove-TDFunctionalRole -AuthenticationToken $
       <command:example>
         <maml:title>-------------------------- EXAMPLE 4 --------------------------</maml:title>
         <dev:code>$TaG18Complete = @('TaG18 Complete','Yes')
-C:\&gt;Get-TDAsset -Attributes $TaG18Complete</dev:code>
+Get-TDAsset -Attributes $TaG18Complete</dev:code>
         <dev:remarks>
           <maml:para>Retrieves assets whose 'TaG18 Complete' status is 'Yes', with minimal detail.</maml:para>
         </dev:remarks>
       </command:example>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 5 --------------------------</maml:title>
-        <dev:code>Get-TDAsset -SearchText 'Team5Laptop1' -Exact -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Get-TDAsset -SearchText 'Team5Laptop1' -Exact</dev:code>
         <dev:remarks>
           <maml:para>Retrieves only assets whose name matches "Team5Laptop1", if any, from TeamDynamix, with minimal detail.</maml:para>
         </dev:remarks>
@@ -7468,7 +7468,7 @@ C:\&gt;Get-TDAsset -Attributes $TaG18Complete</dev:code>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 3 --------------------------</maml:title>
         <dev:code>$Assets = Get-TDAssetConsistency -SerialNumberBlank -NameDuplicate
-C:\&gt;$Assets.DuplicateName | Group-Object Name | Select Name</dev:code>
+$Assets.DuplicateName | Group-Object Name | Select Name</dev:code>
         <dev:remarks>
           <maml:para>Returns assets whose serial number is blank, as well as assets with duplicate names. Then, outputs a list of the names that are duplicated.</maml:para>
         </dev:remarks>
@@ -7476,7 +7476,7 @@ C:\&gt;$Assets.DuplicateName | Group-Object Name | Select Name</dev:code>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 4 --------------------------</maml:title>
         <dev:code>$TaG18 = Get-TDAssetConsistency -TaG18
-C:\&gt;$TaG18.TaG18Inconsistent.NotEncrypted | Format-Table ID, Name, @{e={$_.Attributes.Where{$_.Name -eq 'Encryption Status'}.ValueText};n='Encryption Status'} -AutoSize</dev:code>
+$TaG18.TaG18Inconsistent.NotEncrypted | Format-Table ID, Name, @{e={$_.Attributes.Where{$_.Name -eq 'Encryption Status'}.ValueText};n='Encryption Status'} -AutoSize</dev:code>
         <dev:remarks>
           <maml:para>Returns TaG18 inconsistencies for all assets flagged as TaG18 Complete, but are not encrypted, then formats the result as a table with columns for ID, Name, and Encryption Status.</maml:para>
         </dev:remarks>
@@ -7638,7 +7638,7 @@ C:\&gt;$TaG18.TaG18Inconsistent.NotEncrypted | Format-Table ID, Name, @{e={$_.At
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>Get-TDAssetResource -ID 1055 -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Get-TDAssetResource -ID 1055</dev:code>
         <dev:remarks>
           <maml:para>Retrieves list of all users/departments attatched to asset ID 1055 from TeamDynamix.</maml:para>
         </dev:remarks>
@@ -7765,6 +7765,17 @@ C:\&gt;$TaG18.TaG18Inconsistent.NotEncrypted | Format-Table ID, Name, @{e={$_.At
           </dev:type>
           <dev:defaultValue>None</dev:defaultValue>
         </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+          <maml:name>Exact</maml:name>
+          <maml:description>
+            <maml:para>Return exact match for SearchText.</maml:para>
+          </maml:description>
+          <dev:type>
+            <maml:name>SwitchParameter</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>False</dev:defaultValue>
+        </command:parameter>
         <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="True (ByPropertyName)" position="named" aliases="none">
           <maml:name>AppID</maml:name>
           <maml:description>
@@ -7869,6 +7880,18 @@ C:\&gt;$TaG18.TaG18Inconsistent.NotEncrypted | Format-Table ID, Name, @{e={$_.At
         </dev:type>
         <dev:defaultValue>None</dev:defaultValue>
       </command:parameter>
+      <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+        <maml:name>Exact</maml:name>
+        <maml:description>
+          <maml:para>Return exact match for SearchText.</maml:para>
+        </maml:description>
+        <command:parameterValue required="false" variableLength="false">SwitchParameter</command:parameterValue>
+        <dev:type>
+          <maml:name>SwitchParameter</maml:name>
+          <maml:uri />
+        </dev:type>
+        <dev:defaultValue>False</dev:defaultValue>
+      </command:parameter>
       <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="True (ByPropertyName)" position="named" aliases="none">
         <maml:name>AppID</maml:name>
         <maml:description>
@@ -7928,21 +7951,21 @@ C:\&gt;$TaG18.TaG18Inconsistent.NotEncrypted | Format-Table ID, Name, @{e={$_.At
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>Get-TDAssetStatus -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Get-TDAssetStatus</dev:code>
         <dev:remarks>
           <maml:para>Retrieves the list of all asset statuses from TeamDynamix.</maml:para>
         </dev:remarks>
       </command:example>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 2 --------------------------</maml:title>
-        <dev:code>C:\Get-TDAssetStatus -ID 2377 -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Get-TDAssetStatus -ID 2377</dev:code>
         <dev:remarks>
           <maml:para>Retrieves asset status with ID 2377 from TeamDynamix.</maml:para>
         </dev:remarks>
       </command:example>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 3 --------------------------</maml:title>
-        <dev:code>C:\Get-TDAssetStatus -SearchText 'Use' -IsActive $false -IsOutOfService $true</dev:code>
+        <dev:code>Get-TDAssetStatus -SearchText 'Use' -IsActive $false -IsOutOfService $true</dev:code>
         <dev:remarks>
           <maml:para>Retrieves asset statuses containing the word "Use", which are not active and which are out of service.</maml:para>
         </dev:remarks>
@@ -8080,14 +8103,14 @@ C:\&gt;$TaG18.TaG18Inconsistent.NotEncrypted | Format-Table ID, Name, @{e={$_.At
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>Get-TDAttachment -ID XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Get-TDAttachment -ID XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX</dev:code>
         <dev:remarks>
           <maml:para>Retrieves attachment info with ID XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX from TeamDynamix.</maml:para>
         </dev:remarks>
       </command:example>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 2 --------------------------</maml:title>
-        <dev:code>Get-TDAttachment -ID XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX -Path C:\Temp -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Get-TDAttachment -ID XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX -Path C:\Temp</dev:code>
         <dev:remarks>
           <maml:para>Retrieves attachment with ID XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX from TeamDynamix, and saves the file in C:\Temp.</maml:para>
         </dev:remarks>
@@ -8484,28 +8507,28 @@ C:\&gt;$TaG18.TaG18Inconsistent.NotEncrypted | Format-Table ID, Name, @{e={$_.At
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>Get-TDBlackoutWindow -ID 6331 -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Get-TDBlackoutWindow -ID 6331</dev:code>
         <dev:remarks>
           <maml:para>Returns a blackout window with ID 6331.</maml:para>
         </dev:remarks>
       </command:example>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 2 --------------------------</maml:title>
-        <dev:code>Get-TDBlackoutWindow -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Get-TDBlackoutWindow</dev:code>
         <dev:remarks>
           <maml:para>Returns a list of all active blackout windows.</maml:para>
         </dev:remarks>
       </command:example>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 3 --------------------------</maml:title>
-        <dev:code>Get-TDBlackoutWindow -IsActive $null -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Get-TDBlackoutWindow -IsActive $null</dev:code>
         <dev:remarks>
           <maml:para>Returns a list of all blackout windows, including active and inactive windows.</maml:para>
         </dev:remarks>
       </command:example>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 4 --------------------------</maml:title>
-        <dev:code>Get-TDBlackoutWindow -Filter Grad -IsActive $false -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Get-TDBlackoutWindow -Filter Grad -IsActive $false</dev:code>
         <dev:remarks>
           <maml:para>Returns list of inactive blackout windows with the word, "Grad" in the name in the of the blackout window.</maml:para>
         </dev:remarks>
@@ -8938,14 +8961,14 @@ C:\&gt;$TaG18.TaG18Inconsistent.NotEncrypted | Format-Table ID, Name, @{e={$_.At
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>Get-TDConfigurationItem -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Get-TDConfigurationItem</dev:code>
         <dev:remarks>
           <maml:para>Retrieves all active configuration items from TeamDynamix.</maml:para>
         </dev:remarks>
       </command:example>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 2 --------------------------</maml:title>
-        <dev:code>Get-TDConfigurationItem -ID 1057 -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Get-TDConfigurationItem -ID 1057</dev:code>
         <dev:remarks>
           <maml:para>Retrieves configuration item with ID 1057 from TeamDynamix.</maml:para>
         </dev:remarks>
@@ -9083,7 +9106,7 @@ C:\&gt;$TaG18.TaG18Inconsistent.NotEncrypted | Format-Table ID, Name, @{e={$_.At
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>Get-TDAssetForm -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Get-TDAssetForm</dev:code>
         <dev:remarks>
           <maml:para>Returns a list of all active asset forms.</maml:para>
         </dev:remarks>
@@ -9245,7 +9268,7 @@ C:\&gt;$TaG18.TaG18Inconsistent.NotEncrypted | Format-Table ID, Name, @{e={$_.At
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>Get-TDConfigurationItemRelationship -ID 4056 -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Get-TDConfigurationItemRelationship -ID 4056</dev:code>
         <dev:remarks>
           <maml:para>Retrieves list of relationships for configuration item ID 4056 from TeamDynamix.</maml:para>
         </dev:remarks>
@@ -9373,6 +9396,17 @@ C:\&gt;$TaG18.TaG18Inconsistent.NotEncrypted | Format-Table ID, Name, @{e={$_.At
           <dev:defaultValue>None</dev:defaultValue>
         </command:parameter>
         <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+          <maml:name>Exact</maml:name>
+          <maml:description>
+            <maml:para>Return exact match for SearchText.</maml:para>
+          </maml:description>
+          <dev:type>
+            <maml:name>SwitchParameter</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>False</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
           <maml:name>AppID</maml:name>
           <maml:description>
             <maml:para>Application ID for the configuration item type.</maml:para>
@@ -9477,6 +9511,18 @@ C:\&gt;$TaG18.TaG18Inconsistent.NotEncrypted | Format-Table ID, Name, @{e={$_.At
         <dev:defaultValue>None</dev:defaultValue>
       </command:parameter>
       <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+        <maml:name>Exact</maml:name>
+        <maml:description>
+          <maml:para>Return exact match for SearchText.</maml:para>
+        </maml:description>
+        <command:parameterValue required="false" variableLength="false">SwitchParameter</command:parameterValue>
+        <dev:type>
+          <maml:name>SwitchParameter</maml:name>
+          <maml:uri />
+        </dev:type>
+        <dev:defaultValue>False</dev:defaultValue>
+      </command:parameter>
+      <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
         <maml:name>AppID</maml:name>
         <maml:description>
           <maml:para>Application ID for the configuration item type.</maml:para>
@@ -9535,28 +9581,28 @@ C:\&gt;$TaG18.TaG18Inconsistent.NotEncrypted | Format-Table ID, Name, @{e={$_.At
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>Get-TDConfigurationItemType -ID 6331 -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Get-TDConfigurationItemType -ID 6331</dev:code>
         <dev:remarks>
           <maml:para>Returns a configuration item type with ID 6331.</maml:para>
         </dev:remarks>
       </command:example>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 2 --------------------------</maml:title>
-        <dev:code>Get-TDConfigurationItemType -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Get-TDConfigurationItemType</dev:code>
         <dev:remarks>
           <maml:para>Returns a list of all active configuration item types.</maml:para>
         </dev:remarks>
       </command:example>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 3 --------------------------</maml:title>
-        <dev:code>Get-TDConfigurationItemType -IsActive $null -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Get-TDConfigurationItemType -IsActive $null</dev:code>
         <dev:remarks>
           <maml:para>Returns a list of all configuration item types, including active and inactive types.</maml:para>
         </dev:remarks>
       </command:example>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 4 --------------------------</maml:title>
-        <dev:code>Get-TDConfigurationItemType -Filter Grad -IsActive $false -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Get-TDConfigurationItemType -Filter Grad -IsActive $false</dev:code>
         <dev:remarks>
           <maml:para>Returns list of inactive configuration item types with the word, "Grad" in the name in the of the configuration item type.</maml:para>
         </dev:remarks>
@@ -9694,7 +9740,7 @@ C:\&gt;$TaG18.TaG18Inconsistent.NotEncrypted | Format-Table ID, Name, @{e={$_.At
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>Get-TDConfigurationRelationshipType -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Get-TDConfigurationRelationshipType</dev:code>
         <dev:remarks>
           <maml:para>Retrieves list of active configuration relationship types from TeamDynamix.</maml:para>
         </dev:remarks>
@@ -9829,7 +9875,7 @@ C:\&gt;$TaG18.TaG18Inconsistent.NotEncrypted | Format-Table ID, Name, @{e={$_.At
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>Get-TDCurrentUser -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Get-TDCurrentUser</dev:code>
         <dev:remarks>
           <maml:para>Returns the user information for the current logged in user.</maml:para>
         </dev:remarks>
@@ -10036,7 +10082,7 @@ C:\&gt;$TaG18.TaG18Inconsistent.NotEncrypted | Format-Table ID, Name, @{e={$_.At
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>Get-TDCustomAttribute -ComponentID Person -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Get-TDCustomAttribute -ComponentID Person</dev:code>
         <dev:remarks>
           <maml:para>Retrieves all custom attributes for users from TeamDynamix.</maml:para>
         </dev:remarks>
@@ -10150,7 +10196,7 @@ C:\&gt;$TaG18.TaG18Inconsistent.NotEncrypted | Format-Table ID, Name, @{e={$_.At
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>Get-TDCustomAttributeChoice -ID 1057 -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Get-TDCustomAttributeChoice -ID 1057</dev:code>
         <dev:remarks>
           <maml:para>Retrieves valid choices for custom attributes ID 1057 from TeamDynamix.</maml:para>
         </dev:remarks>
@@ -10635,21 +10681,21 @@ C:\&gt;$TaG18.TaG18Inconsistent.NotEncrypted | Format-Table ID, Name, @{e={$_.At
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>Get-TDDepartment -Filter * -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Get-TDDepartment</dev:code>
         <dev:remarks>
           <maml:para>Returns a list of all departments, with abbreviated user property information.</maml:para>
         </dev:remarks>
       </command:example>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 2 --------------------------</maml:title>
-        <dev:code>Get-TDDepartment -Filter Studies -AuthenticationToken $Authentication -MaxResults 2</dev:code>
+        <dev:code>Get-TDDepartment -Filter Studies -MaxResults 2</dev:code>
         <dev:remarks>
           <maml:para>Returns full department information on two accounts with "studies" in the full name.</maml:para>
         </dev:remarks>
       </command:example>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 3 --------------------------</maml:title>
-        <dev:code>'com', 'studies' | Get-TDDepartment -AuthenticationToken $Authentication</dev:code>
+        <dev:code>'com', 'studies' | Get-TDDepartment</dev:code>
         <dev:remarks>
           <maml:para>Returns full department information on accounts with names specified in the pipeline.</maml:para>
         </dev:remarks>
@@ -10975,28 +11021,28 @@ C:\&gt;$TaG18.TaG18Inconsistent.NotEncrypted | Format-Table ID, Name, @{e={$_.At
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>Get-TDAssetFeed -ID 1055 -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Get-TDAssetFeed -ID 1055</dev:code>
         <dev:remarks>
           <maml:para>Retrieves the activity feed for asset ID 1055 from TeamDynamix.</maml:para>
         </dev:remarks>
       </command:example>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 2 --------------------------</maml:title>
-        <dev:code>Get-TDTicketFeed -ID 3774 -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Get-TDTicketFeed -ID 3774</dev:code>
         <dev:remarks>
           <maml:para>Retrieves the activity feed for ticket ID 3774 from TeamDynamix.</maml:para>
         </dev:remarks>
       </command:example>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 3 --------------------------</maml:title>
-        <dev:code>Get-TDAssetfeed -DateFrom 11/30/2018 -DateTo 11/1/2018 -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Get-TDAssetfeed -DateFrom 11/30/2018 -DateTo 11/1/2018</dev:code>
         <dev:remarks>
           <maml:para>Retrieves the activity feed for assets between November 1, 2018 and November 30, 2018 from TeamDynamix.</maml:para>
         </dev:remarks>
       </command:example>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 4 --------------------------</maml:title>
-        <dev:code>Get-TDAssetfeed -ID 3374 -IgnoreUIDs @('XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX', 'YYYYYYYY-YYYY-YYYY-YYYY-YYYYYYYYYYYY') -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Get-TDAssetfeed -ID 3374 -IgnoreUIDs @('XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX', 'YYYYYYYY-YYYY-YYYY-YYYY-YYYYYYYYYYYY')</dev:code>
         <dev:remarks>
           <maml:para>Retrieves the activity feed for asset ID 3374 from TeamDynamix, ignoring updates from users with UIDs 'XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX' and 'YYYYYYYY-YYYY-YYYY-YYYY-YYYYYYYYYYYY'.</maml:para>
         </dev:remarks>
@@ -11230,14 +11276,14 @@ C:\&gt;$TaG18.TaG18Inconsistent.NotEncrypted | Format-Table ID, Name, @{e={$_.At
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>Get-TDAssetForm -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Get-TDAssetForm</dev:code>
         <dev:remarks>
           <maml:para>Returns a list of all active asset forms.</maml:para>
         </dev:remarks>
       </command:example>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 2 --------------------------</maml:title>
-        <dev:code>Get-TDTicketForm -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Get-TDTicketForm</dev:code>
         <dev:remarks>
           <maml:para>Returns a list of all active ticket forms.</maml:para>
         </dev:remarks>
@@ -11425,28 +11471,28 @@ C:\&gt;$TaG18.TaG18Inconsistent.NotEncrypted | Format-Table ID, Name, @{e={$_.At
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>Get-TDFunctionalRole -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Get-TDFunctionalRole</dev:code>
         <dev:remarks>
           <maml:para>Returns a list of all functional roles.</maml:para>
         </dev:remarks>
       </command:example>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 2 --------------------------</maml:title>
-        <dev:code>Get-TDFunctionalRole -Name 'Admin' -AuthenticationToken $Authentication -MaxResults 2</dev:code>
+        <dev:code>Get-TDFunctionalRole -Name 'Admin' -MaxResults 2</dev:code>
         <dev:remarks>
           <maml:para>Returns functional role information on two accounts with "Admin" in the full name.</maml:para>
         </dev:remarks>
       </command:example>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 3 --------------------------</maml:title>
-        <dev:code>Get-TDFunctionalRole -Filter 'Admin' -AuthenticationToken $Authentication -MaxResults 2</dev:code>
+        <dev:code>Get-TDFunctionalRole -Filter 'Admin' -MaxResults 2</dev:code>
         <dev:remarks>
           <maml:para>Returns functional role information on two accounts with "Admin" in the full name.</maml:para>
         </dev:remarks>
       </command:example>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 4 --------------------------</maml:title>
-        <dev:code>'Admin', 'Professor' | Get-TDFunctionalRole -AuthenticationToken $Authentication</dev:code>
+        <dev:code>'Admin', 'Professor' | Get-TDFunctionalRole</dev:code>
         <dev:remarks>
           <maml:para>Returns full department information on functional roles specified in the pipeline.</maml:para>
         </dev:remarks>
@@ -11784,28 +11830,28 @@ C:\&gt;$TaG18.TaG18Inconsistent.NotEncrypted | Format-Table ID, Name, @{e={$_.At
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>Get-TDGroup -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Get-TDGroup</dev:code>
         <dev:remarks>
           <maml:para>Returns a list of all groups.</maml:para>
         </dev:remarks>
       </command:example>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 2 --------------------------</maml:title>
-        <dev:code>Get-TDGroup -IsActive $true -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Get-TDGroup -IsActive $true</dev:code>
         <dev:remarks>
           <maml:para>Returns a list of all groups.</maml:para>
         </dev:remarks>
       </command:example>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 3 --------------------------</maml:title>
-        <dev:code>Get-TDGroup -Filter Studies -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Get-TDGroup -Filter Studies</dev:code>
         <dev:remarks>
           <maml:para>Returns full group information on groups with "studies" in the name.</maml:para>
         </dev:remarks>
       </command:example>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 4 --------------------------</maml:title>
-        <dev:code>'com', 'studies' | Get-TDGroup -AuthenticationToken $Authentication</dev:code>
+        <dev:code>'com', 'studies' | Get-TDGroup</dev:code>
         <dev:remarks>
           <maml:para>Returns full group information on groups with "com" or "studies" in the name.</maml:para>
         </dev:remarks>
@@ -12001,7 +12047,7 @@ C:\&gt;$TaG18.TaG18Inconsistent.NotEncrypted | Format-Table ID, Name, @{e={$_.At
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>Get-TDGroupApplication -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Get-TDGroupApplication</dev:code>
         <dev:remarks>
           <maml:para>Returns a list of all platform applications assigned to group ID 1234.</maml:para>
         </dev:remarks>
@@ -12197,15 +12243,15 @@ C:\&gt;$TaG18.TaG18Inconsistent.NotEncrypted | Format-Table ID, Name, @{e={$_.At
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>Get-TDGroupMember -GroupID 1234 -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Get-TDGroupMember -GroupID 1234</dev:code>
         <dev:remarks>
           <maml:para>Returns a list of all members in group ID 1234.</maml:para>
         </dev:remarks>
       </command:example>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 2 --------------------------</maml:title>
-        <dev:code>$Groups = Get-TDGroup -Filter MyGroupNames -AuthenticationToken $Authentication
-C:\&gt;$Groups | Get-TDGroupMember -AuthenticationToken $Authentication</dev:code>
+        <dev:code>$Groups = Get-TDGroup -Filter MyGroupNames
+$Groups | Get-TDGroupMember</dev:code>
         <dev:remarks>
           <maml:para>Returns list of all members in all groups with 'MyGroupNames' in the name.</maml:para>
         </dev:remarks>
@@ -12711,35 +12757,35 @@ C:\&gt;$Groups | Get-TDGroupMember -AuthenticationToken $Authentication</dev:cod
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>Get-TDKBArticle -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Get-TDKBArticle</dev:code>
         <dev:remarks>
           <maml:para>Retrieves all KB articles from TeamDynamix.</maml:para>
         </dev:remarks>
       </command:example>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 2 --------------------------</maml:title>
-        <dev:code>Get-TDKBArticle -ID 1752 -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Get-TDKBArticle -ID 1752</dev:code>
         <dev:remarks>
           <maml:para>Retrieves KB article number 1752 from TeamDynamix.</maml:para>
         </dev:remarks>
       </command:example>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 3 --------------------------</maml:title>
-        <dev:code>Get-TDKBArticle -SearchText vpn -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Get-TDKBArticle -SearchText vpn</dev:code>
         <dev:remarks>
           <maml:para>Retrieves first 50 KB articles containing the text "vpn" from TeamDynamix.</maml:para>
         </dev:remarks>
       </command:example>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 4 --------------------------</maml:title>
-        <dev:code>Get-TDKBArticle -SearchText vpn -IncludeArticleBodies -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Get-TDKBArticle -SearchText vpn -IncludeArticleBodies</dev:code>
         <dev:remarks>
           <maml:para>Retrieves full detail of first 50 KB articles containing the text "vpn" from TeamDynamix.</maml:para>
         </dev:remarks>
       </command:example>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 5 --------------------------</maml:title>
-        <dev:code>Get-TDKBArticle -ID 1752 -Related -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Get-TDKBArticle -ID 1752 -Related</dev:code>
         <dev:remarks>
           <maml:para>Retrieves articles related to article number 1752 from TeamDynamix.</maml:para>
         </dev:remarks>
@@ -12889,14 +12935,14 @@ C:\&gt;$Groups | Get-TDGroupMember -AuthenticationToken $Authentication</dev:cod
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>Get-TDKBCategory -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Get-TDKBCategory</dev:code>
         <dev:remarks>
           <maml:para>Retrieves all KB article categories from TeamDynamix.</maml:para>
         </dev:remarks>
       </command:example>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 2 --------------------------</maml:title>
-        <dev:code>Get-TDKBCategory -ID 1752 -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Get-TDKBCategory -ID 1752</dev:code>
         <dev:remarks>
           <maml:para>Retrieves KB article category number 1752 from TeamDynamix.</maml:para>
         </dev:remarks>
@@ -13350,35 +13396,35 @@ C:\&gt;$Groups | Get-TDGroupMember -AuthenticationToken $Authentication</dev:cod
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>Get-TDLocation -ID XXXX -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Get-TDLocation -ID XXXX</dev:code>
         <dev:remarks>
           <maml:para>Retrieves location (building) with ID XXXX from TeamDynamix.</maml:para>
         </dev:remarks>
       </command:example>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 2 --------------------------</maml:title>
-        <dev:code>Get-TDLocation -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Get-TDLocation</dev:code>
         <dev:remarks>
           <maml:para>Retrieves all active locations (buildings) from TeamDynamix.</maml:para>
         </dev:remarks>
       </command:example>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 3 --------------------------</maml:title>
-        <dev:code>Get-TDLocation -IsActive $null -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Get-TDLocation -IsActive $null</dev:code>
         <dev:remarks>
           <maml:para>Retrieves all locations (buildings), active and inactive from TeamDynamix.</maml:para>
         </dev:remarks>
       </command:example>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 4 --------------------------</maml:title>
-        <dev:code>Get-TDLocation -NameLike 'Smith Hall' -ReturnRooms -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Get-TDLocation -NameLike 'Smith Hall' -ReturnRooms</dev:code>
         <dev:remarks>
           <maml:para>Retrieves rooms and location (buildings) with 'Smith Hall' in the location name from TeamDynamix.</maml:para>
         </dev:remarks>
       </command:example>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 5 --------------------------</maml:title>
-        <dev:code>XXXX | Get-TDLocation -AuthenticationToken $Authentication</dev:code>
+        <dev:code>XXXX | Get-TDLocation</dev:code>
         <dev:remarks>
           <maml:para>Retrieves location (building) with ID XXXX from TeamDynamix.</maml:para>
         </dev:remarks>
@@ -13667,28 +13713,28 @@ C:\&gt;$Groups | Get-TDGroupMember -AuthenticationToken $Authentication</dev:cod
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>Get-TDMaintenanceWindow -ID 6331 -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Get-TDMaintenanceWindow -ID 6331</dev:code>
         <dev:remarks>
           <maml:para>Returns a maintenance window with ID 6331.</maml:para>
         </dev:remarks>
       </command:example>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 2 --------------------------</maml:title>
-        <dev:code>Get-TDMaintenanceWindow -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Get-TDMaintenanceWindow</dev:code>
         <dev:remarks>
           <maml:para>Returns a list of all active maintenance windows.</maml:para>
         </dev:remarks>
       </command:example>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 3 --------------------------</maml:title>
-        <dev:code>Get-TDMaintenanceWindow -IsActive $null -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Get-TDMaintenanceWindow -IsActive $null</dev:code>
         <dev:remarks>
           <maml:para>Returns a list of all maintenance windows, including active and inactive windows.</maml:para>
         </dev:remarks>
       </command:example>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 4 --------------------------</maml:title>
-        <dev:code>Get-TDMaintenanceWindow -Filter Cisco -AuthenticationToken $Authentication -IsActive $false</dev:code>
+        <dev:code>Get-TDMaintenanceWindow -Filter Cisco -IsActive $false</dev:code>
         <dev:remarks>
           <maml:para>Returns list of inactive maintenance windows with the word, "Cisco" in the name in the of the schedule.</maml:para>
         </dev:remarks>
@@ -14132,7 +14178,7 @@ C:\&gt;$Groups | Get-TDGroupMember -AuthenticationToken $Authentication</dev:cod
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>C:\Get-TDOpenTicketActivity -GroupName 'ASCTech A&amp;H Support' -ReportSection 'Ticket Counts','Recent activity' -ReportInterval 5</dev:code>
+        <dev:code>Get-TDOpenTicketActivity -GroupName 'ASCTech A&amp;H Support' -ReportSection 'Ticket Counts','Recent activity' -ReportInterval 5</dev:code>
         <dev:remarks>
           <maml:para>Returns a report, "C:\Temp\ASCTech A&amp;H Support.html", containing ticket counts and recent activity for the last five days.</maml:para>
         </dev:remarks>
@@ -14588,14 +14634,14 @@ C:\&gt;$Groups | Get-TDGroupMember -AuthenticationToken $Authentication</dev:cod
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>Get-TDProductModel -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Get-TDProductModel</dev:code>
         <dev:remarks>
           <maml:para>Retrieves the list of all active product models from TeamDynamix.</maml:para>
         </dev:remarks>
       </command:example>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 2 --------------------------</maml:title>
-        <dev:code>Get-TDProductModel -ID 5564 -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Get-TDProductModel -ID 5564</dev:code>
         <dev:remarks>
           <maml:para>Retrieves product model ID 5564 from TeamDynamix.</maml:para>
         </dev:remarks>
@@ -14603,8 +14649,8 @@ C:\&gt;$Groups | Get-TDGroupMember -AuthenticationToken $Authentication</dev:cod
       <command:example>
         <maml:title>-------------------------- EXAMPLE 3 --------------------------</maml:title>
         <dev:code>$ExceptionFiledID = (Get-TDCustomAttribute -ComponentID Asset | Where-Object Name -eq 'Exception Filed').ID
-C:\&gt;$ExceptionFiledYesID = ((Get-TDCustomAttribute -ComponentID Asset | Where-Object Name -eq 'Exception Filed').Choices | Where-Object Name -eq 'Yes').ID
-C:\&gt;Get-TDProductModel -ID 5504 -Attributes @($ExceptionFiledID,$ExceptionFiledYesID)</dev:code>
+$ExceptionFiledYesID = ((Get-TDCustomAttribute -ComponentID Asset | Where-Object Name -eq 'Exception Filed').Choices | Where-Object Name -eq 'Yes').ID
+Get-TDProductModel -ID 5504 -Attributes @($ExceptionFiledID,$ExceptionFiledYesID)</dev:code>
         <dev:remarks>
           <maml:para>Retrieves a product model using a custom attribute in TeamDynamix.</maml:para>
         </dev:remarks>
@@ -14618,7 +14664,7 @@ C:\&gt;Get-TDProductModel -ID 5504 -Attributes @($ExceptionFiledID,$ExceptionFil
       </command:example>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 5 --------------------------</maml:title>
-        <dev:code>Get-TDProductModel -SearchText "Laptop" -Detail -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Get-TDProductModel -SearchText "Laptop" -Detail</dev:code>
         <dev:remarks>
           <maml:para>Retrieves the full detail for product models with a name like "Laptop" from TeamDynamix.</maml:para>
         </dev:remarks>
@@ -14968,14 +15014,14 @@ C:\&gt;Get-TDProductModel -ID 5504 -Attributes @($ExceptionFiledID,$ExceptionFil
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>Get-TDProductType -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Get-TDProductType</dev:code>
         <dev:remarks>
           <maml:para>Retrieves the list of all product types from TeamDynamix.</maml:para>
         </dev:remarks>
       </command:example>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 2 --------------------------</maml:title>
-        <dev:code>Get-TDProductType -ID 5564 -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Get-TDProductType -ID 5564</dev:code>
         <dev:remarks>
           <maml:para>Retrieves product type ID 5564 from TeamDynamix</maml:para>
         </dev:remarks>
@@ -19875,14 +19921,14 @@ C:\&gt;Get-TDProductModel -ID 5504 -Attributes @($ExceptionFiledID,$ExceptionFil
       </command:example>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 4 --------------------------</maml:title>
-        <dev:code>Get-TDSearch -AppID 7511 -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Get-TDSearch -AppID 7511</dev:code>
         <dev:remarks>
           <maml:para>Returns a list of all saved searches visible to the user for application ID 7511.</maml:para>
         </dev:remarks>
       </command:example>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 5 --------------------------</maml:title>
-        <dev:code>Get-TDSearch -AppName 'Tickets' -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Get-TDSearch -AppName 'Tickets'</dev:code>
         <dev:remarks>
           <maml:para>Returns a list of all saved searches for the application named "Tickets".</maml:para>
         </dev:remarks>
@@ -20198,21 +20244,21 @@ C:\&gt;Get-TDProductModel -ID 5504 -Attributes @($ExceptionFiledID,$ExceptionFil
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>Get-TDSecurityRole -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Get-TDSecurityRole</dev:code>
         <dev:remarks>
           <maml:para>Returns a list of all security roles.</maml:para>
         </dev:remarks>
       </command:example>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 2 --------------------------</maml:title>
-        <dev:code>Get-TDSecurityRole -NameLike 'Admin' -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Get-TDSecurityRole -NameLike 'Admin'</dev:code>
         <dev:remarks>
           <maml:para>Returns security role information on accounts with "Admin" in the full name.</maml:para>
         </dev:remarks>
       </command:example>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 3 --------------------------</maml:title>
-        <dev:code>'Admin', 'Technician' | Get-TDSecurityRole -AuthenticationToken $Authentication</dev:code>
+        <dev:code>'Admin', 'Technician' | Get-TDSecurityRole</dev:code>
         <dev:remarks>
           <maml:para>Returns full department information on security roles specified in the pipeline.</maml:para>
         </dev:remarks>
@@ -20412,21 +20458,21 @@ C:\&gt;Get-TDProductModel -ID 5504 -Attributes @($ExceptionFiledID,$ExceptionFil
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>Get-TDSecurityRolePermissions -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Get-TDSecurityRolePermissions</dev:code>
         <dev:remarks>
           <maml:para>Returns a list of all security role permissions.</maml:para>
         </dev:remarks>
       </command:example>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 2 --------------------------</maml:title>
-        <dev:code>Get-TDSecurityRolePermissions -AppID 556 -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Get-TDSecurityRolePermissions -AppID 556</dev:code>
         <dev:remarks>
           <maml:para>Returns security role permissions for application with ID 556.</maml:para>
         </dev:remarks>
       </command:example>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 3 --------------------------</maml:title>
-        <dev:code>Get-TDSecurityRolePermissions -LicenseType Client -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Get-TDSecurityRolePermissions -LicenseType Client</dev:code>
         <dev:remarks>
           <maml:para>Returns security role permissions for the "Client" license type.</maml:para>
         </dev:remarks>
@@ -20540,14 +20586,14 @@ C:\&gt;Get-TDProductModel -ID 5504 -Attributes @($ExceptionFiledID,$ExceptionFil
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>Get-TDService -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Get-TDService</dev:code>
         <dev:remarks>
           <maml:para>Retrieves all services from the Service Catalog in TeamDynamix.</maml:para>
         </dev:remarks>
       </command:example>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 2 --------------------------</maml:title>
-        <dev:code>Get-TDService -ID 1752 -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Get-TDService -ID 1752</dev:code>
         <dev:remarks>
           <maml:para>Retrieves Service Catalog service ID 1752 from TeamDynamix.</maml:para>
         </dev:remarks>
@@ -23027,28 +23073,28 @@ C:\&gt;Get-TDProductModel -ID 5504 -Attributes @($ExceptionFiledID,$ExceptionFil
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>Get-TDTicket -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Get-TDTicket</dev:code>
         <dev:remarks>
           <maml:para>Retrieves all tickets from TeamDynamix.</maml:para>
         </dev:remarks>
       </command:example>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 2 --------------------------</maml:title>
-        <dev:code>Get-TDTicket -TicketID 1752 -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Get-TDTicket -TicketID 1752</dev:code>
         <dev:remarks>
           <maml:para>Retrieves ticket number 1752 from TeamDynamix.</maml:para>
         </dev:remarks>
       </command:example>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 3 --------------------------</maml:title>
-        <dev:code>Get-TDTicket -SearchText vpn -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Get-TDTicket -SearchText vpn</dev:code>
         <dev:remarks>
           <maml:para>Retrieves first 50 tickets containing the text "vpn" from TeamDynamix.</maml:para>
         </dev:remarks>
       </command:example>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 4 --------------------------</maml:title>
-        <dev:code>Get-TDTicket -SearchText smith -EligibleAssignment -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Get-TDTicket -SearchText smith -EligibleAssignment</dev:code>
         <dev:remarks>
           <maml:para>Retrieves up to five resources named smith eligible for assignment for the ticketing application.</maml:para>
         </dev:remarks>
@@ -23299,28 +23345,28 @@ C:\&gt;Get-TDProductModel -ID 5504 -Attributes @($ExceptionFiledID,$ExceptionFil
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>C:\Get-TDTicketActivityCounts</dev:code>
+        <dev:code>Get-TDTicketActivityCounts</dev:code>
         <dev:remarks>
           <maml:para>Returns a formatted text report with counts of tickets opened/closed during the previous day, as well as a count of tickets opened a week ago.</maml:para>
         </dev:remarks>
       </command:example>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 2 --------------------------</maml:title>
-        <dev:code>C:\Get-TDTicketActivityCounts -GUI</dev:code>
+        <dev:code>Get-TDTicketActivityCounts -GUI</dev:code>
         <dev:remarks>
           <maml:para>Use a GUI date picker to select the start date, end date, and comparison date for a formatted text report with counts of tickets opened/closed during the selected interval, as well as a count of tickets opened on the date selected.</maml:para>
         </dev:remarks>
       </command:example>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 3 --------------------------</maml:title>
-        <dev:code>C:\Get-TDTicketActivityCounts -NoReport</dev:code>
+        <dev:code>Get-TDTicketActivityCounts -NoReport</dev:code>
         <dev:remarks>
           <maml:para>Returns raw data listing tickets opened/closed during the previous day, as well as tickets opened a week ago.</maml:para>
         </dev:remarks>
       </command:example>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 4 --------------------------</maml:title>
-        <dev:code>C:\Get-TDTicketActivityCounts -StartDate 10/1/2020 -Days 1 -CompareDate 9/22/2020</dev:code>
+        <dev:code>Get-TDTicketActivityCounts -StartDate 10/1/2020 -Days 1 -CompareDate 9/22/2020</dev:code>
         <dev:remarks>
           <maml:para>Produces a formatted text report with counts of tickets opened/closed on October 1, 2020, as well as a count of tickets opened on September 22, 2020.</maml:para>
         </dev:remarks>
@@ -23458,7 +23504,7 @@ C:\&gt;Get-TDProductModel -ID 5504 -Attributes @($ExceptionFiledID,$ExceptionFil
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>Get-TDTicketAsset -ID 99432 -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Get-TDTicketAsset -ID 99432</dev:code>
         <dev:remarks>
           <maml:para>Retrieves list of all contacts on a ticket ID 99432 from TeamDynamix.</maml:para>
         </dev:remarks>
@@ -23655,14 +23701,14 @@ C:\&gt;Get-TDProductModel -ID 5504 -Attributes @($ExceptionFiledID,$ExceptionFil
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>Get-TDTicketContact -ID 99432 -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Get-TDTicketContact -ID 99432</dev:code>
         <dev:remarks>
           <maml:para>Retrieves list of all contacts on a ticket ID 99432 from TeamDynamix.</maml:para>
         </dev:remarks>
       </command:example>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 2 --------------------------</maml:title>
-        <dev:code>Get-TDTicketContact -ID 99432 -IncludeResponsible -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Get-TDTicketContact -ID 99432 -IncludeResponsible</dev:code>
         <dev:remarks>
           <maml:para>Retrieves list of all contacts on a ticket ID 99432 from TeamDynamix, including the user responsible for the ticket.</maml:para>
         </dev:remarks>
@@ -23800,7 +23846,7 @@ C:\&gt;Get-TDProductModel -ID 5504 -Attributes @($ExceptionFiledID,$ExceptionFil
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>Get-TDTicketImpact -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Get-TDTicketImpact</dev:code>
         <dev:remarks>
           <maml:para>Retrieves list of all active ticket impacts from TeamDynamix.</maml:para>
         </dev:remarks>
@@ -23938,7 +23984,7 @@ C:\&gt;Get-TDProductModel -ID 5504 -Attributes @($ExceptionFiledID,$ExceptionFil
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>Get-TDTicketPriority -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Get-TDTicketPriority</dev:code>
         <dev:remarks>
           <maml:para>Retrieves list of all active ticket priorities from TeamDynamix.</maml:para>
         </dev:remarks>
@@ -24076,7 +24122,7 @@ C:\&gt;Get-TDProductModel -ID 5504 -Attributes @($ExceptionFiledID,$ExceptionFil
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>Get-TDTicketType -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Get-TDTicketType</dev:code>
         <dev:remarks>
           <maml:para>Retrieves list of all active ticket types from TeamDynamix.</maml:para>
         </dev:remarks>
@@ -24225,6 +24271,17 @@ C:\&gt;Get-TDProductModel -ID 5504 -Attributes @($ExceptionFiledID,$ExceptionFil
           <dev:defaultValue>None</dev:defaultValue>
         </command:parameter>
         <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+          <maml:name>Exact</maml:name>
+          <maml:description>
+            <maml:para>Return exact match for SearchText.</maml:para>
+          </maml:description>
+          <dev:type>
+            <maml:name>SwitchParameter</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>False</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
           <maml:name>AppID</maml:name>
           <maml:description>
             <maml:para>Application ID for the ticketing app.</maml:para>
@@ -24341,6 +24398,18 @@ C:\&gt;Get-TDProductModel -ID 5504 -Attributes @($ExceptionFiledID,$ExceptionFil
         <dev:defaultValue>None</dev:defaultValue>
       </command:parameter>
       <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+        <maml:name>Exact</maml:name>
+        <maml:description>
+          <maml:para>Return exact match for SearchText.</maml:para>
+        </maml:description>
+        <command:parameterValue required="false" variableLength="false">SwitchParameter</command:parameterValue>
+        <dev:type>
+          <maml:name>SwitchParameter</maml:name>
+          <maml:uri />
+        </dev:type>
+        <dev:defaultValue>False</dev:defaultValue>
+      </command:parameter>
+      <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
         <maml:name>AppID</maml:name>
         <maml:description>
           <maml:para>Application ID for the ticketing app.</maml:para>
@@ -24387,7 +24456,7 @@ C:\&gt;Get-TDProductModel -ID 5504 -Attributes @($ExceptionFiledID,$ExceptionFil
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>Get-TDTicketStatus -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Get-TDTicketStatus</dev:code>
         <dev:remarks>
           <maml:para>Retrieves list of all ticket statuses from TeamDynamix.</maml:para>
         </dev:remarks>
@@ -24665,14 +24734,14 @@ C:\&gt;Get-TDProductModel -ID 5504 -Attributes @($ExceptionFiledID,$ExceptionFil
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>Get-TDTicketTask -ID 99432 -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Get-TDTicketTask -ID 99432</dev:code>
         <dev:remarks>
           <maml:para>Retrieves list of all tasks on a ticket ID 99432 from TeamDynamix.</maml:para>
         </dev:remarks>
       </command:example>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 2 --------------------------</maml:title>
-        <dev:code>Get-TDTicketTask -ID 99432 -TaskID 3398 -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Get-TDTicketTask -ID 99432 -TaskID 3398</dev:code>
         <dev:remarks>
           <maml:para>Retrieves task ID 3398 on ticket ID 99432 from TeamDynamix.</maml:para>
         </dev:remarks>
@@ -24834,7 +24903,7 @@ C:\&gt;Get-TDProductModel -ID 5504 -Attributes @($ExceptionFiledID,$ExceptionFil
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>Get-TDTicketTaskFeed -ID 99432 -TaskID 3398 -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Get-TDTicketTaskFeed -ID 99432 -TaskID 3398</dev:code>
         <dev:remarks>
           <maml:para>Retrieves the feed for task ID 3398 on ticket ID 99432 from TeamDynamix.</maml:para>
         </dev:remarks>
@@ -25008,7 +25077,7 @@ C:\&gt;Get-TDProductModel -ID 5504 -Attributes @($ExceptionFiledID,$ExceptionFil
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>Get-TDTicketType -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Get-TDTicketType</dev:code>
         <dev:remarks>
           <maml:para>Retrieves list of all active ticket types from TeamDynamix.</maml:para>
         </dev:remarks>
@@ -25146,7 +25215,7 @@ C:\&gt;Get-TDProductModel -ID 5504 -Attributes @($ExceptionFiledID,$ExceptionFil
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>Get-TDTicketUrgency -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Get-TDTicketUrgency</dev:code>
         <dev:remarks>
           <maml:para>Retrieves list of all active ticket urgencies from TeamDynamix.</maml:para>
         </dev:remarks>
@@ -26119,7 +26188,7 @@ C:\&gt;Get-TDProductModel -ID 5504 -Attributes @($ExceptionFiledID,$ExceptionFil
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>Get-TDTimeLockedDays -StartDate 11-25-2018 -EndDate 12-25-2019 -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Get-TDTimeLockedDays -StartDate 11-25-2018 -EndDate 12-25-2019</dev:code>
         <dev:remarks>
           <maml:para>Returns locked days between November 25, 2018 and December 25, 2019 in TeamDynamix.</maml:para>
         </dev:remarks>
@@ -26257,14 +26326,14 @@ C:\&gt;Get-TDProductModel -ID 5504 -Attributes @($ExceptionFiledID,$ExceptionFil
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>Get-TDTimeReport -ReportDate 11-25-2018 -UID XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Get-TDTimeReport -ReportDate 11-25-2018 -UID XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX</dev:code>
         <dev:remarks>
           <maml:para>Returns weekly timesheet for specified user for November 25, 2018.</maml:para>
         </dev:remarks>
       </command:example>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 2 --------------------------</maml:title>
-        <dev:code>Get-TDTimeReport -ReportDate 11-25-2018 -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Get-TDTimeReport -ReportDate 11-25-2018</dev:code>
         <dev:remarks>
           <maml:para>Returns weekly timesheet for the current user for November 25, 2018.</maml:para>
         </dev:remarks>
@@ -27092,14 +27161,14 @@ C:\&gt;Get-TDProductModel -ID 5504 -Attributes @($ExceptionFiledID,$ExceptionFil
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>Get-TDTimeType -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Get-TDTimeType</dev:code>
         <dev:remarks>
           <maml:para>Retrieves the list of all available active time types from TeamDynamix.</maml:para>
         </dev:remarks>
       </command:example>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 2 --------------------------</maml:title>
-        <dev:code>Get-TDTimeType -ID 5564 -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Get-TDTimeType -ID 5564</dev:code>
         <dev:remarks>
           <maml:para>Retrieves time type ID 5564 from TeamDynamix.</maml:para>
         </dev:remarks>
@@ -27285,7 +27354,7 @@ C:\&gt;Get-TDProductModel -ID 5504 -Attributes @($ExceptionFiledID,$ExceptionFil
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>Get-TDTimeTypeLimits -ID 7503 -UID XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX -StartDate 11-25-2018 -EndDate 12-25-2019 -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Get-TDTimeTypeLimits -ID 7503 -UID XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX -StartDate 11-25-2018 -EndDate 12-25-2019</dev:code>
         <dev:remarks>
           <maml:para>Returns time type limits for specified user between November 25, 2018 and December 25, 2019 in TeamDynamix.</maml:para>
         </dev:remarks>
@@ -28007,28 +28076,28 @@ C:\&gt;Get-TDProductModel -ID 5504 -Attributes @($ExceptionFiledID,$ExceptionFil
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>Get-TDUser -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Get-TDUser</dev:code>
         <dev:remarks>
           <maml:para>Returns a list of all active users, with abbreviated user property information.</maml:para>
         </dev:remarks>
       </command:example>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 2 --------------------------</maml:title>
-        <dev:code>Get-TDUser -filter smith -AuthenticationToken $Authentication -MaxResults 2</dev:code>
+        <dev:code>Get-TDUser -filter smith -MaxResults 2</dev:code>
         <dev:remarks>
           <maml:para>Returns full user information on two active users with "smith" in the full name, the username, or the external/internal ID.</maml:para>
         </dev:remarks>
       </command:example>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 3 --------------------------</maml:title>
-        <dev:code>Get-TDUser -filter smith -AuthenticationToken $Authentication -IsActive $false</dev:code>
+        <dev:code>Get-TDUser -filter smith -IsActive $false</dev:code>
         <dev:remarks>
           <maml:para>Returns full user information on inactive users with "smith" in the full name, the username, or the external/internal ID.</maml:para>
         </dev:remarks>
       </command:example>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 4 --------------------------</maml:title>
-        <dev:code>Get-TDUser -filter smith -AuthenticationToken $Authentication -IsActive $null</dev:code>
+        <dev:code>Get-TDUser -filter smith -IsActive $null</dev:code>
         <dev:remarks>
           <maml:para>Returns full user information on all users with "smith" in the full name, the username, or the external/internal ID.</maml:para>
         </dev:remarks>
@@ -28238,21 +28307,21 @@ C:\&gt;Get-TDProductModel -ID 5504 -Attributes @($ExceptionFiledID,$ExceptionFil
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>Get-TDUserFunctionalRole -UID XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Get-TDUserFunctionalRole -UID XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX</dev:code>
         <dev:remarks>
           <maml:para>Returns a list of functional roles for user XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX.</maml:para>
         </dev:remarks>
       </command:example>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 2 --------------------------</maml:title>
-        <dev:code>Get-TDUserFunctionalRole -Username smith@domain -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Get-TDUserFunctionalRole -Username smith@domain</dev:code>
         <dev:remarks>
           <maml:para>Returns a list of functional roles for user smith@domain.</maml:para>
         </dev:remarks>
       </command:example>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 3 --------------------------</maml:title>
-        <dev:code>'XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX', 'YYYYYYYY-YYYY-YYYY-YYYY-YYYYYYYYYYYY' | Get-TDUserFunctionalRole -AuthenticationToken $Authentication</dev:code>
+        <dev:code>'XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX', 'YYYYYYYY-YYYY-YYYY-YYYY-YYYYYYYYYYYY' | Get-TDUserFunctionalRole</dev:code>
         <dev:remarks>
           <maml:para>Returns a list of functional roles for users XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX and YYYYYYYY-YYYY-YYYY-YYYY-YYYYYYYYYYYY via the pipeline.</maml:para>
         </dev:remarks>
@@ -28392,14 +28461,14 @@ C:\&gt;Get-TDProductModel -ID 5504 -Attributes @($ExceptionFiledID,$ExceptionFil
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>Get-TDUserGroupMember -UID XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Get-TDUserGroupMember -UID XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX</dev:code>
         <dev:remarks>
           <maml:para>Returns a list of groups for user XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX.</maml:para>
         </dev:remarks>
       </command:example>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 2 --------------------------</maml:title>
-        <dev:code>'XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX', 'YYYYYYYY-YYYY-YYYY-YYYY-YYYYYYYYYYYY' | Get-TDUserGroupMember -AuthenticationToken $Authentication</dev:code>
+        <dev:code>'XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX', 'YYYYYYYY-YYYY-YYYY-YYYY-YYYYYYYYYYYY' | Get-TDUserGroupMember</dev:code>
         <dev:remarks>
           <maml:para>Returns a list of groups for user XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX.</maml:para>
         </dev:remarks>
@@ -28844,21 +28913,21 @@ C:\&gt;Get-TDProductModel -ID 5504 -Attributes @($ExceptionFiledID,$ExceptionFil
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>Get-TDVendor -IsActive $Null -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Get-TDVendor -IsActive $Null</dev:code>
         <dev:remarks>
           <maml:para>Returns a list of all active vendors, including inactive vendors.</maml:para>
         </dev:remarks>
       </command:example>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 2 --------------------------</maml:title>
-        <dev:code>Get-TDVendor -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Get-TDVendor</dev:code>
         <dev:remarks>
           <maml:para>Returns a list of all active vendors.</maml:para>
         </dev:remarks>
       </command:example>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 3 --------------------------</maml:title>
-        <dev:code>Get-TDVendor -filter Cisco -AuthenticationToken $Authentication -IsActive $false</dev:code>
+        <dev:code>Get-TDVendor -filter Cisco -IsActive $false</dev:code>
         <dev:remarks>
           <maml:para>Returns list of vendors with the word, "Cisco" in the name.</maml:para>
         </dev:remarks>
@@ -30499,14 +30568,14 @@ C:\&gt;Get-TDProductModel -ID 5504 -Attributes @($ExceptionFiledID,$ExceptionFil
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>New-TDAsset -SerialNumber 1055 - StatusID 3042 -AuthenticationToken $Authentication</dev:code>
+        <dev:code>New-TDAsset -SerialNumber 1055 - StatusID 3042</dev:code>
         <dev:remarks>
           <maml:para>Creates a new asset in TeamDynamix.</maml:para>
         </dev:remarks>
       </command:example>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 2 --------------------------</maml:title>
-        <dev:code>$Asset1 | New-TDAsset -AuthenticationToken $Authentication</dev:code>
+        <dev:code>$Asset1 | New-TDAsset</dev:code>
         <dev:remarks>
           <maml:para>Using an object, create a new asset from the pipeline in TeamDynamix.</maml:para>
         </dev:remarks>
@@ -30514,8 +30583,8 @@ C:\&gt;Get-TDProductModel -ID 5504 -Attributes @($ExceptionFiledID,$ExceptionFil
       <command:example>
         <maml:title>-------------------------- EXAMPLE 3 --------------------------</maml:title>
         <dev:code>$ExceptionFiledID = (Get-TDCustomAttribute -ComponentID Asset | Where-Object Name -eq 'ExceptionFiled').ID
-C:\&gt;$ExceptionFiledYesID = ((Get-TDCustomAttribute -ComponentID Asset | Where-Object Name -eq 'ExceptionFiled').Choices | Where-Object Name -eq 'Yes').ID
-C:\&gt;New-TDAsset -SerialNumber 1055 - StatusID 3042 -Attributes @{ID=$ExceptionFiledID;Value=$ExceptionFiledYesID}</dev:code>
+$ExceptionFiledYesID = ((Get-TDCustomAttribute -ComponentID Asset | Where-Object Name -eq 'ExceptionFiled').Choices | Where-Object Name -eq 'Yes').ID
+New-TDAsset -SerialNumber 1055 - StatusID 3042 -Attributes @{ID=$ExceptionFiledID;Value=$ExceptionFiledYesID}</dev:code>
         <dev:remarks>
           <maml:para>Creates a new asset in TeamDynamix with a custom attribute.</maml:para>
         </dev:remarks>
@@ -30842,7 +30911,7 @@ C:\&gt;New-TDAsset -SerialNumber 1055 - StatusID 3042 -Attributes @{ID=$Exceptio
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>New-TDAssetStatus -Name 'New Status' -Description 'New asset status' -AuthenticationToken $Authentication</dev:code>
+        <dev:code>New-TDAssetStatus -Name 'New Status' -Description 'New asset status'</dev:code>
         <dev:remarks>
           <maml:para>Creates a new active asset statuses in TeamDynamix.</maml:para>
         </dev:remarks>
@@ -31146,7 +31215,7 @@ C:\&gt;New-TDAsset -SerialNumber 1055 - StatusID 3042 -Attributes @{ID=$Exceptio
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>New-TDBlackoutWindow -Name 'New blackout window' -Description 'Blackout window for assets' -AuthenticationToken $Authentication</dev:code>
+        <dev:code>New-TDBlackoutWindow -Name 'New blackout window' -Description 'Blackout window for assets'</dev:code>
         <dev:remarks>
           <maml:para>Creates a new active blackout window named, "New blackout window".</maml:para>
         </dev:remarks>
@@ -31761,14 +31830,14 @@ C:\&gt;New-TDAsset -SerialNumber 1055 - StatusID 3042 -Attributes @{ID=$Exceptio
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>New-TDConfigurationItem -Name 'Configuration Item 1' -TypeID 3042 -AuthenticationToken $Authentication</dev:code>
+        <dev:code>New-TDConfigurationItem -Name 'Configuration Item 1' -TypeID 3042</dev:code>
         <dev:remarks>
           <maml:para>Creates a new asset in TeamDynamix.</maml:para>
         </dev:remarks>
       </command:example>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 2 --------------------------</maml:title>
-        <dev:code>$CI | New-TDConfigurationItem -AuthenticationToken $Authentication</dev:code>
+        <dev:code>$CI | New-TDConfigurationItem</dev:code>
         <dev:remarks>
           <maml:para>Using an object, create a new asset from the pipeline in TeamDynamix.</maml:para>
         </dev:remarks>
@@ -32023,7 +32092,7 @@ C:\&gt;New-TDAsset -SerialNumber 1055 - StatusID 3042 -Attributes @{ID=$Exceptio
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>New-TDConfigurationItemType -Name 'New configuration item type' -AuthenticationToken $Authentication</dev:code>
+        <dev:code>New-TDConfigurationItemType -Name 'New configuration item type'</dev:code>
         <dev:remarks>
           <maml:para>Creates a new active configuration item type named, "New configuration item type".</maml:para>
         </dev:remarks>
@@ -32326,7 +32395,7 @@ C:\&gt;New-TDAsset -SerialNumber 1055 - StatusID 3042 -Attributes @{ID=$Exceptio
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>New-TDConfigurationRelationshipType -Description 'From parent' -InverseDescription 'From child' -AuthenticationToken $Authentication</dev:code>
+        <dev:code>New-TDConfigurationRelationshipType -Description 'From parent' -InverseDescription 'From child'</dev:code>
         <dev:remarks>
           <maml:para>Creates a new active configuration relationship type.</maml:para>
         </dev:remarks>
@@ -32942,7 +33011,7 @@ C:\&gt;New-TDAsset -SerialNumber 1055 - StatusID 3042 -Attributes @{ID=$Exceptio
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>New-TDDepartment -Name 'Psychobotany' -AuthenticationToken $Authentication</dev:code>
+        <dev:code>New-TDDepartment -Name 'Psychobotany'</dev:code>
         <dev:remarks>
           <maml:para>Creates a new department named, "Psychobotany" in TeamDynamix.</maml:para>
         </dev:remarks>
@@ -33200,7 +33269,7 @@ C:\&gt;New-TDAsset -SerialNumber 1055 - StatusID 3042 -Attributes @{ID=$Exceptio
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>New-TDFunctionalRole -Name 'Manager' -AuthenticationToken $Authentication</dev:code>
+        <dev:code>New-TDFunctionalRole -Name 'Manager'</dev:code>
         <dev:remarks>
           <maml:para>Creates a new functional role named 'Manager', with StandardRate and CostRate of 0.</maml:para>
         </dev:remarks>
@@ -33456,7 +33525,7 @@ C:\&gt;New-TDAsset -SerialNumber 1055 - StatusID 3042 -Attributes @{ID=$Exceptio
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>New-TDGroup -Name 'Psychobotany Support' -AuthenticationToken $Authentication</dev:code>
+        <dev:code>New-TDGroup -Name 'Psychobotany Support'</dev:code>
         <dev:remarks>
           <maml:para>Creates a new group named, "Psychobotany Support", in TeamDynamix.</maml:para>
         </dev:remarks>
@@ -33464,8 +33533,8 @@ C:\&gt;New-TDAsset -SerialNumber 1055 - StatusID 3042 -Attributes @{ID=$Exceptio
       <command:example>
         <maml:title>-------------------------- EXAMPLE 2 --------------------------</maml:title>
         <dev:code>$GroupApplication1 = New-TDGroupApplication -AppID 243
-C:\&gt;$GroupApplication2 = New-TDGroupApplication -AppID 529
-C:\&gt;New-TDGroup -Name 'Psychobotany Support' -PlatformApplications @($GroupApplication1, $GroupApplication2) -AuthenticationToken $Authentication</dev:code>
+$GroupApplication2 = New-TDGroupApplication -AppID 529
+New-TDGroup -Name 'Psychobotany Support' -PlatformApplications @($GroupApplication1, $GroupApplication2)</dev:code>
         <dev:remarks>
           <maml:para>Creates a new group named, "Psychobotany Support", with platform applications 243 and 529 assigned in TeamDynamix.</maml:para>
         </dev:remarks>
@@ -34248,7 +34317,7 @@ C:\&gt;New-TDGroup -Name 'Psychobotany Support' -PlatformApplications @($GroupAp
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>New-TDKBArticle -Subject Testing -Body 'This is a test' -Status 1 -OwningGroupID 755 -AuthenticationToken $Authentication</dev:code>
+        <dev:code>New-TDKBArticle -Subject Testing -Body 'This is a test' -Status 1 -OwningGroupID 755</dev:code>
         <dev:remarks>
           <maml:para>Creates a new KnowledgeBase article.</maml:para>
         </dev:remarks>
@@ -34552,7 +34621,7 @@ C:\&gt;New-TDGroup -Name 'Psychobotany Support' -PlatformApplications @($GroupAp
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>New-TDKBCategory -Order 1 -Name 'Test category' -AuthenticationToken $Authentication</dev:code>
+        <dev:code>New-TDKBCategory -Order 1 -Name 'Test category'</dev:code>
         <dev:remarks>
           <maml:para>Creates a new KnowledgeBase article category.</maml:para>
         </dev:remarks>
@@ -35000,7 +35069,7 @@ C:\&gt;New-TDGroup -Name 'Psychobotany Support' -PlatformApplications @($GroupAp
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>New-TDLocation -Name 'Smith Hall' -Description 'Student dormitory' -AuthenticationToken $Authentication</dev:code>
+        <dev:code>New-TDLocation -Name 'Smith Hall' -Description 'Student dormitory'</dev:code>
         <dev:remarks>
           <maml:para>Creates a new location (building) with name "Smith Hall" and description "Student dormitory" in TeamDynamix.</maml:para>
         </dev:remarks>
@@ -35327,7 +35396,7 @@ C:\&gt;New-TDGroup -Name 'Psychobotany Support' -PlatformApplications @($GroupAp
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>New-TDMaintenanceWindow -Name 'New maintenance window' -Description 'Maintenance window for assets' -AuthenticationToken $Authentication</dev:code>
+        <dev:code>New-TDMaintenanceWindow -Name 'New maintenance window' -Description 'Maintenance window for assets'</dev:code>
         <dev:remarks>
           <maml:para>Creates a new active maintenance window named, "New maintenance window".</maml:para>
         </dev:remarks>
@@ -35750,14 +35819,14 @@ C:\&gt;New-TDGroup -Name 'Psychobotany Support' -PlatformApplications @($GroupAp
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>New-TDProductModel -Name 'Product Name 1' -ManufacturerID 3042 -ProductTypeID 7740 -AuthenticationToken $Authentication</dev:code>
+        <dev:code>New-TDProductModel -Name 'Product Name 1' -ManufacturerID 3042 -ProductTypeID 7740</dev:code>
         <dev:remarks>
           <maml:para>Creates a new product model in TeamDynamix.</maml:para>
         </dev:remarks>
       </command:example>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 2 --------------------------</maml:title>
-        <dev:code>$ProductModel | New-TDProductModel -AuthenticationToken $Authentication</dev:code>
+        <dev:code>$ProductModel | New-TDProductModel</dev:code>
         <dev:remarks>
           <maml:para>Using an object, create a new product model from the pipeline in TeamDynamix.</maml:para>
         </dev:remarks>
@@ -36108,14 +36177,14 @@ C:\&gt;New-TDGroup -Name 'Psychobotany Support' -PlatformApplications @($GroupAp
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>New-TDProductType -Name 'Product Name 1' -Order 3 -AuthenticationToken $Authentication</dev:code>
+        <dev:code>New-TDProductType -Name 'Product Name 1' -Order 3</dev:code>
         <dev:remarks>
           <maml:para>Creates a new product type in TeamDynamix.</maml:para>
         </dev:remarks>
       </command:example>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 2 --------------------------</maml:title>
-        <dev:code>$ProductType | New-TDProductType -AuthenticationToken $Authentication</dev:code>
+        <dev:code>$ProductType | New-TDProductType</dev:code>
         <dev:remarks>
           <maml:para>Using an object, create a new product type from the pipeline in TeamDynamix.</maml:para>
         </dev:remarks>
@@ -37359,7 +37428,7 @@ C:\&gt;New-TDGroup -Name 'Psychobotany Support' -PlatformApplications @($GroupAp
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>New-TDRoom -ID XXXX -Name '0120' -AuthenticationToken $Authentication</dev:code>
+        <dev:code>New-TDRoom -ID XXXX -Name '0120'</dev:code>
         <dev:remarks>
           <maml:para>Creates a new room named, "0120", in location (building) with ID XXXX in TeamDynamix.</maml:para>
         </dev:remarks>
@@ -37653,7 +37722,7 @@ C:\&gt;New-TDGroup -Name 'Psychobotany Support' -PlatformApplications @($GroupAp
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>New-TDSecurityRole -Name 'Manager' -AuthenticationToken $Authentication</dev:code>
+        <dev:code>New-TDSecurityRole -Name 'Manager'</dev:code>
         <dev:remarks>
           <maml:para>Creates a new functional role named 'Manager', with StandardRate and CostRate of 0.</maml:para>
         </dev:remarks>
@@ -38749,7 +38818,7 @@ C:\&gt;New-TDGroup -Name 'Psychobotany Support' -PlatformApplications @($GroupAp
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>New-TDTicket -Type 20750 -Title 'New ticket' -AccountID 33502 -StatusID 12005 -PriorityID 2944 -RequestorUID XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX -AuthenticationToken $Authentication</dev:code>
+        <dev:code>New-TDTicket -Type 20750 -Title 'New ticket' -AccountID 33502 -StatusID 12005 -PriorityID 2944 -RequestorUID XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX</dev:code>
         <dev:remarks>
           <maml:para>Creates new ticket in TeamDynamix.</maml:para>
         </dev:remarks>
@@ -39038,7 +39107,7 @@ C:\&gt;New-TDGroup -Name 'Psychobotany Support' -PlatformApplications @($GroupAp
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>New-TDTicketStatus -Name 'Slow Test' -Description 'Test status for slow items' -Order 1 -StatusClass 'New' -AuthenticationToken $Authentication</dev:code>
+        <dev:code>New-TDTicketStatus -Name 'Slow Test' -Description 'Test status for slow items' -Order 1 -StatusClass 'New'</dev:code>
         <dev:remarks>
           <maml:para>Creates a new active ticket status.</maml:para>
         </dev:remarks>
@@ -39468,7 +39537,7 @@ C:\&gt;New-TDGroup -Name 'Psychobotany Support' -PlatformApplications @($GroupAp
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>New-TDTicketTask -ID 99432 -Title 'First task' -ResponsibleUID XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX -AuthenticationToken $Authentication</dev:code>
+        <dev:code>New-TDTicketTask -ID 99432 -Title 'First task' -ResponsibleUID XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX</dev:code>
         <dev:remarks>
           <maml:para>Creates new task with title "First task" on ticket wth ID 99432 in TeamDynamix.</maml:para>
         </dev:remarks>
@@ -41101,12 +41170,12 @@ C:\&gt;New-TDGroup -Name 'Psychobotany Support' -PlatformApplications @($GroupAp
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
         <dev:code>$ApplicationList = @('MyWork','TDAssets','TDChat','TDCommunity','TDKnowledgeBase','TDNews','TDNext','TDPeople','TDQuestions','TDRequests','TDTicketRequests','TDTickets')
-C:\&gt;$SecurityRoleIDTechnician  = 'XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX'
-C:\&gt;$TicketsApp = New-TDUserApplication -SecurityRoleID XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX -IsAdministrator $true
-C:\&gt;$AssetCIApp = New-TDUserApplication -SecurityRoleID XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX -IsAdministrator $true
-C:\&gt;'user1','user2','user3','user4' |
- ConvertFrom-ADtoTDUser -AuthenticationToken $Authentication -ADDomainName $ADDomainName -ADCredentials $ADCredential |
- New-TDUser -SecurityRoleID $SecurityRoleIDTechnician -Applications $ApplicationList -OrgApplications @($TicketsApp,$AssetCIApp) -AuthenticationToken $Authentication</dev:code>
+$SecurityRoleIDTechnician  = 'XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX'
+$TicketsApp = New-TDUserApplication -SecurityRoleID XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX -IsAdministrator $true
+$AssetCIApp = New-TDUserApplication -SecurityRoleID XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX -IsAdministrator $true
+'user1','user2','user3','user4' |
+ ConvertFrom-ADtoTDUser -ADDomainName $ADDomainName -ADCredentials $ADCredential |
+ New-TDUser -SecurityRoleID $SecurityRoleIDTechnician -Applications $ApplicationList -OrgApplications @($TicketsApp,$AssetCIApp)</dev:code>
         <dev:remarks>
           <maml:para>Takes user1, user2, user3, and user 4, looks them up in the AD, converts  their information to TD format, then creates new technician accounts on  TeamDynamix, with the desired list of applications and org applications.</maml:para>
         </dev:remarks>
@@ -41259,7 +41328,7 @@ C:\&gt;'user1','user2','user3','user4' |
       <command:example>
         <maml:title>-------------------------- EXAMPLE 3 --------------------------</maml:title>
         <dev:code>$UserApp = New-TDUserApplication -SecurityRoleID XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX -IsAdministrator $true
-C:\&gt;Set-TDUser -UID XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX -OrgApplications $UserApp</dev:code>
+Set-TDUser -UID XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX -OrgApplications $UserApp</dev:code>
         <dev:remarks>
           <maml:para>Creates a user application object and adds that application to the specified user.</maml:para>
         </dev:remarks>
@@ -41802,14 +41871,14 @@ C:\&gt;Set-TDUser -UID XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX -OrgApplications $Us
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>New-TDVendor -Name 'Vendor Name 1' -AuthenticationToken $Authentication</dev:code>
+        <dev:code>New-TDVendor -Name 'Vendor Name 1'</dev:code>
         <dev:remarks>
           <maml:para>Creates a new vendor in TeamDynamix.</maml:para>
         </dev:remarks>
       </command:example>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 2 --------------------------</maml:title>
-        <dev:code>$ProductType | New-TDVendor -AuthenticationToken $Authentication</dev:code>
+        <dev:code>$ProductType | New-TDVendor</dev:code>
         <dev:remarks>
           <maml:para>Using an object, create a new vendor from the pipeline in TeamDynamix.</maml:para>
         </dev:remarks>
@@ -41995,7 +42064,7 @@ C:\&gt;Set-TDUser -UID XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX -OrgApplications $Us
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>Remove-TDAssetResource -ID 1055 -ResourceID 5039 -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Remove-TDAssetResource -ID 1055 -ResourceID 5039</dev:code>
         <dev:remarks>
           <maml:para>Removes asset ID 1055 from resource ID 5039 in TeamDynamix.</maml:para>
         </dev:remarks>
@@ -42155,7 +42224,7 @@ C:\&gt;Set-TDUser -UID XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX -OrgApplications $Us
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>Remove-TDAttachment -ID XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Remove-TDAttachment -ID XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX</dev:code>
         <dev:remarks>
           <maml:para>Removes attachment with ID XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX from TeamDynamix.</maml:para>
         </dev:remarks>
@@ -42341,7 +42410,7 @@ C:\&gt;Set-TDUser -UID XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX -OrgApplications $Us
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>Remove-TDConfigurationItemRelationship -ID 1055 -RelationshipID 5039 -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Remove-TDConfigurationItemRelationship -ID 1055 -RelationshipID 5039</dev:code>
         <dev:remarks>
           <maml:para>Removes relationship ID 5039 from configuration item ID 1055 in TeamDynamix.</maml:para>
         </dev:remarks>
@@ -42525,7 +42594,7 @@ C:\&gt;Set-TDUser -UID XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX -OrgApplications $Us
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>Remove-TDCustomAttributeChoice -ID 1057 -ChoiceID 67034 -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Remove-TDCustomAttributeChoice -ID 1057 -ChoiceID 67034</dev:code>
         <dev:remarks>
           <maml:para>Removes choice 67034 from custom attribute ID 1057 in TeamDynamix.</maml:para>
         </dev:remarks>
@@ -42783,7 +42852,7 @@ C:\&gt;Set-TDUser -UID XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX -OrgApplications $Us
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>Remove-TDGroupApplication -GroupID 559 -AppIDs @(17922,17932) -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Remove-TDGroupApplication -GroupID 559 -AppIDs @(17922,17932)</dev:code>
         <dev:remarks>
           <maml:para>Removes applications with IDs 17922 and 17932 from group ID 559.</maml:para>
         </dev:remarks>
@@ -43114,7 +43183,7 @@ C:\&gt;Set-TDUser -UID XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX -OrgApplications $Us
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>Remove-TDGroupMember -UID XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX -GroupID YYYYYYYY-YYYY-YYYY-YYYY-YYYYYYYYYYYY -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Remove-TDGroupMember -UID XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX -GroupID YYYYYYYY-YYYY-YYYY-YYYY-YYYYYYYYYYYY</dev:code>
         <dev:remarks>
           <maml:para>Removes user XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX from group YYYYYYYY-YYYY-YYYY-YYYY-YYYYYYYYYYYY.</maml:para>
         </dev:remarks>
@@ -43122,7 +43191,7 @@ C:\&gt;Set-TDUser -UID XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX -OrgApplications $Us
       <command:example>
         <maml:title>-------------------------- EXAMPLE 2 --------------------------</maml:title>
         <dev:code>$RemoveUserFromGroup = @{$UID='XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX';$GID='YYYYYYYY-YYYY-YYYY-YYYY-YYYYYYYYYYYY'}
-C:\&gt;$RemoveUserFromGroup | Remove-TDGroupMember -AuthenticationToken $Authentication</dev:code>
+$RemoveUserFromGroup | Remove-TDGroupMember</dev:code>
         <dev:remarks>
           <maml:para>Removes user XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX from group YYYYYYYY-YYYY-YYYY-YYYY-YYYYYYYYYYYY using the pipeline.</maml:para>
         </dev:remarks>
@@ -43282,7 +43351,7 @@ C:\&gt;$RemoveUserFromGroup | Remove-TDGroupMember -AuthenticationToken $Authent
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>Remove-TDKBArticle -ID 7 -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Remove-TDKBArticle -ID 7</dev:code>
         <dev:remarks>
           <maml:para>Deletes KnowledgeBase article with ID number 7 from TeamDynamix.</maml:para>
         </dev:remarks>
@@ -43466,7 +43535,7 @@ C:\&gt;$RemoveUserFromGroup | Remove-TDGroupMember -AuthenticationToken $Authent
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>Remove-TDKBArticleRelationship -ID 7 -RelatedArticleID 24 -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Remove-TDKBArticleRelationship -ID 7 -RelatedArticleID 24</dev:code>
         <dev:remarks>
           <maml:para>Deletes the relationship that KnowledgeBase article with ID number 7 has with article 24 from TeamDynamix.</maml:para>
         </dev:remarks>
@@ -43626,7 +43695,7 @@ C:\&gt;$RemoveUserFromGroup | Remove-TDGroupMember -AuthenticationToken $Authent
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>Remove-TDKBCategory -ID 7 -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Remove-TDKBCategory -ID 7</dev:code>
         <dev:remarks>
           <maml:para>Deletes KnowledgeBase article category with ID number 7 from TeamDynamix.</maml:para>
         </dev:remarks>
@@ -43810,7 +43879,7 @@ C:\&gt;$RemoveUserFromGroup | Remove-TDGroupMember -AuthenticationToken $Authent
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>Remove-TDRoom -RoomID XXXX -LocationID YYYY -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Remove-TDRoom -RoomID XXXX -LocationID YYYY</dev:code>
         <dev:remarks>
           <maml:para>Removes room with ID XXXX from location (building) with ID YYYY from TeamDynamix.</maml:para>
         </dev:remarks>
@@ -44018,7 +44087,7 @@ C:\&gt;$RemoveUserFromGroup | Remove-TDGroupMember -AuthenticationToken $Authent
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>Remove-TDTicketAsset -ID 99432 -AssetID 55421 -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Remove-TDTicketAsset -ID 99432 -AssetID 55421</dev:code>
         <dev:remarks>
           <maml:para>Removes asset with Asset ID 55421 from ticket ID 99432 in TeamDynamix.</maml:para>
         </dev:remarks>
@@ -44226,7 +44295,7 @@ C:\&gt;$RemoveUserFromGroup | Remove-TDGroupMember -AuthenticationToken $Authent
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>Remove-TDTicketContact -ID 99432 -UID XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Remove-TDTicketContact -ID 99432 -UID XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX</dev:code>
         <dev:remarks>
           <maml:para>Removes contact with UID XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX from ticket ID 99432 in TeamDynamix.</maml:para>
         </dev:remarks>
@@ -44434,7 +44503,7 @@ C:\&gt;$RemoveUserFromGroup | Remove-TDGroupMember -AuthenticationToken $Authent
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>Remove-TDTicketTask -ID 99432 -AssetID 55421 -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Remove-TDTicketTask -ID 99432 -AssetID 55421</dev:code>
         <dev:remarks>
           <maml:para>Removes task with task ID 55421 from ticket ID 99432 in TeamDynamix.</maml:para>
         </dev:remarks>
@@ -44594,7 +44663,7 @@ C:\&gt;$RemoveUserFromGroup | Remove-TDGroupMember -AuthenticationToken $Authent
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>Remove-TDTime -ID 1057 -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Remove-TDTime -ID 1057</dev:code>
         <dev:remarks>
           <maml:para>Removes time entry ID 1057 from TeamDynamix.</maml:para>
         </dev:remarks>
@@ -44894,14 +44963,14 @@ C:\&gt;$RemoveUserFromGroup | Remove-TDGroupMember -AuthenticationToken $Authent
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>Remove-TDUserFunctionalRole -UID XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX -RoleID 175 -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Remove-TDUserFunctionalRole -UID XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX -RoleID 175</dev:code>
         <dev:remarks>
           <maml:para>Removes user XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX from functional role 175.</maml:para>
         </dev:remarks>
       </command:example>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 2 --------------------------</maml:title>
-        <dev:code>Remove-TDUserFunctionalRole -Username smith@domain -RoleID 175 -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Remove-TDUserFunctionalRole -Username smith@domain -RoleID 175</dev:code>
         <dev:remarks>
           <maml:para>Removes user smith@domain from functional role 175. Note that the username must be unique. Best practice is to use username@domain to ensure uniqueness.</maml:para>
         </dev:remarks>
@@ -44909,7 +44978,7 @@ C:\&gt;$RemoveUserFromGroup | Remove-TDGroupMember -AuthenticationToken $Authent
       <command:example>
         <maml:title>-------------------------- EXAMPLE 3 --------------------------</maml:title>
         <dev:code>$RemoveUserFromFunctionalRole = @{$UID='XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX';$RoleID=175}
-C:\&gt;$RemoveUserFromFunctionalRole | Remove-TDUserFunctionalRole -AuthenticationToken $Authentication</dev:code>
+$RemoveUserFromFunctionalRole | Remove-TDUserFunctionalRole</dev:code>
         <dev:remarks>
           <maml:para>Removes user XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX from group 175 using the pipeline.</maml:para>
         </dev:remarks>
@@ -44971,7 +45040,7 @@ C:\&gt;$RemoveUserFromFunctionalRole | Remove-TDUserFunctionalRole -Authenticati
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
         <dev:code>$AssetChanges = Get-TDAssetFeed -DateFrom 11-2-2018 -DateTo 11-1-2018 -ReturnCount 10000
-C:\&gt; $AssetChanges | Restore-AssetErasedDataError</dev:code>
+$AssetChanges | Restore-AssetErasedDataError</dev:code>
         <dev:remarks>
           <maml:para>Retrieves 10,000 changes to assets from November 1, 2018 and finds data that has been erased. Restores that data to the asset records.</maml:para>
         </dev:remarks>
@@ -45353,7 +45422,7 @@ C:\&gt; $AssetChanges | Restore-AssetErasedDataError</dev:code>
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>Search-TD -ID 3759 -PageIndex 0 -PageSize 20 -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Search-TD -ID 3759 -PageIndex 0 -PageSize 20</dev:code>
         <dev:remarks>
           <maml:para>Executes search ID 3759, returning the first page of results, containing 20 assets from TeamDynamix.</maml:para>
         </dev:remarks>
@@ -46428,14 +46497,14 @@ C:\&gt; $AssetChanges | Restore-AssetErasedDataError</dev:code>
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>Set-TDAsset -ID 5504 - StatusID 3042 -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Set-TDAsset -ID 5504 - StatusID 3042</dev:code>
         <dev:remarks>
           <maml:para>Set new status ID for asset ID 5504 in TeamDynamix.</maml:para>
         </dev:remarks>
       </command:example>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 2 --------------------------</maml:title>
-        <dev:code>$Asset1 | Set-TDAsset -AuthenticationToken $Authentication</dev:code>
+        <dev:code>$Asset1 | Set-TDAsset</dev:code>
         <dev:remarks>
           <maml:para>Using an object, modify existing asset from the pipeline in TeamDynamix.</maml:para>
         </dev:remarks>
@@ -46443,8 +46512,8 @@ C:\&gt; $AssetChanges | Restore-AssetErasedDataError</dev:code>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 3 --------------------------</maml:title>
         <dev:code>$ExceptionFiledID = (Get-TDCustomAttribute -ComponentID Asset | Where-Object Name -eq 'Exception Filed').ID
-C:\&gt;$ExceptionFiledYesID = ((Get-TDCustomAttribute -ComponentID Asset | Where-Object Name -eq 'Exception Filed').Choices | Where-Object Name -eq 'Yes').ID
-C:\&gt;Set-TDAsset -ID 5504 -Attributes @{ID=$ExceptionFiledID;Value=$ExceptionFiledYesID}</dev:code>
+$ExceptionFiledYesID = ((Get-TDCustomAttribute -ComponentID Asset | Where-Object Name -eq 'Exception Filed').Choices | Where-Object Name -eq 'Yes').ID
+Set-TDAsset -ID 5504 -Attributes @{ID=$ExceptionFiledID;Value=$ExceptionFiledYesID}</dev:code>
         <dev:remarks>
           <maml:para>Adds or sets a custom attribute on an asset in TeamDynamix.</maml:para>
         </dev:remarks>
@@ -46793,7 +46862,7 @@ C:\&gt;Set-TDAsset -ID 5504 -Attributes @{ID=$ExceptionFiledID;Value=$ExceptionF
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>Set-TDAssetStatus -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Set-TDAssetStatus</dev:code>
         <dev:remarks>
           <maml:para>Retrieves the list of all asset statuses from TeamDynamix.</maml:para>
         </dev:remarks>
@@ -47190,44 +47259,53 @@ C:\&gt;Set-TDAsset -ID 5504 -Attributes @{ID=$ExceptionFiledID;Value=$ExceptionF
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
         <dev:code>$Credential = Get-Credential
-C:\&gt; $Authentication = Set-TDAuthentication -Credential $Credential -NoUpdate
-C:\&gt; $People = Invoke-RestMethod -Uri "https://api.teamdynamix.com/TDWebApi/api/people/lookup" -ContentType $ContentType -Method Get -Headers $Authentication.Authentication</dev:code>
-        <dev:remarks>
-          <maml:para>Authenticates using supplied credentials, and returns a list of user accounts on the system. Clears cached TeamDynamix data.</maml:para>
-        </dev:remarks>
-      </command:example>
-      <command:example>
-        <maml:title>-------------------------- EXAMPLE 2 --------------------------</maml:title>
-        <dev:code>$Credential = Get-Credential
-C:\&gt; $Authentication = Set-TDAuthentication -Credential $Credential -Passthru
-C:\&gt; $People = Invoke-RestMethod -Uri "https://api.teamdynamix.com/TDWebApi/api/people/lookup" -ContentType $ContentType -Method Get -Headers $Authentication.Authentication</dev:code>
-        <dev:remarks>
-          <maml:para>Authenticates using supplied credentials, updates the authentication information for other commands to use and returns a list of user accounts on the system. Clears cached TeamDynamix data.</maml:para>
-        </dev:remarks>
-      </command:example>
-      <command:example>
-        <maml:title>-------------------------- EXAMPLE 3 --------------------------</maml:title>
-        <dev:code>$Credential = Get-Credential
-C:\&gt; Update-TDAuthentication -Credential $Credential</dev:code>
+Update-TDAuthentication -Credential $Credential</dev:code>
         <dev:remarks>
           <maml:para>Renews the authentication for the current PowerShell session. Useful when leaving a window open for more than 24 hours, which is the lifetime of an authentication. Clears cached TeamDynamix data.</maml:para>
         </dev:remarks>
       </command:example>
       <command:example>
-        <maml:title>-------------------------- EXAMPLE 4 --------------------------</maml:title>
+        <maml:title>-------------------------- EXAMPLE 2 --------------------------</maml:title>
+        <dev:code>$AltCredential = Get-Credential
+$Alt = Set-TDAuthentication -Credential $AltCredential -NoUpdate
+Get-TDCurrentUser -AuthenticationToken $Alt.Authentication</dev:code>
+        <dev:remarks>
+          <maml:para>Creates an alternate TeamDynamix authentication that can be used for all commands, without changing the default authentication. Useful when testing as a different user.</maml:para>
+        </dev:remarks>
+      </command:example>
+      <command:example>
+        <maml:title>-------------------------- EXAMPLE 3 --------------------------</maml:title>
         <dev:code>$Credential = Get-Credential
-C:\&gt; $CredentialObject = @{'Username' = $Credential.UserName;'Password' = (ConvertFrom-SecureString $Credential.Password)}
-C:\&gt; $CredentialObject | Export-Clixml path\filename
-C:\&gt; Update-TDAuthentication -CredentialPath path\filename</dev:code>
+$CredentialObject = @{'Username' = $Credential.UserName;'Password' = (ConvertFrom-SecureString $Credential.Password)}
+$CredentialObject | Export-Clixml path\filename
+Update-TDAuthentication -CredentialPath path\filename</dev:code>
         <dev:remarks>
           <maml:para>Creates a file containing credentials which are retrieved later to renew the authentication for the current PowerShell session. Clears cached TeamDynamix data.</maml:para>
         </dev:remarks>
       </command:example>
       <command:example>
-        <maml:title>-------------------------- EXAMPLE 5 --------------------------</maml:title>
+        <maml:title>-------------------------- EXAMPLE 4 --------------------------</maml:title>
         <dev:code>Update-TDAuthentication -Credential (Get-Secret -Name 'TDCredential') -NoInvalidateCache</dev:code>
         <dev:remarks>
           <maml:para>Renews the authentication for the current PowerShell session using credentials obtained from the vault created by the Mirosoft.PowerShell.SecretManagement module. Preserves cached TeamDynamix data.</maml:para>
+        </dev:remarks>
+      </command:example>
+      <command:example>
+        <maml:title>-------------------------- EXAMPLE 5 --------------------------</maml:title>
+        <dev:code>$Credential = Get-Credential
+$Authentication = Set-TDAuthentication -Credential $Credential -NoUpdate
+$People = Invoke-RestMethod -Uri "https://api.teamdynamix.com/TDWebApi/api/people/lookup" -ContentType $ContentType -Method Get -Headers $Authentication.Authentication</dev:code>
+        <dev:remarks>
+          <maml:para>Authenticates using supplied credentials, and returns a list of user accounts on the system. Clears cached TeamDynamix data.</maml:para>
+        </dev:remarks>
+      </command:example>
+      <command:example>
+        <maml:title>-------------------------- EXAMPLE 6 --------------------------</maml:title>
+        <dev:code>$Credential = Get-Credential
+$Authentication = Set-TDAuthentication -Credential $Credential -Passthru
+$People = Invoke-RestMethod -Uri "https://api.teamdynamix.com/TDWebApi/api/people/lookup" -ContentType $ContentType -Method Get -Headers $Authentication.Authentication</dev:code>
+        <dev:remarks>
+          <maml:para>Authenticates using supplied credentials, updates the authentication information for other commands to use and returns a list of user accounts on the system. Clears cached TeamDynamix data.</maml:para>
         </dev:remarks>
       </command:example>
     </command:examples>
@@ -47553,7 +47631,7 @@ C:\&gt; Update-TDAuthentication -CredentialPath path\filename</dev:code>
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>Set-TDBlackoutWindow -ID 5531 -Name 'Modified blackout window' -Description 'Changed window' -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Set-TDBlackoutWindow -ID 5531 -Name 'Modified blackout window' -Description 'Changed window'</dev:code>
         <dev:remarks>
           <maml:para>Modifies blackout window with ID, 5531, to have a new name and description.</maml:para>
         </dev:remarks>
@@ -48393,7 +48471,7 @@ C:\&gt; Update-TDAuthentication -CredentialPath path\filename</dev:code>
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>'XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX', 'YYYYYYYY-YYYY-YYYY-YYYY-YYYYYYYYYYYY' | Set-TDBulkUser -IsActive $false -AuthenticationToken $Authentication</dev:code>
+        <dev:code>'XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX', 'YYYYYYYY-YYYY-YYYY-YYYY-YYYYYYYYYYYY' | Set-TDBulkUser -IsActive $false</dev:code>
         <dev:remarks>
           <maml:para>Sets the specified users as inactive.</maml:para>
         </dev:remarks>
@@ -48401,8 +48479,8 @@ C:\&gt; Update-TDAuthentication -CredentialPath path\filename</dev:code>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 2 --------------------------</maml:title>
         <dev:code>$TicketsApp = New-TDUserApplication -SecurityRoleID XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX -IsAdministrator $true
-C:\&gt;$AssetCIApp = New-TDUserApplication -SecurityRoleID XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX -IsAdministrator $true
-C:\&gt; 'XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX', 'YYYYYYYY-YYYY-YYYY-YYYY-YYYYYYYYYYYY' | Set-TDBulkUser -OrgApplications @($TicketsApp,$AssetCIApp) -ReplaceExistingOrgApplications -AuthenticationToken $Authentication</dev:code>
+$AssetCIApp = New-TDUserApplication -SecurityRoleID XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX -IsAdministrator $true
+'XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX', 'YYYYYYYY-YYYY-YYYY-YYYY-YYYYYYYYYYYY' | Set-TDBulkUser -OrgApplications @($TicketsApp,$AssetCIApp) -ReplaceExistingOrgApplications</dev:code>
         <dev:remarks>
           <maml:para>Replaces the current org applications for the specified user with the specified org applications.</maml:para>
         </dev:remarks>
@@ -48946,14 +49024,14 @@ C:\&gt; 'XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX', 'YYYYYYYY-YYYY-YYYY-YYYY-YYYYYYY
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>Set-TDConfigurationItem -Name 'Configuration Item 1' -TypeID 3042 -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Set-TDConfigurationItem -Name 'Configuration Item 1' -TypeID 3042</dev:code>
         <dev:remarks>
           <maml:para>Creates a new asset in TeamDynamix.</maml:para>
         </dev:remarks>
       </command:example>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 2 --------------------------</maml:title>
-        <dev:code>$CI | Set-TDConfigurationItem -AuthenticationToken $Authentication</dev:code>
+        <dev:code>$CI | Set-TDConfigurationItem</dev:code>
         <dev:remarks>
           <maml:para>Using an object, create a new asset from the pipeline in TeamDynamix.</maml:para>
         </dev:remarks>
@@ -49209,7 +49287,7 @@ C:\&gt; 'XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX', 'YYYYYYYY-YYYY-YYYY-YYYY-YYYYYYY
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>Set-TDConfigurationItemType -ID 4531 -Name 'Modified configuration item type' -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Set-TDConfigurationItemType -ID 4531 -Name 'Modified configuration item type'</dev:code>
         <dev:remarks>
           <maml:para>Modifies configuration item type with ID 4531, to have a new name.</maml:para>
         </dev:remarks>
@@ -49513,7 +49591,7 @@ C:\&gt; 'XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX', 'YYYYYYYY-YYYY-YYYY-YYYY-YYYYYYY
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>Set-TDConfigurationRelationshipType -ID 4531 -Description 'Modified relationship type' -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Set-TDConfigurationRelationshipType -ID 4531 -Description 'Modified relationship type'</dev:code>
         <dev:remarks>
           <maml:para>Modifies configuration relationship type with ID 4531, to have a new name.</maml:para>
         </dev:remarks>
@@ -49769,7 +49847,7 @@ C:\&gt; 'XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX', 'YYYYYYYY-YYYY-YYYY-YYYY-YYYYYYY
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>Set-TDCustomAttributeChoice -ID 54465 -ChoiceID 3442 -IsActive $false -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Set-TDCustomAttributeChoice -ID 54465 -ChoiceID 3442 -IsActive $false</dev:code>
         <dev:remarks>
           <maml:para>Sets choice ID 3442 for custom attribute ID 54465 to inactive in TeamDynamix.</maml:para>
         </dev:remarks>
@@ -50727,7 +50805,7 @@ C:\&gt; 'XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX', 'YYYYYYYY-YYYY-YYYY-YYYY-YYYYYYY
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>Set-TDDepartment -ID 4432 -Name 'Psychobotany' -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Set-TDDepartment -ID 4432 -Name 'Psychobotany'</dev:code>
         <dev:remarks>
           <maml:para>Changes the name of department ID 4432 to 'Psychobotany' in TeamDynamix.</maml:para>
         </dev:remarks>
@@ -51009,7 +51087,7 @@ C:\&gt; 'XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX', 'YYYYYYYY-YYYY-YYYY-YYYY-YYYYYYY
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>Set-TDFunctionalRole -ID 2077 -Name 'Manager2' -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Set-TDFunctionalRole -ID 2077 -Name 'Manager2'</dev:code>
         <dev:remarks>
           <maml:para>Updates functional role with ID 2077, to be named 'Manager2'.</maml:para>
         </dev:remarks>
@@ -51427,7 +51505,7 @@ C:\&gt; 'XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX', 'YYYYYYYY-YYYY-YYYY-YYYY-YYYYYYY
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>Set-TDGroup -ID 3528 -Name 'Psychobotany Support' -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Set-TDGroup -ID 3528 -Name 'Psychobotany Support'</dev:code>
         <dev:remarks>
           <maml:para>Changes the name of group ID 4432 to "Psychobotany Support" in TeamDynamix.</maml:para>
         </dev:remarks>
@@ -51435,8 +51513,8 @@ C:\&gt; 'XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX', 'YYYYYYYY-YYYY-YYYY-YYYY-YYYYYYY
       <command:example>
         <maml:title>-------------------------- EXAMPLE 2 --------------------------</maml:title>
         <dev:code>$GroupApplication1 = New-TDGroupApplication -AppID 243
-C:\&gt;$GroupApplication2 = New-TDGroupApplication -AppID 529
-C:\&gt;Set-TDGroup -ID 3528 -PlatformApplications @($GroupApplication1, $GroupApplication2) -AuthenticationToken $Authentication</dev:code>
+$GroupApplication2 = New-TDGroupApplication -AppID 529
+Set-TDGroup -ID 3528 -PlatformApplications @($GroupApplication1, $GroupApplication2)</dev:code>
         <dev:remarks>
           <maml:para>Sets the platform applications, ID 243 and 529, for group ID 3528.</maml:para>
         </dev:remarks>
@@ -52230,7 +52308,7 @@ C:\&gt;Set-TDGroup -ID 3528 -PlatformApplications @($GroupApplication1, $GroupAp
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>Set-TDKBArticle 111 -Subject "This is a new subject" -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Set-TDKBArticle 111 -Subject "This is a new subject"</dev:code>
         <dev:remarks>
           <maml:para>Changes the subject of KnowledgeBase article ID 111 to "This is a new subject."</maml:para>
         </dev:remarks>
@@ -52558,7 +52636,7 @@ C:\&gt;Set-TDGroup -ID 3528 -PlatformApplications @($GroupApplication1, $GroupAp
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>Set-TDKBCategory -ID 111 -Description "This is a new category" -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Set-TDKBCategory -ID 111 -Description "This is a new category"</dev:code>
         <dev:remarks>
           <maml:para>Changes the description of Knowledge Base article category ID 111 to "This is a new category."</maml:para>
         </dev:remarks>
@@ -53030,7 +53108,7 @@ C:\&gt;Set-TDGroup -ID 3528 -PlatformApplications @($GroupApplication1, $GroupAp
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>Set-TDLocation -ID 24447 -Description 'Student dormitory' -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Set-TDLocation -ID 24447 -Description 'Student dormitory'</dev:code>
         <dev:remarks>
           <maml:para>Sets the description for location (building) with ID 24447 to "Student dormitory" in TeamDynamix.</maml:para>
         </dev:remarks>
@@ -53358,7 +53436,7 @@ C:\&gt;Set-TDGroup -ID 3528 -PlatformApplications @($GroupApplication1, $GroupAp
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>New-TDMaintenanceWindow -Name 'New maintenance window' -Description 'Maintenance window for assets' -AuthenticationToken $Authentication</dev:code>
+        <dev:code>New-TDMaintenanceWindow -Name 'New maintenance window' -Description 'Maintenance window for assets'</dev:code>
         <dev:remarks>
           <maml:para>Creates a new active maintenance window named, "New maintenance window".</maml:para>
         </dev:remarks>
@@ -53782,14 +53860,14 @@ C:\&gt;Set-TDGroup -ID 3528 -PlatformApplications @($GroupApplication1, $GroupAp
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>Set-TDProductModel -ID 3462 -Name 'Product Name 2' -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Set-TDProductModel -ID 3462 -Name 'Product Name 2'</dev:code>
         <dev:remarks>
           <maml:para>Creates a new product model in TeamDynamix.</maml:para>
         </dev:remarks>
       </command:example>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 2 --------------------------</maml:title>
-        <dev:code>$ProductModel | Set-TDProductModel -AuthenticationToken $Authentication</dev:code>
+        <dev:code>$ProductModel | Set-TDProductModel</dev:code>
         <dev:remarks>
           <maml:para>Using an object, create a new product model from the pipeline in TeamDynamix.</maml:para>
         </dev:remarks>
@@ -53797,8 +53875,8 @@ C:\&gt;Set-TDGroup -ID 3528 -PlatformApplications @($GroupApplication1, $GroupAp
       <command:example>
         <maml:title>-------------------------- EXAMPLE 3 --------------------------</maml:title>
         <dev:code>$OutOfSupportID = (Get-TDCustomAttribute -ComponentID ProductModel | Where-Object Name -eq 'OutOfSupport').ID
-C:\&gt;$OutOfSupportYesID = ((Get-TDCustomAttribute -ComponentID ProductModel | Where-Object Name -eq 'OutOfSupport').Choices | Where-Object Name -eq 'Yes').ID
-C:\&gt;Set-TDProductModel -ID 71292 -Attributes @{ID=$OutOfSupportID;Value=$OutOfSupportYesID}</dev:code>
+$OutOfSupportYesID = ((Get-TDCustomAttribute -ComponentID ProductModel | Where-Object Name -eq 'OutOfSupport').Choices | Where-Object Name -eq 'Yes').ID
+Set-TDProductModel -ID 71292 -Attributes @{ID=$OutOfSupportID;Value=$OutOfSupportYesID}</dev:code>
         <dev:remarks>
           <maml:para>Set the OutOfSupport custom attribute to "Yes" for product model ID 71292.</maml:para>
         </dev:remarks>
@@ -54174,14 +54252,14 @@ C:\&gt;Set-TDProductModel -ID 71292 -Attributes @{ID=$OutOfSupportID;Value=$OutO
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>Set-TDProductType -ID 5599 -Name 'Product Name 2' -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Set-TDProductType -ID 5599 -Name 'Product Name 2'</dev:code>
         <dev:remarks>
           <maml:para>Edits a new product type in TeamDynamix.</maml:para>
         </dev:remarks>
       </command:example>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 2 --------------------------</maml:title>
-        <dev:code>$ProductType | Set-TDProductType -AuthenticationToken $Authentication</dev:code>
+        <dev:code>$ProductType | Set-TDProductType</dev:code>
         <dev:remarks>
           <maml:para>Using an object, edits product type from the pipeline in TeamDynamix.</maml:para>
         </dev:remarks>
@@ -58074,7 +58152,7 @@ C:\&gt;Set-TDProductModel -ID 71292 -Attributes @{ID=$OutOfSupportID;Value=$OutO
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>Set-TDRoom -LocationID XXXX -RoomID YYYY -ExternalID '0120' -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Set-TDRoom -LocationID XXXX -RoomID YYYY -ExternalID '0120'</dev:code>
         <dev:remarks>
           <maml:para>Sets the external ID to "0120" for room with ID YYYY, in location (building) with ID XXXX in TeamDynamix.</maml:para>
         </dev:remarks>
@@ -58368,7 +58446,7 @@ C:\&gt;Set-TDProductModel -ID 71292 -Attributes @{ID=$OutOfSupportID;Value=$OutO
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>Set-TDSecurityRole -ID 'xxxxxxxx-yyyy-yyyy-yyyy-zzzzzzzzzzzz' -Name 'Manager2' -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Set-TDSecurityRole -ID 'xxxxxxxx-yyyy-yyyy-yyyy-zzzzzzzzzzzz' -Name 'Manager2'</dev:code>
         <dev:remarks>
           <maml:para>Updates functional role with UID xxxxxxxx-yyyy-yyyy-yyyy-zzzzzzzzzzzz, to be named 'Manager2'.</maml:para>
         </dev:remarks>
@@ -59416,7 +59494,7 @@ C:\&gt;Set-TDProductModel -ID 71292 -Attributes @{ID=$OutOfSupportID;Value=$OutO
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>Set-TDTicket -ID 9934 -Description 'Test ticket' -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Set-TDTicket -ID 9934 -Description 'Test ticket'</dev:code>
         <dev:remarks>
           <maml:para>Modifies description of ticket ID 9934 in TeamDynamix.</maml:para>
         </dev:remarks>
@@ -59729,7 +59807,7 @@ C:\&gt;Set-TDProductModel -ID 71292 -Attributes @{ID=$OutOfSupportID;Value=$OutO
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>Set-TDTicketStatus -ID 87775 -Name 'Slow Test' -Description 'Test status for slow items' -Order 1 -StatusClass 'New' -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Set-TDTicketStatus -ID 87775 -Name 'Slow Test' -Description 'Test status for slow items' -Order 1 -StatusClass 'New'</dev:code>
         <dev:remarks>
           <maml:para>Modifies ticket status with ID 87775.</maml:para>
         </dev:remarks>
@@ -60153,7 +60231,7 @@ C:\&gt;Set-TDProductModel -ID 71292 -Attributes @{ID=$OutOfSupportID;Value=$OutO
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>Set-TDTicketTask -ID 99432 -TaskID 27744 -Title 'First task' -ResponsibleUID XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Set-TDTicketTask -ID 99432 -TaskID 27744 -Title 'First task' -ResponsibleUID XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX</dev:code>
         <dev:remarks>
           <maml:para>Changes task with ID 27744 to title "First task" on ticket wth ID 99432 in TeamDynamix.</maml:para>
         </dev:remarks>
@@ -62768,14 +62846,14 @@ C:\&gt;Set-TDProductModel -ID 71292 -Attributes @{ID=$OutOfSupportID;Value=$OutO
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>Set-TDUser -Username smith -FirstName Jane -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Set-TDUser -Username smith -FirstName Jane</dev:code>
         <dev:remarks>
           <maml:para>Changes the first name on user account for "Smith" to "Jane".</maml:para>
         </dev:remarks>
       </command:example>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 2 --------------------------</maml:title>
-        <dev:code>Set-TDUser -UID XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX -FirstName Jane -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Set-TDUser -UID XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX -FirstName Jane</dev:code>
         <dev:remarks>
           <maml:para>Changes the first name on user account with UID XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX to "Jane".</maml:para>
         </dev:remarks>
@@ -62783,7 +62861,7 @@ C:\&gt;Set-TDProductModel -ID 71292 -Attributes @{ID=$OutOfSupportID;Value=$OutO
       <command:example>
         <maml:title>-------------------------- EXAMPLE 3 --------------------------</maml:title>
         <dev:code>$UserApp = New-TDUserApplication -SecurityRoleID XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX -IsAdministrator $true
-C:\&gt;Set-TDUser -UID XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX -OrgApplications $UserApp</dev:code>
+Set-TDUser -UID XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX -OrgApplications $UserApp</dev:code>
         <dev:remarks>
           <maml:para>Creates a user application object and adds that application to the specified user.</maml:para>
         </dev:remarks>
@@ -63327,14 +63405,14 @@ C:\&gt;Set-TDUser -UID XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX -OrgApplications $Us
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>Set-TDVendor -ID 5400 -Name 'Updated Vendor Name' -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Set-TDVendor -ID 5400 -Name 'Updated Vendor Name'</dev:code>
         <dev:remarks>
           <maml:para>Updates the vendor name in TeamDynamix.</maml:para>
         </dev:remarks>
       </command:example>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 2 --------------------------</maml:title>
-        <dev:code>$ProductType | New-TDVendor -AuthenticationToken $Authentication</dev:code>
+        <dev:code>$ProductType | New-TDVendor</dev:code>
         <dev:remarks>
           <maml:para>Using an object, edits the vendor from the pipeline in TeamDynamix.</maml:para>
         </dev:remarks>
@@ -65256,14 +65334,14 @@ C:\&gt;Set-TDUser -UID XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX -OrgApplications $Us
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>Update-TDTicket -ID 99432 -Comments 'Working on problem' -Notify keller.4@osu.edu, seconduser@domain -NewStatusName 'In Process' -IsPrivate $false -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Update-TDTicket -ID 99432 -Comments 'Working on problem' -Notify keller.4@osu.edu, seconduser@domain -NewStatusName 'In Process' -IsPrivate $false</dev:code>
         <dev:remarks>
           <maml:para>Updates ticket ID 99432 from TeamDynamix and notifies two users.</maml:para>
         </dev:remarks>
       </command:example>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 2 --------------------------</maml:title>
-        <dev:code>Update-TDTicket -ID 99432 -Comments 'Working on problem' -Notify (Get-TDTicketContacts 99432 -Environment Sandbox -IncludeResponsible).AlertEmail -NewStatusName 'In Process' -IsPrivate $false -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Update-TDTicket -ID 99432 -Comments 'Working on problem' -Notify (Get-TDTicketContacts 99432 -Environment Sandbox -IncludeResponsible).AlertEmail -NewStatusName 'In Process' -IsPrivate $false</dev:code>
         <dev:remarks>
           <maml:para>Updates ticket ID 99432 from TeamDynamix and notify the contacts and the person responsible for the ticket.</maml:para>
         </dev:remarks>
@@ -65705,7 +65783,7 @@ C:\&gt;Set-TDUser -UID XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX -OrgApplications $Us
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>Update-TDTicketTask -ID 99432 -Task ID 27744 -Comment 'Task comment' -AuthenticationToken $Authentication</dev:code>
+        <dev:code>Update-TDTicketTask -ID 99432 -Task ID 27744 -Comment 'Task comment'</dev:code>
         <dev:remarks>
           <maml:para>Updates status of task 27744 with comment "Task comment" on ticket wth ID 99432 in TeamDynamix.</maml:para>
         </dev:remarks>
@@ -66229,7 +66307,7 @@ C:\&gt;Set-TDUser -UID XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX -OrgApplications $Us
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>Update-TDUserGroupMembership -Username smith.3@osu.edu -WorkAddress 'Administration Building' -Authentication $Authentication</dev:code>
+        <dev:code>Update-TDUserGroupMembership -Username smith.3@osu.edu -WorkAddress 'Administration Building'</dev:code>
         <dev:remarks>
           <maml:para>Updates user smith.3@osu.edu's group memberships to include the work address of Administration Building.</maml:para>
         </dev:remarks>
