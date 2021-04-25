@@ -390,6 +390,10 @@ function Get-TDProject
             return ($Return | ForEach-Object {[TeamDynamix_Api_Projects_Project]::new($_)})
         }
     }
+    end
+    {
+        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
+    }
 }
 
 function Set-TDProject
@@ -632,6 +636,10 @@ function Set-TDProject
             Write-Output $Return
         }
     }
+    end
+    {
+        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
+    }
 }
 
 function Update-TDProject
@@ -684,6 +692,10 @@ function Update-TDProject
         }
         return $Return
     }
+    end
+    {
+        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
+    }
 }
 
 function Get-TDProjectResources
@@ -725,6 +737,10 @@ function Get-TDProjectResources
             $Return = ($Return | ForEach-Object {[TeamDynamix_Api_Projects_Resource]::new($_)})
         }
         return $Return
+    }
+    end
+    {
+        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
     }
 }
 
@@ -826,6 +842,10 @@ function Get-TDProjectPlan
             return ($Return | ForEach-Object {[TeamDynamix_Api_Plans_Plan]::new($_)})
         }
     }
+    end
+    {
+        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
+    }
 }
 
 function Set-TDProjectPlan
@@ -896,6 +916,10 @@ function Set-TDProjectPlan
             return $Return
         }
     }
+    end
+    {
+        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
+    }
 }
 
 function Get-TDProjectPlanCheckoutUser
@@ -943,6 +967,10 @@ function Get-TDProjectPlanCheckoutUser
         }
         return $Return
     }
+    end
+    {
+        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
+    }
 }
 
 function Get-TDProjectPlanFeed
@@ -989,6 +1017,10 @@ function Get-TDProjectPlanFeed
             $Return = ($Return | ForEach-Object {[TeamDynamix_Api_Feed_ItemUpdate]::new($_)})
         }
         return $Return
+    }
+    end
+    {
+        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
     }
 }
 
@@ -1063,6 +1095,10 @@ function Get-TDProjectPlanTask
             }
         }
         return $Return
+    }
+    end
+    {
+        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
     }
 }
 
@@ -1482,6 +1518,10 @@ function Set-TDProjectPlanTask
             Write-Output $Return
         }
     }
+    end
+    {
+        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
+    }
 }
 
 function Get-TDProjectPlanTaskFeed
@@ -1533,6 +1573,10 @@ function Get-TDProjectPlanTaskFeed
             $Return = ($Return | ForEach-Object {[TeamDynamix_Api_Feed_ItemUpdate]::new($_)})
         }
         return $Return
+    }
+    end
+    {
+        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
     }
 }
 
@@ -1638,6 +1682,10 @@ function Update-TDProjectPlanTask
         }
         return $Return
     }
+    end
+    {
+        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
+    }
 }
 
 function Get-TDProjectRiskStatuses
@@ -1674,6 +1722,10 @@ function Get-TDProjectRiskStatuses
             $Return = ($Return | ForEach-Object {[TeamDynamix_Api_Issues_IssueStatus]::new($_)})
         }
         return $Return
+    }
+    end
+    {
+        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
     }
 }
 
@@ -1875,6 +1927,10 @@ function Get-TDProjectRisk
             return ($Return | ForEach-Object {[TeamDynamix_Api_Issues_Risk]::new($_)})
         }
     }
+    end
+    {
+        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
+    }
 }
 
 function Set-TDProjectRisk
@@ -1960,6 +2016,10 @@ function Set-TDProjectRisk
                 return [TeamDynamix_Api_Feed_ItemUpdate]::new($Return)
             }
         }
+    }
+    end
+    {
+        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
     }
 }
 
@@ -2077,8 +2137,9 @@ function New-TDProjectRisk
             }
         }
     }
-    End
+    end
     {
+        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
     }
 }
 
@@ -2126,6 +2187,10 @@ function Get-TDProjectRiskFeed
             $Return = ($Return | ForEach-Object {[TeamDynamix_Api_Feed_ItemUpdate]::new($_)})
         }
         return $Return
+    }
+    end
+    {
+        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
     }
 }
 
@@ -2203,6 +2268,10 @@ function Update-TDProjectRisk
         {
             return [TeamDynamix_Api_Feed_ItemUpdate]::new($Return)
         }
+    }
+    end
+    {
+        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
     }
 }
 
@@ -2402,6 +2471,10 @@ function Get-TDProjectIssue
             return ($Return | ForEach-Object {[TeamDynamix_Api_Issues_Issue]::new($_)})
         }
     }
+    end
+    {
+        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
+    }
 }
 
 function Set-TDProjectIssue
@@ -2510,8 +2583,9 @@ function Set-TDProjectIssue
             }
         }
     }
-    End
+    end
     {
+        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
     }
 }
 
@@ -2622,6 +2696,10 @@ function New-TDProjectIssue
             }
         }
     }
+    end
+    {
+        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
+    }
 }
 
 function Update-TDProjectIssue
@@ -2699,6 +2777,10 @@ function Update-TDProjectIssue
             return [TeamDynamix_Api_Feed_ItemUpdate]::new($Return)
         }
     }
+    end
+    {
+        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
+    }
 }
 
 function Get-TDProjectIssueFeed
@@ -2746,6 +2828,10 @@ function Get-TDProjectIssueFeed
         }
         return $Return
     }
+    end
+    {
+        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
+    }
 }
 
 function Get-TDProjectIssueStatuses
@@ -2782,6 +2868,10 @@ function Get-TDProjectIssueStatuses
             $Return = ($Return | ForEach-Object {[TeamDynamix_Api_Issues_IssueStatus]::new($_)})
         }
         return $Return
+    }
+    end
+    {
+        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
     }
 }
 
@@ -2849,6 +2939,10 @@ function Get-TDProjectFolder
         }
         return $Return
     }
+    end
+    {
+        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
+    }
 }
 
 function Get-TDProjectFile
@@ -2908,6 +3002,10 @@ function Get-TDProjectFile
             }
         }
         return $Return
+    }
+    end
+    {
+        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
     }
 }
 function Add-TDProjectFile
@@ -2985,5 +3083,9 @@ function Add-TDProjectFile
                 return [TeamDynamix_Api_Briefcase_File]::new($Return)
             }
         }
+    }
+    end
+    {
+        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
     }
 }

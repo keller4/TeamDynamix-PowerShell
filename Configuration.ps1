@@ -705,7 +705,7 @@ function Update-ConfigurationFile {
                             DefaultAccountID = @"
                                 `$User.DistinguishedName -match '(?:(^CN=.+?,OU=_(.+?),.*)(?:OU=The Ohio State University))|(?:(^CN=.+?,(OU=.+?,)?OU=(.+?),.*)(?!OU=The Ohio State University))' | Out-Null # Department DN starts with "OU=_" and stop collecting at the comma that follows
                                 `$DepartmentName = `$Matches[[int](`$Matches.Keys | Measure-Object -Maximum).Maximum] # Take last match
-                                (`$TDAccounts | Where-Object name -eq `$DepartmentName).ID
+                                `$TDAccounts.Get(`$DepartmentName).ID
 "@
                             Username     = '"$($User.UserPrincipalName.Split(`"@`")[0])@$($TDConfig.DefaultEmailDomain)"'
                             IsActive     = '$User.Enabled'

@@ -111,6 +111,10 @@ function Get-TDReport
         }
         return $Result
     }
+    end
+    {
+        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
+    }
 }
 
 function Get-TDSearch
@@ -146,7 +150,7 @@ function Get-TDSearch
         $Attributes.ParameterSetName = 'Name'
         $AttributeCollection = New-Object -Type System.Collections.ObjectModel.Collection[System.Attribute]
         $AttributeCollection.Add($Attributes)
-        $ValidateSet = New-Object System.Management.Automation.ValidateSetAttribute(($TDApplications.GetAll() | Where-Object Type -ne 'Standard').Name)
+        $ValidateSet = New-Object System.Management.Automation.ValidateSetAttribute(($TDApplications.GetAll($true) | Where-Object Type -ne 'Standard').Name)
         $AttributeCollection.Add($ValidateSet)
         $AppName = New-Object -Type System.Management.Automation.RuntimeDefinedParameter("AppName", [string], $AttributeCollection)
         # Specify a default value if none is provided, based on which function name is used
@@ -208,6 +212,10 @@ function Get-TDSearch
             $Return = ($Return | ForEach-Object {[TeamDynamix_Api_SavedSearches_SavedSearch]::new($_)})
         }
         return $Return
+    }
+    end
+    {
+        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
     }
 }
 
@@ -280,7 +288,7 @@ function Search-TD
         $Attributes.ParameterSetName = 'AppName'
         $AttributeCollection = New-Object -Type System.Collections.ObjectModel.Collection[System.Attribute]
         $AttributeCollection.Add($Attributes)
-        $ValidateSet = New-Object System.Management.Automation.ValidateSetAttribute(($TDApplications.GetAll() | Where-Object Type -ne 'Standard').Name)
+        $ValidateSet = New-Object System.Management.Automation.ValidateSetAttribute(($TDApplications.GetAll($true) | Where-Object Type -ne 'Standard').Name)
         $AttributeCollection.Add($ValidateSet)
         $AppName = New-Object -Type System.Management.Automation.RuntimeDefinedParameter("AppName", [string], $AttributeCollection)
         # Specify a default value if none is provided, based on which function name is used
@@ -364,7 +372,11 @@ function Search-TD
             #$Return = ($Return | ForEach-Object {[TeamDynamix_Api_Feed_ItemUpdate]::new($_)})
         }
         Write-ActivityHistory ($SearchOptions | Out-String)
-    return $Return
+        return $Return
+    }
+    end
+    {
+        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
     }
 }
 
@@ -440,7 +452,7 @@ function Get-TDFeed
         $Attributes.HelpMessage = 'Name of application whose custom attributes will be retrieved'
         $AttributeCollection = New-Object -Type System.Collections.ObjectModel.Collection[System.Attribute]
         $AttributeCollection.Add($Attributes)
-        $ValidateSet = New-Object System.Management.Automation.ValidateSetAttribute(($TDApplications.GetAll() | Where-Object Type -ne 'Standard').Name)
+        $ValidateSet = New-Object System.Management.Automation.ValidateSetAttribute(($TDApplications.GetAll($true) | Where-Object Type -ne 'Standard').Name)
         $AttributeCollection.Add($ValidateSet)
         $AppName = New-Object -Type System.Management.Automation.RuntimeDefinedParameter("AppName", [string], $AttributeCollection)
         # Specify a default value if none is provided, based on which function name is used
@@ -550,6 +562,10 @@ function Get-TDFeed
         }
         return $Return
     }
+    end
+    {
+        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
+    }
 }
 
 function Get-TDForm
@@ -586,7 +602,7 @@ function Get-TDForm
         $Attributes.HelpMessage = 'Name of application whose forms will be retrieved'
         $AttributeCollection = New-Object -Type System.Collections.ObjectModel.Collection[System.Attribute]
         $AttributeCollection.Add($Attributes)
-        $ValidateSet = New-Object System.Management.Automation.ValidateSetAttribute(($TDApplications.GetAll() | Where-Object Type -ne 'Standard').Name)
+        $ValidateSet = New-Object System.Management.Automation.ValidateSetAttribute(($TDApplications.GetAll($true) | Where-Object Type -ne 'Standard').Name)
         $AttributeCollection.Add($ValidateSet)
         $AppName = New-Object -Type System.Management.Automation.RuntimeDefinedParameter("AppName", [string], $AttributeCollection)
         # Specify a default value if none is provided, based on which function name is used
@@ -624,8 +640,8 @@ function Get-TDForm
 
     process
     {
-        # Get ID for application if name is supplied
-        if ($AppName.Value)
+        # Get ID for application if AppID is not supplied
+        if (-not $AppID)
         {
             $AppID = $TDApplications.Get($AppName.Value,$Environment).AppID
         }
@@ -651,5 +667,9 @@ function Get-TDForm
             $Return = ($Return | ForEach-Object {[TeamDynamix_Api_Forms_Form]::new($_)})
         }
         return $Return
+    }
+    end
+    {
+        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
     }
 }

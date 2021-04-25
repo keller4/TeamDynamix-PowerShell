@@ -235,6 +235,10 @@ function Get-TDTime
             return ($Return | ForEach-Object {[TeamDynamix_Api_Time_TimeEntry]::new($_)})
         }
     }
+    end
+    {
+        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
+    }
 }
 
 function Get-TDTimeType
@@ -427,6 +431,10 @@ function Get-TDTimeType
             return ($Return | ForEach-Object {[TeamDynamix_Api_Time_TimeType]::new($_)})
         }
     }
+    end
+    {
+        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
+    }
 }
 
 function Set-TDTime
@@ -591,6 +599,10 @@ function Set-TDTime
             }
         }
     }
+    end
+    {
+        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
+    }
 }
 
 function Remove-TDTime
@@ -634,6 +646,10 @@ function Remove-TDTime
             $Return = Invoke-RESTCall -Uri "$BaseURI/time/delete" -ContentType $ContentType -Method Post -Headers $AuthenticationToken -Body (ConvertTo-Json $ID -Depth 10)
             return [TeamDynamix_Api_Time_BulkOperationResults]::new($Return)
         }
+    }
+    end
+    {
+        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
     }
 }
 
@@ -697,6 +713,10 @@ function Get-TDTimeLockedDays
         Write-ActivityHistory "Getting locked days."
         return Invoke-RESTCall -Uri "$BaseURI/time/locked$DateQuery" -ContentType $ContentType -Method Get -Headers $AuthenticationToken
     }
+    end
+    {
+        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
+    }
 }
 
 function Get-TDTimeReport
@@ -753,6 +773,10 @@ function Get-TDTimeReport
         {
             return [TeamDynamix_Api_Time_TimeReport]::new($Return)
         }
+    }
+    end
+    {
+        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
     }
 }
 
@@ -831,5 +855,9 @@ function Get-TDTimeTypeLimits
         {
             return ($Return | ForEach-Object {[TeamDynamix_Api_Time_TimeTypeLimit]::new($_)})
         }
+    }
+    end
+    {
+        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
     }
 }
