@@ -5050,7 +5050,7 @@ $AddUserToFunctionalRole | Remove-TDFunctionalRole</dev:code>
       </maml:description>
     </command:details>
     <maml:description>
-      <maml:para>Get directory information about people at OSU using the OSU master directory for faculty, staff, and students. Uses LDAP interface to OSU's FindPeople system.</maml:para>
+      <maml:para>Get directory information about people at OSU using the OSU master directory for faculty, staff, and students. Uses web interface to OSU's public FindPeople system or the REST API to the private PeopleAPI system (requires credentials and may only be accessed from the campus network).</maml:para>
     </maml:description>
     <command:syntax>
       <command:syntaxItem>
@@ -5058,7 +5058,7 @@ $AddUserToFunctionalRole | Remove-TDFunctionalRole</dev:code>
         <command:parameter required="true" variableLength="true" globbing="false" pipelineInput="True (ByValue)" position="1" aliases="Username">
           <maml:name>Name</maml:name>
           <maml:description>
-            <maml:para>Name of individual(s) to look up. Must be of the form 'name.n', 'lastname' or 'firstname lastname'.</maml:para>
+            <maml:para>Name of individual(s) to look up in FindPeople. Must be of the form 'name.n', 'lastname' or 'firstname lastname'.</maml:para>
           </maml:description>
           <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
           <dev:type>
@@ -5067,7 +5067,58 @@ $AddUserToFunctionalRole | Remove-TDFunctionalRole</dev:code>
           </dev:type>
           <dev:defaultValue>None</dev:defaultValue>
         </command:parameter>
-        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="2" aliases="Property">
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="Property">
+          <maml:name>Properties</maml:name>
+          <maml:description>
+            <maml:para>Properties of the record to return and show. By default, all properties are returned, but only SearchName, Username, Name, and Affiliation are shown. If specific properties are requested, only the default properties and the requested properties are returned and displayed.</maml:para>
+          </maml:description>
+          <command:parameterValue required="true" variableLength="false">String[]</command:parameterValue>
+          <dev:type>
+            <maml:name>String[]</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>None</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+          <maml:name>Connector</maml:name>
+          <maml:description>
+            <maml:para>Provided for compatibility with TeamDynamix data connectors</maml:para>
+          </maml:description>
+          <command:parameterValue required="true" variableLength="false">PSObject</command:parameterValue>
+          <dev:type>
+            <maml:name>PSObject</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>None</dev:defaultValue>
+        </command:parameter>
+      </command:syntaxItem>
+      <command:syntaxItem>
+        <maml:name>Get-OSUDirectoryListing</maml:name>
+        <command:parameter required="true" variableLength="true" globbing="false" pipelineInput="True (ByValue)" position="1" aliases="none">
+          <maml:name>NameN</maml:name>
+          <maml:description>
+            <maml:para>Name.n of individual(s) to look up in the PeopleAPI. Must be of the form "Name.N".</maml:para>
+          </maml:description>
+          <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+          <dev:type>
+            <maml:name>String</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>None</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="true" variableLength="true" globbing="false" pipelineInput="False" position="1" aliases="none">
+          <maml:name>Credential</maml:name>
+          <maml:description>
+            <maml:para>Credential to use to authenticate to the PeopleAPI REST API.</maml:para>
+          </maml:description>
+          <command:parameterValue required="true" variableLength="false">PSCredential</command:parameterValue>
+          <dev:type>
+            <maml:name>PSCredential</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>None</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="Property">
           <maml:name>Properties</maml:name>
           <maml:description>
             <maml:para>Properties of the record to return and show. By default, all properties are returned, but only SearchName, Username, Name, and Affiliation are shown. If specific properties are requested, only the default properties and the requested properties are returned and displayed.</maml:para>
@@ -5097,7 +5148,7 @@ $AddUserToFunctionalRole | Remove-TDFunctionalRole</dev:code>
       <command:parameter required="true" variableLength="true" globbing="false" pipelineInput="True (ByValue)" position="1" aliases="Username">
         <maml:name>Name</maml:name>
         <maml:description>
-          <maml:para>Name of individual(s) to look up. Must be of the form 'name.n', 'lastname' or 'firstname lastname'.</maml:para>
+          <maml:para>Name of individual(s) to look up in FindPeople. Must be of the form 'name.n', 'lastname' or 'firstname lastname'.</maml:para>
         </maml:description>
         <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
         <dev:type>
@@ -5106,7 +5157,31 @@ $AddUserToFunctionalRole | Remove-TDFunctionalRole</dev:code>
         </dev:type>
         <dev:defaultValue>None</dev:defaultValue>
       </command:parameter>
-      <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="2" aliases="Property">
+      <command:parameter required="true" variableLength="true" globbing="false" pipelineInput="True (ByValue)" position="1" aliases="none">
+        <maml:name>NameN</maml:name>
+        <maml:description>
+          <maml:para>Name.n of individual(s) to look up in the PeopleAPI. Must be of the form "Name.N".</maml:para>
+        </maml:description>
+        <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+        <dev:type>
+          <maml:name>String</maml:name>
+          <maml:uri />
+        </dev:type>
+        <dev:defaultValue>None</dev:defaultValue>
+      </command:parameter>
+      <command:parameter required="true" variableLength="true" globbing="false" pipelineInput="False" position="1" aliases="none">
+        <maml:name>Credential</maml:name>
+        <maml:description>
+          <maml:para>Credential to use to authenticate to the PeopleAPI REST API.</maml:para>
+        </maml:description>
+        <command:parameterValue required="true" variableLength="false">PSCredential</command:parameterValue>
+        <dev:type>
+          <maml:name>PSCredential</maml:name>
+          <maml:uri />
+        </dev:type>
+        <dev:defaultValue>None</dev:defaultValue>
+      </command:parameter>
+      <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="Property">
         <maml:name>Properties</maml:name>
         <maml:description>
           <maml:para>Properties of the record to return and show. By default, all properties are returned, but only SearchName, Username, Name, and Affiliation are shown. If specific properties are requested, only the default properties and the requested properties are returned and displayed.</maml:para>
@@ -5329,7 +5404,7 @@ $AddUserToFunctionalRole | Remove-TDFunctionalRole</dev:code>
     </command:returnValues>
     <maml:alertSet>
       <maml:alert>
-        <maml:para>Author: Brian Keller &lt;keller.4@osu.edu&gt; Version: 1.1 Version History: 1.0 - First release                  1.1 - Added student information                  1.2 - Added control of properties returned                  1.3 - Changed user not found error text to verbose text                  1.4 - Changed from XML interface to JSON (XML interface deprecated)</maml:para>
+        <maml:para>Author: Brian Keller &lt;keller.4@osu.edu&gt; Version: 2.0 Version History: 1.0 - First release                  1.1 - Added student information                  1.2 - Added control of properties returned                  1.3 - Changed user not found error text to verbose text                  1.4 - Changed from XML interface to JSON (XML interface deprecated)                  2.0 - Added FindPeople API</maml:para>
       </maml:alert>
     </maml:alertSet>
     <command:examples>
@@ -5337,21 +5412,21 @@ $AddUserToFunctionalRole | Remove-TDFunctionalRole</dev:code>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
         <dev:code>Get-OSUDirectoryListing smith.1067 | Format-Table -AutoSize</dev:code>
         <dev:remarks>
-          <maml:para>SearchName Username   Name                 Affiliated ---------- --------   ----                 ---------- smith.1067 smith.1067 Smith, Brian Matthew       True</maml:para>
-          <maml:para>Description</maml:para>
-          <maml:para>-----------</maml:para>
-          <maml:para>Gets the directory listing for a specific individual.</maml:para>
+          <maml:para>Gets the directory listing for a specific individual from the public FindPeople system.</maml:para>
         </dev:remarks>
       </command:example>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 2 --------------------------</maml:title>
         <dev:code>Get-OSUDirectoryListing -properties * 'brian smith'</dev:code>
         <dev:remarks>
-          <maml:para>Student_College : Street          : 2000 Tuttle Park Pl SearchName      : smith.1067 BuildingURL     : http://www.osu.edu/map/building.php?building=077 BuildingNumber  : 077 VP_CollegeName  : Senior VP Admin &amp; Planning Username        : smith.1067 Major           : Affiliated      : True Affiliation     : Staff Employee Student         : False JobTitle        : Facilities Engineer City            : Columbus State           : OH Zip             : 43210 Organization    : Facilities Support Staff           : True Name            : Smith, Brian Matthew Building        : 107 Central Service Building Room            : Phone           : 614-247-7254 WorkingTitle    : Maintenance Engineer</maml:para>
-          <maml:para>Student_College : Exploration Program Street          : SearchName      : brian smith BuildingURL     : BuildingNumber  : VP_CollegeName  : Username        : smith.10019 Major           : Science&amp;Technology Exploration Affiliated      : True Affiliation     : Student Student         : True JobTitle        : City            : State           : Zip             : Organization    : Staff           : False Name            : Smith, Brian Patrick Building        : Room            : Phone           : WorkingTitle    :</maml:para>
-          <maml:para>Description</maml:para>
-          <maml:para>-----------</maml:para>
-          <maml:para>Gets the directory listing for individuals sharing a name.</maml:para>
+          <maml:para>Gets the directory listing from FindPeople for individuals sharing a name.</maml:para>
+        </dev:remarks>
+      </command:example>
+      <command:example>
+        <maml:title>-------------------------- EXAMPLE 3 --------------------------</maml:title>
+        <dev:code>Get-OSUDirectoryListing -NameN smith.1067 -Credential (Get-Credential)</dev:code>
+        <dev:remarks>
+          <maml:para>Gets the directory listing for a specific individual from the private PeopleAPI system. Requires credentials and may only be run from the OSU network.</maml:para>
         </dev:remarks>
       </command:example>
     </command:examples>

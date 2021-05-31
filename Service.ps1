@@ -1065,11 +1065,15 @@ function Compare-TDAPIDefinitions
         {
             'All'
             {
-                # Get list of classes and enums in the module
-                $APINames = (Get-Module TeamDynamix).ImplementingAssembly.DefinedTypes | Where-Object {$_.IsPublic -eq $true -and $_.Name -notmatch '^TD_'} |Select-Object -ExpandProperty Name | ForEach-Object {$_.Replace('_','.')}
+                # Get names of classes and enums in the module
+                $APINames = (Get-Module TeamDynamix).ImplementingAssembly.DefinedTypes | Where-Object {$_.IsPublic -eq $true -and $_.Name -notmatch '^TD_'} |Select-Object -ExpandProperty Name
+                # Remove local names
+                $APINames = $APINames | Where-Object {$_ -ne 'EnvironmentChoices' -and $_ -ne 'Object_Cache'}
+                # Fix names to match TeamDynamix types
+                $APINames = $APINames | ForEach-Object {$_.Replace('_','.')}
                 Write-ActivityHistory ($APINames | Out-String)
                 # Call this function for each class and enum
-                $APINames | ForEach-Object { "$script:DefaultTDBaseURI)/TDWebApi/Home/type/$_" } | Compare-TDAPIDefinitions
+                $APINames | ForEach-Object { "$script:DefaultTDBaseURI/TDWebApi/Home/type/$_" } | Compare-TDAPIDefinitions
             }
             'URL'
             {
@@ -4487,8 +4491,8 @@ function Clear-TDLocalCache
             @{
                 Name        = 'CacheType'
                 Type        = 'string[]'
-                ValidateSet = (Get-Variable -Scope script | Where-Object Value -ne $null | Where-Object {$_.Value.GetType().Name -like 'TD_*_Cache'}).Value.GetType().Name.TrimStart('TD_').TrimEnd('_Cache')
-                HelpText    = 'Name of application'
+                ValidateSet = (Get-Variable -Scope script | Where-Object Value -ne $null | Where-Object {$_.Value.GetType().Name -like 'TD_*_Cache'}) | ForEach-Object {$_.Value.GetType().Name -match 'TD_(.*)_Cache'| Out-Null; $Matches[1]}
+                HelpText    = 'Name of cache'
             }
         )
         $DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
