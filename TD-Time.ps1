@@ -223,15 +223,12 @@ function Get-TDTime
                 $Return = Invoke-RESTCall -Uri "$BaseURI/time/search" -ContentType $ContentType -Method Post -Headers $AuthenticationToken -Body (ConvertTo-Json $TimeEntrySearchTD -Depth 10)
             }
         }
-        if ($Detail)
+        if ($Return)
         {
-            if ($Return)
+            if ($Detail)
             {
                 $Return = $Return.ID | Get-TDAsset -AuthenticationToken $AuthenticationToken -Environment $Environment
             }
-        }
-        if ($Return)
-        {
             return ($Return | ForEach-Object {[TeamDynamix_Api_Time_TimeEntry]::new($_)})
         }
     }
