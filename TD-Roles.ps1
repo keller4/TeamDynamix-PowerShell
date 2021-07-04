@@ -299,7 +299,7 @@ function Get-TDSecurityRole
             @{
                 Name        = 'AppName'
                 Type        = 'string'
-                ValidateSet = $TDApplications.GetByAppClass('TDAssets',$true).Name
+                ValidateSet = $TDApplications.GetAll($WorkingEnvironment,$true).Name
                 HelpText    = 'Name of application'
                 IDParameter = 'AppID'
                 IDsMethod   = '$TDApplications.GetAll($WorkingEnvironment,$true)'

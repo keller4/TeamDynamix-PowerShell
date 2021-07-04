@@ -541,6 +541,11 @@ function Set-TDProject
         [Int32]
         $ServiceID,
 
+        # The ID of the associated service offering.
+        [Parameter(Mandatory=$false)]
+        [Int32]
+        $ServiceOfferingID,
+
         # Indicates that specified attributes should be removed
         [Parameter(Mandatory=$false)]
         [ValidateScript({
@@ -1620,6 +1625,11 @@ function Update-TDProjectPlanTask
         [Int32]
         $TimeTypeId,
 
+        # The ID of the functional role to use when adding a time entry as part of the update.
+        [Parameter(Mandatory=$false)]
+        [Int32]
+        $FunctionalRoleID,
+
         # The worked hours of the time entry to add as part of the update.
         [Parameter(Mandatory=$false)]
         [Double]
@@ -2516,6 +2526,11 @@ function Set-TDProjectIssue
         [Parameter(Mandatory=$false)]
         [Int32]
         $TimeTypeID,
+
+        # The ID of the functional role associated with the time entry.
+        [Parameter(Mandatory=$false)]
+        [Int32]
+        $FunctionalRoleID,
 
         # The parent Risk's identifier.
         [Parameter(Mandatory=$false)]

@@ -11,7 +11,7 @@
     RootModule = 'TeamDynamix'
 
     # Version number of this module.
-    ModuleVersion = '2.1.4'
+    ModuleVersion = '2.2.2'
 
     # Supported PSEditions
     # CompatiblePSEditions = @()
@@ -212,6 +212,7 @@
         'Get-TDForm'
         # Services
         'Get-TDService'
+        'Get-TDServiceOffering'
         # Time
         'Get-TDTime'
         'Set-TDTime'
@@ -249,6 +250,8 @@
         'Get-TDProjectFolder'
         'Get-TDProjectFile'
         'Add-TDProjectFile'
+        # Feed
+        'Get-TDFeedItem'
         # Other
         'Clear-TDLocalCache'
         'Get-TDTimeZoneInformation'
@@ -287,12 +290,7 @@
         'Update-TDUserGroupMembership'
         'Update-TDAsset'
         'Update-ASCTDAssets'
-        # Debugging - remove
-        'Get-TDDataConnector'
-        'Get-UserDataFromAD'
-        'Get-AssetDataFromAD'
-        'Get-SCCMData'
-        'Get-TDDataConnector'
+        'Get-TDAssetImportColumns'
         )
 
     # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.

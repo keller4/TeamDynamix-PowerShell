@@ -220,6 +220,7 @@ function Set-TDAuthentication
         $script:TDAuthentication = $AuthenticationHeader
         $script:LastAuthentication = Get-Date
         $Return = $null
+        $script:WorkingEnvironment = $Environment
     }
     # Return authentication information for everything but update, and always for Passthru
     if ($Passthru -or $NoUpdate)
@@ -2789,22 +2790,24 @@ function Set-TDUser
                 {
                     # TeamDynamix will not allow a ReportsToUID that points to a disabled user
                     #  If the existing record has a disabled ReportsToUID, it must be removed prior to pushing the changes
-                    if ($_.Exception.Message -like "*Invalid Reports To UID*")
+                    if ($_.ErrorDetails.Message -like '*Invalid Reports To UID*')
                     {
                         $TDUserTD.ReportsToUID = ''
                         Write-ActivityHistory 'Removed invalid "Reports To UID".'
                         # Re-do the change
+                        $Return = Invoke-RESTCall -Uri "$BaseURI/people/$UID" -ContentType $ContentType -Method Post -Headers $AuthenticationToken -Body (ConvertTo-Json $TDUserTD -Depth 10)
                     }
                     # If room or location (building) is incorrect, an error will be returned
                     #  Remove location/room information and continue
-                    if ($_.Exception.Message -like "*Invalid location/room*")
+                    elseif ($_.ErrorDetails.Message -like '*Invalid location/room*')
                     {
                         $TDUserTD.LocationID = ''
                         $TDUserTD.LocationRoomID = ''
                         Write-ActivityHistory 'Removed invalid location/room.'
                         # Re-do the change
                         $Return = Invoke-RESTCall -Uri "$BaseURI/people/$UID" -ContentType $ContentType -Method Post -Headers $AuthenticationToken -Body (ConvertTo-Json $TDUserTD -Depth 10)
-                    }else
+                    }
+                    else
                     {
                         Write-ActivityHistory -ErrorRecord $_
                     }
@@ -3132,7 +3135,7 @@ function Set-TDBulkUser
     )
     Begin
     {
-        Write-ActivityHistory "-----`nIn ConvertFrom-TDWebAPIToFunction"
+        Write-ActivityHistory "-----`nIn $($MyInvocation.MyCommand.Name)"
         $ContentType = 'application/json; charset=utf-8'
         if (-not $AuthenticationToken)
         {

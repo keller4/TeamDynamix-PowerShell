@@ -1,7 +1,7 @@
 function Update-ConfigurationFile {
     $Return = $false
     # Set current version of the configuration file, increment to module version when config file changes
-    $ConfigurationVersion = '2.0.9'
+    $ConfigurationVersion = '2.2.2'
     # If a config file exists, read it - if not, create a new one with default values
     if (Test-Path -Path $PSScriptRoot\Configuration.psd1 -PathType Leaf) {
         $CurrentSettings = Import-PowerShellDataFile $PSScriptRoot\Configuration.psd1
@@ -17,8 +17,8 @@ function Update-ConfigurationFile {
         'DefaultAssetCIsApp'
         'DefaultTicketingApp'
         'DefaultPortalApp'
-        'DefaultTDPortalBaseURI'
-        'DefaultTDPortalPreviewBaseURI'
+        'DefaultTDBaseURI'
+        'DefaultTDPreviewBaseURI'
         'DefaultADConnector'
         'DirectoryLookup'
         'MaxActivityHistoryDefault'
@@ -39,14 +39,14 @@ function Update-ConfigurationFile {
             #  If you wish to not use a recognition pattern (or don't know regular expressions), use ".*"
             UsernameRegex = '.*\.\d+'
 
-            # Set default TeamDynamix applications
+            # Default TeamDynamix applications
             DefaultAssetCIsApp  = 'Assets/CIs'
             DefaultTicketingApp = 'Tickets'
             DefaultPortalApp    = 'Client Portal'
 
-            # TeamDynamix portal target
-            DefaultTDPortalBaseURI        = 'https://osuasc.teamdynamix.com'
-            DefaultTDPortalPreviewBaseURI = 'https://osuasc.teamdynamixpreview.com'
+            # TeamDynamix URIs, used for API and portal
+            DefaultTDBaseURI        = 'https://osuasc.teamdynamix.com'
+            DefaultTDPreviewBaseURI = 'https://osuasc.teamdynamixpreview.com'
         #endregion
 
         #region Optional settings
@@ -54,7 +54,7 @@ function Update-ConfigurationFile {
             #  Must be a user connector
             #  Must have a DefaultADDomainName and DefaultADSearchBase for finding departments
             #  Must be marked as active
-            DefaultADConnector = 'Active Directory'
+            DefaultADConnector = 'Active Directory People'
 
             # User directory information command
             #  Command should be written so it is possible to add the name to lookup to the end
@@ -104,12 +104,12 @@ function Update-ConfigurationFile {
                             SecurityRole = 'Technician'
                         }
                     )
-                    Function = '$User.DefaultAccountName -eq "ASC Technology" -and $User.Title -like "*Student Assistant*"'
+                    Function = '$UserData.DistinguishedName -match "OU=Students,OU=_ASC Technology,OU=_ASC College of Arts and Sciences,OU=The Ohio State University,DC=asc,DC=ohio-state,DC=edu"'
                 }
                 @{
                     Name = 'Technician'
                     Default = $false
-                    UserSecurityRole   = 'Technician - Student'
+                    UserSecurityRole   = 'Technician'
                     UserFunctionalRole = 'Participant'
                     Applications = @(
                         'MyWork'
@@ -150,7 +150,7 @@ function Update-ConfigurationFile {
                             SecurityRole = 'Customer + Knowledge Base, Services, Ticket Requests'
                         }
                     )
-                    Function = $null
+                    Function = '$true' # Default setting for automatic assignment
                 }
                 @{
                     Name = 'Enterprise Admin'
@@ -240,8 +240,8 @@ function Update-ConfigurationFile {
         #endregion
     #endregion
 
-    #region Application configuration (add as necessary)
-        # Default asset application - usually named "Assets/CIs"
+    #region Application configurations (one for each application, add as necessary)
+        # Asset applications"
         AssetApplications = @(
             @{
                 # Required
@@ -256,7 +256,7 @@ function Update-ConfigurationFile {
             }
         )
 
-        # Default ticket application - usually named "Tickets"
+        # Ticket applications"
         TicketingApplications = @(
             @{
                 # Required
@@ -267,7 +267,7 @@ function Update-ConfigurationFile {
             }
         )
 
-        # Default portal application - name: "Client Portal"
+        # Portal applications"
         PortalApplications = @(
             @{
                 # Required
@@ -283,35 +283,35 @@ function Update-ConfigurationFile {
 
     #region Connectors (add as necessary) and data mapping
         # Common variables for connectors
-            DefaultAssetStatus = 'In Use'
-            BadSerialNumbers = @(
-                $null
-                ''
-                'None'
-                'Not Specified'
-                'N/A'
-                'NA'
-                'System Serial Number'
-                'To be filled by O.E.M.'
-                'ps'
-                'Default string'
-                'Chassis Serial Number'
-                '1234567890'
-                '1234567890.'
-                '0123456789'
-                '0'
-                'Not Available'
-                'No Serial'
-                'APPLIANCE (CANNOT ACCESS)'
-                'VIRTUAL MACHINE (CANNOT ACCESS)'
-                '............'
-            )
-            BadProductNames = @(
-                'System Product Name'
-                'All Series'
-                'OEM'
-                'To Be Filled By O.E.M.'
-            )
+        DefaultAssetStatus = 'In Use'
+        BadSerialNumbers = @(
+            $null
+            ''
+            'None'
+            'Not Specified'
+            'N/A'
+            'NA'
+            'System Serial Number'
+            'To be filled by O.E.M.'
+            'ps'
+            'Default string'
+            'Chassis Serial Number'
+            '1234567890'
+            '1234567890.'
+            '0123456789'
+            '0'
+            'Not Available'
+            'No Serial'
+            'APPLIANCE (CANNOT ACCESS)'
+            'VIRTUAL MACHINE (CANNOT ACCESS)'
+            '............'
+        )
+        BadProductNames = @(
+            'System Product Name'
+            'All Series'
+            'OEM'
+            'To Be Filled By O.E.M.'
+        )
 
         # Connector specifications
         #  Connector names must be unique
@@ -320,6 +320,8 @@ function Update-ConfigurationFile {
         # Type indicates whether the connector is used to specify the primary list of assets/users/?? (Primary) or if it is used to provide supplemental data for individual assets/users/?? (Supplemental)
         #  All primary connectors for an application are executed in the order they appear, to collect the list of users and populate data from the field mappings
         #  All supplemental connectors are executed in the order they appear, to add/replace data on users from the primary connector list
+        # Class is the general group for the connector, used to aggregate processing in Update-TDAsset.
+        #  Assets in the same class are
         # Deactivate a connector by setting IsActive to $false
         # Function is the name of the function to call (with complete parameters) to retrieve data from the connector
         #  The connector must be found manually in the function definition, but $Connector may be used in the field mappings
@@ -335,46 +337,56 @@ function Update-ConfigurationFile {
         DataConnectors = @(
             #region Asset connectors
             @{
-                # SCCM connector requires that the SCCM PowerShell cmdlets are installed on the machine running the update
-                Name         = 'SCCM'
+                # Microsoft Endpoint Configuration Manager connector requires that the Config Manager PowerShell cmdlets are installed on the machine running the update
+                Name         = 'Microsoft Endpoint Configuration Manager'
                 Application  = 'Assets/CIs'
                 Type         = 'Primary'
+                Class        = 'Asset'
+                Subclass     = 'MECM'
                 IsActive     = $true
-                Function     = 'Get-SCCMData -Connector ($TDConfig.DataConnectors | Where-Object {$_.Name -eq "SCCM" -and $_.IsActive -eq $true})'
+                Function     = 'Get-ConfigManagerData -Connector ($TDConfig.DataConnectors | Where-Object {$_.Name -eq "Microsoft Endpoint Configuration Manager" -and $_.IsActive -eq $true})'
                 AuthRequired = $null
                 Supplemental = $null
                 # Additional info required for the connector
                 Data = @{
                     DefaultAssetStatus = '$TDConfig.DefaultAssetStatus'
-                    BadSerialNumbers   = $null
-                    BadProductNames    = '$TDConfig.BadProductNames'
+                    BadSerialNumbers   = @"
+                    @(
+                        `$(`$TDConfig.BadSerialNumbers)
+                    )
+"@
+                    BadProductNames    = @"
+                        @(
+                            `$(`$TDConfig.BadProductNames)
+                        )
+"@
                     # Query names for retrieving asset info
-                    SCCMQueryNames = @(
+                    ConfigManagerQueryNames = @(
                         'BK Inventory'
                         'BK Inventory - BitLocker Info'
                         'BK Inventory - Disk Info'
                     )
                     FieldMappings = @{
                         AttributesMap = @{
-                            'SerialNumber'   = 'Get-AssetSerialNumber -Asset $Asset -SNLocation @("$Asset.SerialNumber.SerialNumber") -BadSerialNumbers (if ($Connector.Data.BadSerialNumbers) {$Connector.Data.BadSerialNumbers} else {$TDConfig.BadSerialNumbers}'
-                            'Name'           = 'if ($Asset.SMS_R_System.Name) {$Name = $Asset.SMS_R_System.Name.Trim()}'
+                            'SerialNumber'   = 'Get-AssetSerialNumber -Asset $Asset -SNLocation "`$(`$Asset.SerialNumber.SerialNumber)" -BadSerialNumbers (Get-BadSerialNumber -Connector $Connector)'
+                            'Name'           = 'if ($Asset.SMS_R_System.Name) {$Asset.SMS_R_System.Name.Trim()}'
                             'ProductName'    = '$Asset.SMS_G_System_COMPUTER_SYSTEM.Model.Trim()'
                             'ProductModelID' = 'Get-AssetProductModelID -Asset $Asset -ProductNameLocation $Connector.Data.FieldMappings.AttributesMap.ProductName -ProductPartLocation $Connector.Data.FieldMappings.AttributesMap.ProductName'
                         }
                         CustomAttributesMap = @{
-                            'Update Data Source'        = '"SCCM"'
+                            'Update Data Source'        = '"Microsoft Endpoint Configuration Manager"'
                             'OS Version'                = '"$($Asset.SMS_R_System.OperatingSystemNameandVersion), Build $($Asset.SMS_R_System.Build)"'
                             'IP Address'                = 'if ($Asset.SMS_R_System.IPAddresses ) {$Asset.SMS_R_System.IPAddresses[0] }'
                             'MAC Address 1'             = 'if ($Asset.SMS_R_System.MACAddresses) {$Asset.SMS_R_System.MACAddresses[0]}'
                             'MAC Address 2'             = 'if ($Asset.SMS_R_System.MACAddresses) {$Asset.SMS_R_System.MACAddresses[1]}'
                             'Recent User Name'          = '$Asset.SMS_R_System.LastLogonUserName'
-                            'Organizational Unit'       = '$Matches = $null; $Asset.SMS_R_System.SystemOUName[-1] -match "ASC.OHIO-STATE.EDU\/(THE OHIO STATE UNIVERSITY\/_ASC COLLEGE OF ARTS AND SCIENCES\/)?(.*)" | Out-Null; $Matches[2]'
+                            'Organizational Unit'       = '$Matches = $null; if ($_.SMS_R_System.SystemOUName -and $Asset.SMS_R_System.SystemOUName[-1] -match "ASC.OHIO-STATE.EDU\/(THE OHIO STATE UNIVERSITY\/_ASC COLLEGE OF ARTS AND SCIENCES\/)?(.*)") {$Matches[2]}'
                             'Last Check-In'             = '$Asset.SMS_G_System_WORKSTATION_STATUS.LastHardwareScan'
                             'Encryption Status'         = '($Asset.Encryption | ForEach-Object {"$($_.Driveletter) $($_.ProtectionStatus)"}) -join ", "'
                             'CPU'                       = '$Asset.SMS_G_System_PROCESSOR.Name'
                             'Physical Memory (GB)'      = '($Asset.SMS_G_System_X86_PC_MEMORY.TotalPhysicalMemory / 1024 / 1024).ToString("#,##0.00")'
-                            'Boot Disk Capacity (GB)'   = '(($Asset.DiskInfo | Where-Object DriveLetter -eq "C:").DiskSize[0]  / 1000).ToString("#,##0.00")'
-                            'Boot Disk Free Space (GB)' = '(($Asset.DiskInfo | Where-Object DriveLetter -eq "C:").FreeSpace[0] / 1000).ToString("#,##0.00")'
+                            'Boot Disk Capacity (GB)'   = 'if ($Asset.DiskInfo | Where-Object DriveLetter -eq "C:") {(($Asset.DiskInfo | Where-Object DriveLetter -eq "C:").DiskSize[0]  / 1000).ToString("#,##0.00")}'
+                            'Boot Disk Free Space (GB)' = 'if ($Asset.DiskInfo | Where-Object DriveLetter -eq "C:") {(($Asset.DiskInfo | Where-Object DriveLetter -eq "C:").FreeSpace[0] / 1000).ToString("#,##0.00")}'
                             'Backup Console ID'         = '$Asset.SMS_G_System_Custom_AllIDs64_1_0.code42_guid'
                             'Nessus Console ID'         = '$Asset.SMS_G_System_Custom_AllIDs64_1_0.nessus_uuid'
                             'AV Console ID'             = '$Asset.SMS_G_System_Custom_AllIDs64_1_0.sep_clientid'
@@ -386,6 +398,8 @@ function Update-ConfigurationFile {
                 Name         = 'OCIOJamf'
                 Application  = 'Assets/CIs'
                 Type         = 'Primary'
+                Class        = 'Asset'
+                Subclass     = 'JamfDesktop'
                 IsActive     = $true
                 Function     = 'Get-JamfData -Connector ($TDConfig.DataConnectors | Where-Object {$_.Name -eq "OCIOJamf" -and $_.IsActive -eq $true})'
                 AuthRequired = 'OCIO'
@@ -398,13 +412,17 @@ function Update-ConfigurationFile {
                 # Additional info required for the connector
                 Data = @{
                     DefaultAssetStatus = '$TDConfig.DefaultAssetStatus'
-                    BadSerialNumbers   = $null
-                    APIDesktop         = 'JSSResource/advancedcomputersearches/id/63'
+                    BadSerialNumbers   = @"
+                        @(
+                            `$(`$TDConfig.BadSerialNumbers)
+                        )
+"@
+                    APIEndpoint        = 'JSSResource/advancedcomputersearches/id/63'
                     ConsoleURL         = 'https://jamf.service.osu.edu'
                     FieldMappings = @{
                         AttributesMap = @{
-                            'SerialNumber'   = 'Get-AssetSerialNumber -Asset $Asset -SNLocation @("$Asset.Serial_Number") -BadSerialNumbers (if ($Connector.Data.BadSerialNumbers) {$Connector.Data.BadSerialNumbers} else {$TDConfig.BadSerialNumbers}'
-                            'Name'           = 'if ($Asset.Computer_Name) {$Name = $Asset.Computer_Name.Trim()}'
+                            'SerialNumber'   = 'Get-AssetSerialNumber -Asset $Asset -SNLocation "`$(`$Asset.SerialNumber.SerialNumber)" -BadSerialNumbers (Get-BadSerialNumber -Connector $Connector)'
+                            'Name'           = 'if ($Asset.Computer_Name) {$Asset.Computer_Name.Trim()}'
                             'ProductName'    = '$Asset.Model.Trim()'
                             'ProductPart'    = '$Asset.Model_Identifier.Trim()'
                             'ProductModelID' = 'Get-AssetProductModelID -Asset $Asset -ProductNameLocation $Connector.Data.FieldMappings.AttributesMap.ProductName -ProductPartLocation $Connector.Data.FieldMappings.AttributesMap.ProductName'
@@ -432,19 +450,25 @@ function Update-ConfigurationFile {
                 Name         = 'OCIOJamfMobile'
                 Application  = 'Assets/CIs'
                 Type         = 'Primary'
+                Class        = 'Asset'
+                Subclass     = 'JamfMobile'
                 IsActive     = $true
                 Function     = 'Get-JamfData -Connector ($TDConfig.DataConnectors | Where-Object {$_.Name -eq "OCIOJamfMobile" -and $_.IsActive -eq $true})'
                 AuthRequired = 'OCIO'
                 # Additional info required for the connector
                 Data = @{
                     DefaultAssetStatus = '$TDConfig.DefaultAssetStatus'
-                    BadSerialNumbers   = $null
-                    APIMobile          = 'JSSResource/advancedmobiledevicesearches/id/64'
+                    BadSerialNumbers   = @"
+                        @(
+                            `$(`$TDConfig.BadSerialNumbers)
+                        )
+"@
+                    APIEndpoint        = 'JSSResource/advancedmobiledevicesearches/id/64'
                     ConsoleURL         = 'https://jamf.service.osu.edu'
                     FieldMappings = @{
                         AttributesMap = @{
-                            'SerialNumber'   = 'Get-AssetSerialNumber -Asset $Asset -SNLocation @("$Asset.Serial_Number") -BadSerialNumbers (if ($Connector.Data.BadSerialNumbers) {$Connector.Data.BadSerialNumbers} else {$TDConfig.BadSerialNumbers}'
-                            'Name'           = 'if ($Asset.name) {$Name = $Asset.name.Trim()}'
+                            'SerialNumber'   = 'Get-AssetSerialNumber -Asset $Asset -SNLocation "`$(`$Asset.SerialNumber.SerialNumber)" -BadSerialNumbers (Get-BadSerialNumber -Connector $Connector)'
+                            'Name'           = 'if ($Asset.name) {$Asset.name.Trim()}'
                             'ProductName'    = '$Asset.Model.Trim()'
                             'ProductPart'    = '$Asset.Model_Identifier.Trim()'
                             'ProductModelID' = 'Get-AssetProductModelID -Asset $Asset -ProductNameLocation $Connector.Data.FieldMappings.AttributesMap.ProductName -ProductPartLocation $Connector.Data.FieldMappings.AttributesMap.ProductName'
@@ -465,6 +489,8 @@ function Update-ConfigurationFile {
                 Name         = 'ASCJamf'
                 Application  = 'Assets/CIs'
                 Type         = 'Primary'
+                Class        = 'Asset'
+                Subclass     = 'JamfDesktop'
                 IsActive     = $false
                 Function     = 'Get-JamfData -Connector ($TDConfig.DataConnectors | Where-Object {$_.Name -eq "ASCJamf" -and $_.IsActive -eq $true})'
                 AuthRequired = 'ASC'
@@ -477,13 +503,17 @@ function Update-ConfigurationFile {
                 # Additional info required for the connector
                 Data = @{
                     DefaultAssetStatus = '$TDConfig.DefaultAssetStatus'
-                    BadSerialNumbers   = $null
-                    APIDesktop         = 'JSSResource/advancedcomputersearches/id/104'
+                    BadSerialNumbers   = @"
+                        @(
+                            `$(`$TDConfig.BadSerialNumbers)
+                        )
+"@
+                    APIEndpoint        = 'JSSResource/advancedcomputersearches/id/104'
                     ConsoleURL         = 'https://jss.asc.ohio-state.edu:8443'
                     FieldMappings = @{
                         AttributesMap = @{
-                            'SerialNumber'   = 'Get-AssetSerialNumber -Asset $Asset -SNLocation @("$Asset.Serial_Number") -BadSerialNumbers (if ($Connector.Data.BadSerialNumbers) {$Connector.Data.BadSerialNumbers} else {$TDConfig.BadSerialNumbers}'
-                            'Name'           = 'if ($Asset.Computer_Name) {$Name = $Asset.Computer_Name.Trim()}'
+                            'SerialNumber'   = 'Get-AssetSerialNumber -Asset $Asset -SNLocation "`$(`$Asset.SerialNumber.SerialNumber)" -BadSerialNumbers (Get-BadSerialNumber -Connector $Connector)'
+                            'Name'           = 'if ($Asset.Computer_Name) {$Asset.Computer_Name.Trim()}'
                             'ProductName'    = '$Asset.Model.Trim()'
                             'ProductPart'    = '$Asset.Model_Identifier.Trim()'
                             'ProductModelID' = 'Get-AssetProductModelID -Asset $Asset -ProductNameLocation $Connector.Data.FieldMappings.AttributesMap.ProductName -ProductPartLocation $Connector.Data.FieldMappings.AttributesMap.ProductName'
@@ -511,19 +541,25 @@ function Update-ConfigurationFile {
                 Name         = 'ASCJamfMobile'
                 Application  = 'Assets/CIs'
                 Type         = 'Primary'
+                Class        = 'Asset'
+                Subclass     = 'JamfMobile'
                 IsActive     = $false
                 Function     = 'Get-JamfData -Connector ($TDConfig.DataConnectors | Where-Object {$_.Name -eq "ASCJamfMobile" -and $_.IsActive -eq $true})'
                 AuthRequired = 'ASC'
                 # Additional info required for the connector
                 Data = @{
                     DefaultAssetStatus = '$TDConfig.DefaultAssetStatus'
-                    BadSerialNumbers   = $null
-                    APIMobile          = 'JSSResource/advancedmobiledevicesearches/id/109'
+                    BadSerialNumbers   = @"
+                        @(
+                            `$(`$TDConfig.BadSerialNumbers)
+                        )
+"@
+                    APIEndpoint        = 'JSSResource/advancedmobiledevicesearches/id/109'
                     ConsoleURL         = 'https://jss.asc.ohio-state.edu:8443'
                     FieldMappings = @{
                         AttributesMap = @{
-                            'SerialNumber'   = 'Get-AssetSerialNumber -Asset $Asset -SNLocation @("$Asset.Serial_Number") -BadSerialNumbers (if ($Connector.Data.BadSerialNumbers) {$Connector.Data.BadSerialNumbers} else {$TDConfig.BadSerialNumbers}'
-                            'Name'           = 'if ($Asset.name) {$Name = $Asset.name.Trim()}'
+                            'SerialNumber'   = 'Get-AssetSerialNumber -Asset $Asset -SNLocation "`$(`$Asset.SerialNumber.SerialNumber)" -BadSerialNumbers (Get-BadSerialNumber -Connector $Connector)'
+                            'Name'           = 'if ($Asset.name) {$Asset.name.Trim()}'
                             'ProductName'    = '$Asset.Model.Trim()'
                             'ProductPart'    = '$Asset.Model_Identifier.Trim()'
                             'ProductModelID' = 'Get-AssetProductModelID -Asset $Asset -ProductNameLocation $Connector.Data.FieldMappings.AttributesMap.ProductName -ProductPartLocation $Connector.Data.FieldMappings.AttributesMap.ProductName'
@@ -544,6 +580,8 @@ function Update-ConfigurationFile {
                 Name         = 'Satellite'
                 Application  = 'Assets/CIs'
                 Type         = 'Primary'
+                Class        = 'Asset'
+                Subclass     = 'Satellite'
                 IsActive     = $true
                 Function     = 'Get-SatelliteData -Connector ($TDConfig.DataConnectors | Where-Object {$_.Name -eq "Satellite" -and $_.IsActive -eq $true})'
                 AuthRequired = 'ASC'
@@ -556,25 +594,40 @@ function Update-ConfigurationFile {
                 # Additional info required for the connector
                 Data = @{
                     DefaultAssetStatus = '$TDConfig.DefaultAssetStatus'
-                    BadSerialNumbers   = $null
-                    BadProductNames    = '$TDConfig.BadProductNames'
+                    BadSerialNumbers   = @"
+                        @(
+                            `$(`$TDConfig.BadSerialNumbers)
+                        )
+"@
+                    BadProductNames    = @"
+                        @(
+                            `$(`$TDConfig.BadProductNames)
+                        )
+"@
                     ConsoleURL         = 'https://satellite-01.asc.ohio-state.edu'
                     FieldMappings = @{
                         AttributesMap = @{
-                            'SerialNumber'   = 'Get-AssetSerialNumber -Asset $Asset -SNLocation @("$Asset.facts.dmi::chassis::serial_number","$Asset.facts.dmi::system::serial_number","$Asset.facts.dmi::baseboard::serial_number","$Asset.facts.serialnumber") -BadSerialNumbers (if ($Connector.Data.BadSerialNumbers) {$Connector.Data.BadSerialNumbers} else {$TDConfig.BadSerialNumbers}'
-                            'Name'           = 'if ($Asset.facts."uname::nodename") {$Name = $Asset.facts."uname::nodename".Split(".")[0].Trim()}'
+                            'SerialNumber'   = 'Get-AssetSerialNumber -Asset $Asset -SNLocation @("`$(`$Asset.facts.`"dmi::chassis::serial_number`")","`$(`$Asset.facts.`"dmi::system::serial_number`")","`$(`$Asset.facts.`"dmi::baseboard::serial_number`")","`$(`$Asset.facts.serialnumber)") -BadSerialNumbers (Get-BadSerialNumber -Connector $Connector)'
+                            'Name'           = 'if ($Asset.certname) {$Asset.certname.Split(".")[0].Trim()}'
                             'ProductName'    = @"
-                                if ((-not [string]::IsNullOrEmpty(`$Asset.facts.'dmi::system::product_name')) -or (`$Asset.facts.'dmi::system::product_name' -in `$Connector.Data.BadProductNames))
+                                if (-not [string]::IsNullOrEmpty(`$Asset.facts.'dmi::system::product_name') -and -not (`$Asset.facts.'dmi::system::product_name' -in (Invoke-Expression `$Connector.Data.BadProductNames)))
                                 {
-                                    `$ProductName = `$Asset.facts.'dmi::system::product_name'.Trim()
+                                    `$Asset.facts.'dmi::system::product_name'.Trim()
                                 }
-                                elseif (-not [string]::IsNullOrEmpty(`$Asset.facts.'dmi::baseboard::product_name'))
+                                elseif (-not [string]::IsNullOrEmpty(`$Asset.facts.'dmi::baseboard::product_name') -and -not (`$Asset.facts.'dmi::baseboard::product_name' -in (Invoke-Expression `$Connector.Data.BadProductNames)))
                                 {
-                                    `$ProductName = `$Asset.facts.'dmi::baseboard::product_name'.Trim()
+                                    `$Asset.facts.'dmi::baseboard::product_name'.Trim()
+                                }
+                                elseif (-not [string]::IsNullOrEmpty(`$Asset.facts.productname) -and -not (`$Asset.facts.productname -in (Invoke-Expression `$Connector.Data.BadProductNames)))
+                                {
+                                    `$Asset.facts.productname.Trim()
+                                }
+                                else
+                                {
+                                    `$null
                                 }
 "@
-                            'ProductPart'    = ''
-                            'ProductModelID' = 'Get-AssetProductModelID -Asset $Asset -ProductNameLocation $Connector.Data.FieldMappings.AttributesMap.ProductName -ProductPartLocation $Connector.Data.FieldMappings.AttributesMap.ProductName'
+                            'ProductModelID' = 'Get-AssetProductModelID -Asset $Asset -ProductNameLocation $Connector.Data.FieldMappings.AttributesMap.ProductName'
                         }
                         CustomAttributesMap = @{
                             'Update Data Source'        = '"Satellite"'
@@ -592,6 +645,8 @@ function Update-ConfigurationFile {
                 Name         = 'Puppet'
                 Application  = 'Assets/CIs'
                 Type         = 'Primary'
+                Class        = 'Asset'
+                Subclass     = 'Puppet'
                 IsActive     = $true
                 Function     = 'Get-PuppetData -Connector ($TDConfig.DataConnectors | Where-Object {$_.Name -eq "Puppet" -and $_.IsActive -eq $true})'
                 AuthRequired = 'ASC'
@@ -606,25 +661,36 @@ function Update-ConfigurationFile {
                 # Additional info required for the connector
                 Data = @{
                     DefaultAssetStatus = '$TDConfig.DefaultAssetStatus'
-                    BadSerialNumbers   = $null
-                    BadProductNames    = '$TDConfig.BadProductNames'
+                    BadSerialNumbers   = @"
+                        @(
+                            `$(`$TDConfig.BadSerialNumbers)
+                        )
+"@
+                    BadProductNames    = @"
+                        @(
+                            `$(`$TDConfig.BadProductNames)
+                        )
+"@
                     ConsoleURL         = 'http://puppet.asc.ohio-state.edu:8080'
                     FieldMappings = @{
                         AttributesMap = @{
-                            'SerialNumber'   = 'Get-AssetSerialNumber -Asset $Asset -SNLocation @("$Asset.serialnumber","$Asset.boardserialnumber") -BadSerialNumbers (if ($Connector.Data.BadSerialNumbers) {$Connector.Data.BadSerialNumbers} else {$TDConfig.BadSerialNumbers}'
-                            'Name'           = 'if ($Asset.hostname) {$Name = $Asset.hostname.Trim()}'
+                            'SerialNumber'   = 'Get-AssetSerialNumber -Asset $Asset -SNLocation @("`$(`$Asset.serialnumber)","`$(`$Asset.boardserialnumber)") -BadSerialNumbers (Get-BadSerialNumber -Connector $Connector)'
+                            'Name'           = 'if ($Asset.hostname) {$Asset.hostname.Trim()}'
                             'ProductName'    = @"
-                                if ((-not [string]::IsNullOrEmpty(`$Asset.productname)) -or (`$Asset.productname -in `$Connector.Data.BadProductNames))
+                                if (-not [string]::IsNullOrEmpty(`$Asset.productname) -and -not (`$Asset.productname -in (Invoke-Expression `$Connector.Data.BadProductNames)))
                                 {
-                                    `$ProductName = `$Asset.productname.Trim()
+                                    `$Asset.productname.Trim()
                                 }
-                                elseif (-not [string]::IsNullOrEmpty(`$Asset.boardproductname))
+                                elseif (-not [string]::IsNullOrEmpty(`$Asset.boardproductname) -and -not (`$Asset.boardproductname -in (Invoke-Expression `$Connector.Data.BadProductNames)))
                                 {
-                                    `$ProductName = `$Asset.facts.boardproductname.Trim()
+                                    `$Asset.boardproductname.Trim()
+                                }
+                                else
+                                {
+                                    `$null
                                 }
 "@
-                            'ProductPart'    = ''
-                            'ProductModelID' = 'Get-AssetProductModelID -Asset $Asset -ProductNameLocation $Connector.Data.FieldMappings.AttributesMap.ProductName -ProductPartLocation $Connector.Data.FieldMappings.AttributesMap.ProductName'
+                            'ProductModelID' = 'Get-AssetProductModelID -Asset $Asset -ProductNameLocation $Connector.Data.FieldMappings.AttributesMap.ProductName'
                         }
                         CustomAttributesMap = @{
                             'Update Data Source'        = '"Puppet"'
@@ -634,7 +700,8 @@ function Update-ConfigurationFile {
                             'Last Check-In'             = '$Asset.producer_timestamp | Get-Date'
                             'CPU'                       = '$Asset.processor0'
                             'Physical Memory (GB)'      = '($Asset.memorysize_mb / 1024).ToString("#,##0.00")'
-                            'Boot Disk Capacity (GB)'   = '($Asset.blockdevice_sda_size / 1000 / 1000 / 1000).ToString("#,##0.00")'
+                            'Boot Disk Capacity (GB)'   = 'if ($Asset.blockdevice_sda_size) {($Asset.blockdevice_sda_size / 1000 / 1000 / 1000).ToString("#,##0.00")} else {(($Asset.partitions | Where-Object drive_letter -eq "C").size / 1000 / 1000 / 1000).ToString("#,##0.00")}'
+                            'Boot Disk Free Space (GB)' = 'if ($Asset.drives.C) {($Asset.drives.C.free_bytes /1000 /1000 /1000).ToString("#,##0.00")}'
                             'Backup Console ID'         = 'if ($Asset.code42_guid -ne "800500063364859900") {$Asset.code42_guid}'
                             'Nessus Console ID'         = '$Asset.nessus_uuid'
                             'AV Console ID'             = '$Asset.sep_clientid'
@@ -649,6 +716,8 @@ function Update-ConfigurationFile {
                 Name         = 'Active Directory Assets'
                 Application  = 'Assets/CIs'
                 Type         = 'Supplemental'
+                Class        = 'Asset'
+                Subclass     = 'ActiveDirectory'
                 IsActive     = $true
                 Function     = 'Get-AssetDataFromAD -Connector ($TDConfig.DataConnectors | Where-Object {$_.Name -eq "Active Directory Assets" -and $_.IsActive -eq $true})'
                 AuthRequired = $null
@@ -671,6 +740,8 @@ function Update-ConfigurationFile {
                 Name         = 'Active Directory People'
                 Application  = 'People'
                 Type         = 'Primary'
+                Class        = 'User'
+                Subclass     = 'ActiveDirectory'
                 IsActive     = $true
                 Function     = 'Get-UserDataFromAD'
                 AuthRequired = $null
@@ -727,6 +798,8 @@ function Update-ConfigurationFile {
                 Name         = 'FindPeople'
                 Application  = 'People'
                 Type         = 'Supplemental'
+                Class        = 'User'
+                Subclass     = 'FindPeople'
                 IsActive     = $true
                 Function     = 'Get-OSUDirectoryListing'
                 AuthRequired = $null
