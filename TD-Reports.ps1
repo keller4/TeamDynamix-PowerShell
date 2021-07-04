@@ -568,6 +568,58 @@ function Get-TDFeed
     }
 }
 
+function Get-TDFeedItem
+{
+    [CmdletBinding(DefaultParameterSetName='ID')]
+    Param
+    (
+        # The ID of the service offering.
+        [Parameter(Mandatory=$true,
+                   ParameterSetName='ID')]
+        [Int32]
+        $ID,
+
+        # TeamDynamix authentication token
+        [Parameter(Mandatory=$false)]
+        [hashtable]
+        $AuthenticationToken = $TDAuthentication,
+
+        # TeamDynamix working environment
+        [Parameter(Mandatory=$false)]
+        [EnvironmentChoices]
+        $Environment = $WorkingEnvironment
+    )
+
+    Begin
+    {
+        Write-ActivityHistory "-----`nIn $($MyInvocation.MyCommand.Name)"
+    }
+    Process
+    {
+        $InvokeParams = [pscustomobject]@{
+            # Configurable parameters
+            SearchType       = $null
+            ReturnType       = 'TeamDynamix_Api_Feed_ItemUpdate'
+            AllEndpoint      = $null
+            IDEndpoint       = 'feed/$ID'
+            AppID            = $null
+            DynamicParameterDictionary = $DynamicParameterDictionary
+            DynamicParameterList       = $DynamicParameterList
+            # Fixed parameters
+            ParameterSetName    = $pscmdlet.ParameterSetName
+            BoundParameters     = $MyInvocation.BoundParameters.Keys
+            Environment         = $Environment
+            AuthenticationToken = $AuthenticationToken
+        }
+        $Return = $InvokeParams | Invoke-Get
+        return $Return
+    }
+    End
+    {
+        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
+    }
+}
+
 function Get-TDForm
 {
     [CmdletBinding()]

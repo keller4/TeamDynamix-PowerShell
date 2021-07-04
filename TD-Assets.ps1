@@ -2427,6 +2427,102 @@ function Add-TDAssetComment
     }
 }
 
+function Add-TDAssetAttachment
+{
+    [CmdletBinding(SupportsShouldProcess=$true)]
+    Param
+    (
+        # Asset ID to add attachment in TeamDynamix
+        [Parameter(Mandatory=$true,
+                   ValueFromPipelineByPropertyName=$true)]
+        [int]
+        $ID,
+
+        # Full path and filename of attachment
+        [Parameter(Mandatory=$true,
+                   ValueFromPipelineByPropertyName=$true)]
+        [ValidateScript({Test-Path -PathType Leaf $_})]
+        [string]
+        $FilePath,
+
+        # Set ID of application for asset
+        [Parameter(Mandatory=$false,
+                   ValueFromPipelineByPropertyName=$true)]
+        [int]
+        $AppID = $AssetCIAppID,
+
+        # TeamDynamix authentication token
+        [Parameter(Mandatory=$false)]
+        [hashtable]
+        $AuthenticationToken = $TDAuthentication,
+
+        # TeamDynamix working environment
+        [Parameter(Mandatory=$false)]
+        [EnvironmentChoices]
+        $Environment = $WorkingEnvironment
+    )
+    DynamicParam
+    {
+        #List dynamic parameters
+        $DynamicParameterList = @(
+            @{
+                Name        = 'AppName'
+                Type        = 'string'
+                ValidateSet = $TDApplications.GetByAppClass('TDAssets',$true).Name
+                HelpText    = 'Name of application'
+                IDParameter = 'AppID'
+                IDsMethod   = '$TDApplications.GetAll($WorkingEnvironment,$true)'
+            }
+        )
+        $DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
+        return $DynamicParameterDictionary
+    }
+
+    Begin
+    {
+        Write-ActivityHistory "-----`nIn $($MyInvocation.MyCommand.Name)"
+        $BoundaryText = [System.Guid]::NewGuid().ToString()
+        $ContentType = "multipart/formdata; boundary=$BoundaryText"
+        $BaseURI = Get-URI -Environment $Environment
+        $IDsFromNamesUpdates = Get-IDsFromNames -DynamicParameterDictionary $DynamicParameterDictionary -DynamicParameterList $DynamicParameterList
+        $IDsFromNamesUpdates | ForEach-Object {Set-Variable -Name $_.Name -Value $_.Value}
+    }
+    Process
+    {
+        #Extract filename
+        $FileName = $FilePath.Split("\")[$FilePath.Split("\").Count - 1]
+        #Encode file
+        $FileAsBytes = [System.IO.File]::ReadAllBytes($FilePath)
+        $Encoding = [System.Text.Encoding]::GetEncoding("ISO-8859-1")
+        $EncodedFile = $Encoding.GetString($FileAsBytes)
+        #Assemble body
+        $ContentInfo = (
+            "Content-Disposition: form-data; name=`"$FileName`"; filename=`"$FileName`"",
+            "Content-Type: application/octet-stream"
+        ) -join "`r`n"
+        $Body = (
+            "--$BoundaryText",
+            $ContentInfo,
+            "",
+            $EncodedFile,
+            "--$BoundaryText--"
+        ) -join "`r`n"
+        if ($pscmdlet.ShouldProcess("asset ID: $ID, attachment name: $FileName", 'Add attachment to TeamDynamix asset'))
+        {
+            Write-ActivityHistory "Adding $FileName attachment to asset $ID"
+            $Return = Invoke-RESTCall -Uri "$BaseURI/$AppID/assets/$ID/attachments" -ContentType $ContentType -Method Post -Headers $AuthenticationToken -Body $Body
+            if ($Return)
+            {
+                return [TeamDynamix_Api_Attachments_Attachment]::new($Return)
+            }
+        }
+    }
+    end
+    {
+        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
+    }
+}
+
 function Add-TDAssetResource
 {
     [CmdletBinding()]
@@ -2653,11 +2749,11 @@ function Get-TDCustomAttribute
         }
         Write-ActivityHistory "Looking up ID for component $ComponentID in $AppID"
         # Check to see if Component ID for this AppID has already been looked up
-        if (($ComponentID -in $CustomAttributesTable.$Environment.Keys) -and ("AppID-$AppID" -in $CustomAttributesTable.$Environment.$ComponentID.Keys))
+        if (([int]$ComponentID -in $CustomAttributesCache.$Environment."AppID$AppID".Keys) -and ("AppID$AppID" -in $CustomAttributesCache.$Environment.Keys))
         {
-            $Return = $CustomAttributesTable.$Environment.$ComponentID."AppID-$AppID"
+            $Return = $CustomAttributesCache.$Environment."AppID$AppID".[int]$ComponentID
         }
-        else # Component ID has not been looked up, look it up and add it to the table
+        else # Component ID was not in cache, look it up and add it to the cache
         {
             if ($AssociatedTypeName -eq '')
             {
@@ -2678,8 +2774,14 @@ function Get-TDCustomAttribute
             Write-ActivityHistory "Retrieving custom attributes for component $ComponentID, associated type $AssociatedTypeName, $AppNameText"
             $Return = (Invoke-RESTCall -Uri "$BaseURI/attributes/custom?componentId=$([int]$ComponentID)&associatedTypeId=$AssociatedTypeID&appId=$AppID" -ContentType $ContentType -Method Get -Headers $AuthenticationToken) | ForEach-Object {[TeamDynamix_Api_CustomAttributes_CustomAttribute]::new($_)}
             # Add result to the Component lookup table
-            $CustomAttributesTable.$Environment.$ComponentID += @{"AppID-$AppID" = $Return}
+            #  Add AppID to cache if necessary
+            if ("AppID$AppID" -notin $CustomAttributesCache.$Environment.Keys)
+            {
+                $CustomAttributesCache.$Environment += @{"AppID$AppID" = @{}}
+            }
+            $CustomAttributesCache.$Environment."AppID$AppID" += @{[int]$ComponentID = $Return}
         }
+        #>
         return $Return
     }
     end
@@ -4006,7 +4108,7 @@ function Add-TDConfigurationItemAttachment
     Process
     {
         #  Set ID parameters from their corresponding Name (dynamic) parameters (in begin block if none are gathered from the pipeline, otherwise in process block)
-        $IDsFromNamesUpdates = Get-IDsFromNames -DynamicParameterDictionary $DynamicParameterDictionary -AppID $AppID
+        $IDsFromNamesUpdates = Get-IDsFromNames -DynamicParameterDictionary $DynamicParameterDictionary -DynamicParameterList $DynamicParameterList
         $IDsFromNamesUpdates | ForEach-Object {Set-Variable -Name $_.Name -Value $_.Value}
 
         #Extract filename
@@ -4123,7 +4225,7 @@ function Add-TDConfigurationItemRelationship
     Process
     {
         #  Set ID parameters from their corresponding Name (dynamic) parameters (in begin block if none are gathered from the pipeline, otherwise in process block)
-        $IDsFromNamesUpdates = Get-IDsFromNames -DynamicParameterDictionary $DynamicParameterDictionary -AppID $AppID
+        $IDsFromNamesUpdates = Get-IDsFromNames -DynamicParameterDictionary $DynamicParameterDictionary -DynamicParameterList $DynamicParameterList
         $IDsFromNamesUpdates | ForEach-Object {Set-Variable -Name $_.Name -Value $_.Value}
 
         Write-ActivityHistory "Adding relationship for TeamDynamix asset ID $ID, of type $TypeID with comment, $Comment."
@@ -4804,7 +4906,7 @@ function Set-TDProductType
     Process
     {
         #  Set ID parameters from their corresponding Name (dynamic) parameters (in begin block if none are gathered from the pipeline, otherwise in process block)
-        $IDsFromNamesUpdates = Get-IDsFromNames -DynamicParameterDictionary $DynamicParameterDictionary -AppID $AppID
+        $IDsFromNamesUpdates = Get-IDsFromNames -DynamicParameterDictionary $DynamicParameterDictionary -DynamicParameterList $DynamicParameterList
         $IDsFromNamesUpdates | ForEach-Object {Set-Variable -Name $_.Name -Value $_.Value}
 
         Write-ActivityHistory "Getting full product type record for $ID on TeamDynamix."

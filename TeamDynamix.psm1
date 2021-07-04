@@ -46,8 +46,8 @@ $RequiredSettings = @(
     'DefaultAssetCIsApp'
     'DefaultTicketingApp'
     'DefaultPortalApp'
-    'DefaultTDPortalBaseURI'
-    'DefaultTDPortalPreviewBaseURI'
+    'DefaultTDBaseURI'
+    'DefaultTDPreviewBaseURI'
     )
 foreach ($RequiredSetting in $RequiredSettings)
 {
@@ -66,10 +66,11 @@ else
 }
 
 # Hashtable of custom attributes by component ID - populate as requests are made, separate results from production, sandbox, and preview
-$script:CustomAttributesTable = @{
+$script:CustomAttributesCache = @{
     Production = @{}
     Sandbox    = @{}
-    Preview    = @{}}
+    Preview    = @{}
+}
 
 # Last authentication date/time, update at login
 [datetime]$script:LastAuthentication = 0
@@ -106,11 +107,10 @@ $script:TimeZoneIDReference = [ordered]@{
     29 = 'Newfoundland(GMT-03:30)'
     43 = 'Gulf Standard Time(GMT+04:00)'
     44 = 'Pakistan Time(GMT+05:00)'
-    62 = 'Afghanistan Time(GMT+04:30)'}
+    62 = 'Afghanistan Time(GMT+04:30)'
+}
 
 # TeamDynamix API target
-$script:DefaultTDBaseURI                = 'https://api.teamdynamix.com'
-$script:DefaultTDPreviewBaseURI         = 'https://api.teamdynamixpreview.com'
 $script:DefaultTDSandboxTargetURI       = '/SBTDWebApi/api'
 $script:DefaultTDTargetURI              = '/TDWebApi/api'
 $script:DefaultTDPortalSandboxTargetURI = '/SBTDNext'
@@ -136,13 +136,14 @@ $script:GlobalIgnoreParameters = @(
     'OutBuffer'
     'PipelineVariable'
     'WhatIf'
-    'Confirm')
+    'Confirm'
+    )
 
 # TeamDynamix login error text (must match what is returned by TD API when password fails)
 $script:TDLoginFailureText = 'Invalid username/password for TeamDynamix.'
 
 #  Used to locate the default Active Directory connector identified by $TDConfig.DefaultADConnectorFinder
-$script:DefaultADConnectorFinder = '$TDConfig.DataConnectors | Where-Object {$_.Name -eq $TDConfig.DefaultADConnector -and $_.Application -eq "User" -and $_.IsActive -eq $true}'
+$script:DefaultADConnectorFinder = '$TDConfig.DataConnectors | Where-Object {$_.Name -eq $TDConfig.DefaultADConnector -and $_.Application -eq "People" -and $_.IsActive -eq $true}'
 #endregion
 
 #region Enum specifications - may need to be updated for changes to TeamDynamix APIs
@@ -164,7 +165,8 @@ enum TeamDynamix_Api_Roles_LicenseTypes {
     ClientWithReporting         = 7
     ProjectManagerWithReporting = 8
     TechnicianWithReporting     = 9
-    TeamMemberWithReporting     = 10}
+    TeamMemberWithReporting     = 10
+}
 
 # Component IDs, as described in TeamDynamix.Api.CustomAttributes.CustomAttributeComponent[]
 enum TeamDynamix_Api_CustomAttributes_CustomAttributeComponent {
@@ -186,7 +188,8 @@ enum TeamDynamix_Api_CustomAttributes_CustomAttributeComponent {
     ConfigurationItem    = 63
     Location             = 71
     Risk                 = 72
-    LocationRoom         = 80}
+    LocationRoom         = 80
+}
 
 # Ticket classification of tickets to find, as described in TeamDynamix.Api.Tickets.TicketClass[]
 enum TeamDynamix_Api_Tickets_TicketClass {
@@ -198,7 +201,8 @@ enum TeamDynamix_Api_Tickets_TicketClass {
     Release        = 35
     TicketTemplate = 36
     ServiceRequest = 46
-    MajorIncident  = 77}
+    MajorIncident  = 77
+}
 
 # User types, as described in TeamDynamix.Api.Users.UserType[]
 enum TeamDynamix_Api_Users_UserType {
@@ -206,7 +210,9 @@ enum TeamDynamix_Api_Users_UserType {
     User                = 1
     Customer            = 2
     Administrator       = 3
-    ResourcePlaceholder = 8}
+    ResourcePlaceholder = 8
+    ServiceAccount      = 9
+}
 
 # KnowledgeBase article status, as described in TeamDynamix.Api.KnowledgeBase.ArticleStatus[]
 enum TeamDynamix_Api_KnowledgeBase_ArticleStatus {
@@ -215,12 +221,14 @@ enum TeamDynamix_Api_KnowledgeBase_ArticleStatus {
     Submitted    = 2
     Approved     = 3
     Rejected     = 4
-    Archived     = 5}
+    Archived     = 5
+}
 
 # KnowledgeBase article status, as described in TeamDynamix.Api.KnowledgeBase.DraftStatus[]
 enum TeamDynamix_Api_KnowledgeBase_DraftStatus {
     Pending  = 1
-    Rejected = 2}
+    Rejected = 2
+}
 
 # Ticket status, as described in TeamDynamix.Api.Statuses.StatusClass[]
 enum TeamDynamix_Api_Statuses_StatusClass {
@@ -230,7 +238,8 @@ enum TeamDynamix_Api_Statuses_StatusClass {
     Completed = 3
     Cancelled = 4
     OnHold    = 5
-    Requested = 6}
+    Requested = 6
+}
 
 # Attachment types, as described in TeamDynamix.Api.Attachments.AttachmentType[]
 enum TeamDynamix_Api_Attachments_AttachmentType {
@@ -245,7 +254,8 @@ enum TeamDynamix_Api_Attachments_AttachmentType {
     Knowledgebase     = 26
     Asset             = 27
     Contract          = 29
-    ConfigurationItem = 63}
+    ConfigurationItem = 63
+}
 
 # Feed item types, as described in TeamDynamix.Api.Feed.FeedItemType[]
 enum TeamDynamix_Api_Feed_FeedItemType {
@@ -263,7 +273,8 @@ enum TeamDynamix_Api_Feed_FeedItemType {
     TicketTask          = 25
     MaintenanceActivity = 25
     Asset               = 27
-    Risk                = 72}
+    Risk                = 72
+}
 
 # Feed update types, as described in TeamDynamix.Api.Feed.UpdateType[]
 enum TeamDynamix_Api_Feed_UpdateType {
@@ -274,13 +285,15 @@ enum TeamDynamix_Api_Feed_UpdateType {
     Created      = 4
     MyWorkChange = 5
     Merge        = 6
-    MovedComment = 7}
+    MovedComment = 7
+}
 
 # Bulk operations result types, as described in TeamDynamix.Api.BulkOperations.ItemResultType[]
 enum TeamDynamix_Api_BulkOperations_ItemResultType {
     Skipped = 0
     Created = 1
-    Updated = 2}
+    Updated = 2
+}
 
 # Types that a Configuration Item can describe, as described in TeamDynamix.Api.Cmdb.BackingItemType
 enum TeamDynamix_Api_Cmdb_BackingItemType {
@@ -302,7 +315,8 @@ enum TeamDynamix_Api_Tickets_TicketTaskType {
     None                = 0
     TicketTask          = 1
     MaintenanceActivity = 2
-    WorkflowTask        = 3}
+    WorkflowTask        = 3
+}
 
 # Types of conflicts that can be detected for scheduled maintenance activity for a CI
 enum TeamDynamix_Api_Tickets_ConflictType {
@@ -312,13 +326,15 @@ enum TeamDynamix_Api_Tickets_ConflictType {
     ExistingActivity              = 4
     OutsideChildMaintenanceWindow = 8
     ExistingChildActivity         = 16
-    ExistingParentActivity        = 32}
+    ExistingParentActivity        = 32
+}
 
 # Indicates which types of unmet constraints to filter on for search
 enum TeamDynamix_Api_Tickets_UnmetConstraintSearchType {
     None       = 0
     Response   = 1
-    Resolution = 2}
+    Resolution = 2
+}
 
 # Specifies the type of item with which a time or expense entry is associated
 enum TeamDynamix_Api_Time_TimeEntryComponent {
@@ -330,14 +346,16 @@ enum TeamDynamix_Api_Time_TimeEntryComponent {
     PortfolioTime      = 23
     TicketTaskTime     = 25
     WorkspaceTime      = 45
-    PortfolioIssueTime = 83}
+    PortfolioIssueTime = 83
+}
 
 # Specifies the approval status of a time/expense entry or report
 enum TeamDynamix_Api_Time_TimeStatus {
     NoStatus  = 0
     Submitted = 1
     Rejected  = 2
-    Approved  = 3}
+    Approved  = 3
+}
 
 # A list of error codes to help the user understand item errors for time API operations
 enum TeamDynamix_Api_Time_TimeApiErrorCode {
@@ -378,13 +396,15 @@ enum TeamDynamix_Api_Time_TimeApiErrorCode {
     InvalidTimeDate                 = 57
     InvalidTicketID                 = 58
     PortfolioNotFound               = 59
-    PortfolioNotActive              = 60}
+    PortfolioNotActive              = 60
+}
 
 # Different modes of editing resource allocations
 enum TeamDynamix_Api_ResourceAllocationEditMode {
     AllowRequest    = 1
     AllowDirectEdit = 2
-    DoNotAllowEdit  = 3}
+    DoNotAllowEdit  = 3
+}
 
 # Options for health of a project
 enum TeamDynamix_Api_Projects_HealthChoice {
@@ -392,14 +412,16 @@ enum TeamDynamix_Api_Projects_HealthChoice {
     Green  = 1
     Yellow = 2
     Red    = 3
-    OnHold = 4}
+    OnHold = 4
+}
 
 # Types of relationships between tasks
 enum TeamDynamix_Api_Plans_RelationshipType {
     EndToStart   = 0
     EndToEnd     = 1
     StartToEnd   = 2
-    StartToStart = 3}
+    StartToStart = 3
+}
 #endregion
 
 #region Class definitions
@@ -1430,106 +1452,53 @@ class TeamDynamix_Api_Assets_Asset
 
     # Methods
     [void] AddCustomAttribute (
-        [TeamDynamix_Api_CustomAttributes_CustomAttribute[]]$Attributes)
+        [TeamDynamix_Api_CustomAttributes_CustomAttribute]$Attribute,
+        [boolean]$Overwrite)
     {
-        foreach ($CustomAttribute in $Attributes)
+        # Check to see if attribute is already present
+        $FoundAttribute = $this.Attributes | Where-Object ID -eq $Attribute.ID
+        # Remove if Overwrite is set and the attribute is present
+        if ($FoundAttribute -and $Overwrite)
         {
-            # Check to see if attribute is already present
-            $FoundAttribute = $this.Attributes | Where-Object ID -eq $CustomAttribute.ID
-            if (-not $FoundAttribute)
-            {
-                # Add attribute
-                $this.Attributes += $CustomAttribute
-            }
-            else
-            {
-                Write-ActivityHistory -MessageChannel 'Error' -Message "Attribute $($FoundAttribute.Name) is already present on $this.Name."
-            }
+            $this.RemoveCustomAttribute($Attribute.ID)
+        }
+        if ((-not $FoundAttribute) -or $Overwrite)
+        {
+            # Add attribute
+            $this.Attributes += $Attribute
+        }
+        else # $FoundAttribute is true and $Overwrite is false
+        {
+            Write-ActivityHistory -MessageChannel 'Error' -Message "Attribute $($FoundAttribute.Name) is already present on $this.Name."
         }
     }
 
+    # Delegating methods for AddCustomAttribute
     [void] AddCustomAttribute (
         [TeamDynamix_Api_CustomAttributes_CustomAttribute[]]$Attributes,
         [boolean]$Overwrite)
     {
-        foreach ($CustomAttribute in $Attributes)
+        foreach ($Attribute in $Attributes)
         {
-            # Check to see if attribute is already present
-            $FoundAttribute = $this.Attributes | Where-Object ID -eq $CustomAttribute.ID
-            # Remove if Overwrite is set and the attribute is present
-            if ($FoundAttribute -and $Overwrite)
-            {
-                $this.RemoveCustomAttribute($CustomAttribute.ID)
-            }
-            if ((-not $FoundAttribute) -or $Overwrite)
-            {
-                # Add attribute
-                $this.Attributes += $CustomAttribute
-            }
-            else
-            {
-                Write-ActivityHistory -MessageChannel 'Error' -Message "Attribute $($FoundAttribute.Name) is already present on $this.Name."
-            }
+            $this.AddCustomAttribute($Attribute,$Overwrite)
         }
     }
 
     [void] AddCustomAttribute (
-        [int] $AttributeID,
-        [Int] $AttributeValue)
+        [TeamDynamix_Api_CustomAttributes_CustomAttribute[]]$Attributes)
     {
-        # Check to see if attribute is already present on the asset
-        $FoundAttribute = $this.Attributes | Where-Object ID -eq $AttributeID
-        if (-not $FoundAttribute)
+        foreach ($Attribute in $Attributes)
         {
-            # Add attribute
-            $this.Attributes += [TeamDynamix_Api_CustomAttributes_CustomAttribute]::new($AttributeID,$AttributeValue)
-        }
-        else
-        {
-            Write-ActivityHistory -MessageChannel 'Error' -Message "Attribute $($FoundAttribute.Name) is already present on $this.Name."
+            $this.AddCustomAttribute($Attribute,$false)
         }
     }
 
     [void] AddCustomAttribute (
         [int]    $AttributeID,
-        [Int]    $AttributeValue,
+        [int]    $AttributeValue,
         [boolean]$Overwrite)
     {
-        # Check to see if attribute is already present
-        $FoundAttribute = $this.Attributes | Where-Object ID -eq $AttributeID
-        # Remove if Overwrite is set and the attribute is present
-        if ($FoundAttribute -and $Overwrite)
-        {
-            $this.RemoveCustomAttribute($AttributeID)
-        }
-        if ((-not $FoundAttribute) -or $Overwrite)
-        {
-            # Add attribute
-            $this.Attributes += [TeamDynamix_Api_CustomAttributes_CustomAttribute]::new($AttributeID,$AttributeValue)
-        }
-        else
-        {
-            Write-ActivityHistory -MessageChannel 'Error' -Message "Attribute $($FoundAttribute.Name) is already present on $this.Name."
-        }
-    }
-
-    [void] AddCustomAttribute (
-        [string]   $AttributeName,
-        [string]   $AttributeValue,
-        [hashtable]$TDAuthentication,
-        [EnvironmentChoices]$Environment)
-    {
-        # Check to see if attribute is already present
-        $FoundAttribute = $this.Attributes | Where-Object Name -eq $AttributeName
-        if (-not $FoundAttribute)
-        {
-            # Add attribute
-            $this.Attributes += [TeamDynamix_Api_CustomAttributes_CustomAttribute]::new($AttributeName,$AttributeValue,'Asset',$TDAuthentication,$Environment)
-        }
-        else
-        {
-            Write-ActivityHistory -MessageChannel 'Error' -Message "Attribute $($FoundAttribute.Name) is already present on $this.Name."
-        }
+        $this.AddCustomAttribute([TeamDynamix_Api_CustomAttributes_CustomAttribute]::new($AttributeID,$AttributeValue),$Overwrite)
     }
 
     [void] AddCustomAttribute (
@@ -1539,22 +1508,29 @@ class TeamDynamix_Api_Assets_Asset
         [hashtable]$TDAuthentication,
         [EnvironmentChoices]$Environment)
     {
-        # Check to see if attribute is already present
-        $FoundAttribute = $this.Attributes | Where-Object Name -eq $AttributeName
-        # Remove if Overwrite is set and the attribute is present
-        if ($FoundAttribute -and $Overwrite)
-        {
-            $this.RemoveCustomAttribute($FoundAttribute.ID)
-        }
-        if ((-not $FoundAttribute) -or $Overwrite)
-        {
-            # Add attribute
-            $this.Attributes += [TeamDynamix_Api_CustomAttributes_CustomAttribute]::new($AttributeName,$AttributeValue,'Asset',$TDAuthentication,$Environment)
-        }
-        else
-        {
-            Write-ActivityHistory -MessageChannel 'Error' -Message "Attribute $($FoundAttribute.Name) is already present on $this.Name."
-        }
+        $this.AddCustomAttribute([TeamDynamix_Api_CustomAttributes_CustomAttribute]::new($AttributeName,$AttributeValue,'Asset',$TDAuthentication,$Environment),$Overwrite)
+    }
+
+    [void] AddCustomAttribute (
+        [TeamDynamix_Api_CustomAttributes_CustomAttribute]$Attribute)
+    {
+        $this.AddCustomAttribute($Attribute,$false)
+    }
+
+    [void] AddCustomAttribute (
+        [int] $AttributeID,
+        [int] $AttributeValue)
+    {
+        $this.AddCustomAttribute($AttributeID,$AttributeValue,$false)
+    }
+
+    [void] AddCustomAttribute (
+        [string]   $AttributeName,
+        [string]   $AttributeValue,
+        [hashtable]$TDAuthentication,
+        [EnvironmentChoices]$Environment)
+    {
+        $this.AddCustomAttribute($AttributeName,$AttributeValue,$false,$TDAuthentication,$Environment)
     }
 
     [void] RemoveCustomAttribute (
@@ -1915,22 +1891,6 @@ class TeamDynamix_Api_Assets_AssetSearch
 
     # Methods
     [void] AddCustomAttribute (
-        [TeamDynamix_Api_CustomAttributes_CustomAttribute]$Attribute)
-    {
-        # Check to see if attribute is already present
-        $FoundAttribute = $this.CustomAttributes | Where-Object ID -eq $Attribute.ID
-        if (-not $FoundAttribute)
-        {
-            # Add attribute
-            $this.CustomAttributes += $Attribute
-        }
-        else
-        {
-            Write-ActivityHistory -MessageChannel 'Error' -Message "Attribute $($FoundAttribute.Name) is already present on $this.Name."
-        }
-    }
-
-    [void] AddCustomAttribute (
         [TeamDynamix_Api_CustomAttributes_CustomAttribute]$Attribute,
         [boolean]$Overwrite)
     {
@@ -1946,69 +1906,39 @@ class TeamDynamix_Api_Assets_AssetSearch
             # Add attribute
             $this.CustomAttributes += $Attribute
         }
-        else
+        else # $FoundAttribute is true and $Overwrite is false
         {
             Write-ActivityHistory -MessageChannel 'Error' -Message "Attribute $($FoundAttribute.Name) is already present on $this.Name."
         }
     }
 
+    # Delegating methods for AddCustomAttribute
     [void] AddCustomAttribute (
-        [int] $AttributeID,
-        [int] $AttributeValue)
+        [TeamDynamix_Api_CustomAttributes_CustomAttribute[]]$Attributes,
+        [boolean]$Overwrite)
     {
-        # Check to see if attribute is already present
-        $FoundAttribute = $this.CustomAttributes | Where-Object ID -eq $AttributeID
-        if (-not $FoundAttribute)
+        foreach ($Attribute in $Attributes)
         {
-            # Add attribute
-            $this.CustomAttributes += [TeamDynamix_Api_CustomAttributes_CustomAttribute]::new($AttributeID,$AttributeValue)
-        }
-        else
-        {
-            Write-ActivityHistory -MessageChannel 'Error' -Message "Attribute $($FoundAttribute.Name) is already present on $this.Name."
+            $this.AddCustomAttribute($Attribute,$Overwrite)
         }
     }
+
+    [void] AddCustomAttribute (
+        [TeamDynamix_Api_CustomAttributes_CustomAttribute[]]$Attributes)
+    {
+        foreach ($Attribute in $Attributes)
+        {
+            $this.AddCustomAttribute($Attribute,$false)
+        }
+    }
+
 
     [void] AddCustomAttribute (
         [int]    $AttributeID,
         [int]    $AttributeValue,
         [boolean]$Overwrite)
     {
-        # Check to see if attribute is already present
-        $FoundAttribute = $this.CustomAttributes | Where-Object ID -eq $AttributeID
-        # Remove if Overwrite is set and the attribute is present
-        if ($FoundAttribute -and $Overwrite)
-        {
-            $this.RemoveCustomAttribute($AttributeID)
-        }
-        if ((-not $FoundAttribute) -or $Overwrite)
-        {
-            # Add attribute
-            $this.CustomAttributes += [TeamDynamix_Api_CustomAttributes_CustomAttribute]::new($AttributeID,$AttributeValue)
-        }
-        else
-        {
-            Write-ActivityHistory -MessageChannel 'Error' -Message "Attribute $($FoundAttribute.Name) is already present on $this.Name."
-        }
-    }
-
-    [void] AddCustomAttribute (
-        [string]   $AttributeName,
-        [string]   $AttributeValue,
-        [hashtable]$TDAuthentication,
-        [EnvironmentChoices]$Environment)
-    {
-        # Check to see if attribute is already present
-        $FoundAttribute = $this.Attributes | Where-Object Name -eq $AttributeName
-        if (-not $FoundAttribute)
-        {
-            # Add attribute
-            $this.CustomAttributes += [TeamDynamix_Api_CustomAttributes_CustomAttribute]::new($AttributeName,$AttributeValue,'Asset',$TDAuthentication,$Environment)
-        }
-        else
-        {
-            Write-ActivityHistory -MessageChannel 'Error' -Message "Attribute $($FoundAttribute.Name) is already present on $this.Name."
-        }
+        $this.AddCustomAttribute([TeamDynamix_Api_CustomAttributes_CustomAttribute]::new($AttributeID,$AttributeValue),$Overwrite)
     }
 
     [void] AddCustomAttribute (
@@ -2018,22 +1948,29 @@ class TeamDynamix_Api_Assets_AssetSearch
         [hashtable]$TDAuthentication,
         [EnvironmentChoices]$Environment)
     {
-        # Check to see if attribute is already present
-        $FoundAttribute = $this.Attributes | Where-Object Name -eq $AttributeName
-        # Remove if Overwrite is set and the attribute is present
-        if ($FoundAttribute -and $Overwrite)
-        {
-            $this.RemoveCustomAttribute($FoundAttribute.ID)
-        }
-        if ((-not $FoundAttribute) -or $Overwrite)
-        {
-            # Add attribute
-            $this.CustomAttributes += [TeamDynamix_Api_CustomAttributes_CustomAttribute]::new($AttributeName,$AttributeValue,'Asset',$TDAuthentication,$Environment)
-        }
-        else
-        {
-            Write-ActivityHistory -MessageChannel 'Error' -Message "Attribute $($FoundAttribute.Name) is already present on $this.Name."
-        }
+        $this.AddCustomAttribute([TeamDynamix_Api_CustomAttributes_CustomAttribute]::new($AttributeName,$AttributeValue,'Asset',$TDAuthentication,$Environment),$Overwrite)
+    }
+
+    [void] AddCustomAttribute (
+        [TeamDynamix_Api_CustomAttributes_CustomAttribute]$Attribute)
+    {
+        $this.AddCustomAttribute($Attribute,$false)
+    }
+
+    [void] AddCustomAttribute (
+        [int] $AttributeID,
+        [int] $AttributeValue)
+    {
+        $this.AddCustomAttribute($AttributeID,$AttributeValue,$false)
+    }
+
+    [void] AddCustomAttribute (
+        [string]   $AttributeName,
+        [string]   $AttributeValue,
+        [hashtable]$TDAuthentication,
+        [EnvironmentChoices]$Environment)
+    {
+        $this.AddCustomAttribute($AttributeName,$AttributeValue,$false,$TDAuthentication,$Environment)
     }
 }
 
@@ -3380,22 +3317,6 @@ class TeamDynamix_Api_Users_User
 
     # Methods
     [void] AddCustomAttribute (
-        [TeamDynamix_Api_CustomAttributes_CustomAttribute]$Attribute)
-    {
-        # Check to see if attribute is already present
-        $FoundAttribute = $this.Attributes | Where-Object ID -eq $Attribute.ID
-        if (-not $FoundAttribute)
-        {
-            # Add attribute
-            $this.Attributes += $Attribute
-        }
-        else
-        {
-            Write-ActivityHistory -MessageChannel 'Error' -Message "Attribute $($FoundAttribute.Name) is already present on $this.Name."
-        }
-    }
-
-    [void] AddCustomAttribute (
         [TeamDynamix_Api_CustomAttributes_CustomAttribute]$Attribute,
         [boolean]$Overwrite)
     {
@@ -3411,69 +3332,39 @@ class TeamDynamix_Api_Users_User
             # Add attribute
             $this.Attributes += $Attribute
         }
-        else
+        else # $FoundAttribute is true and $Overwrite is false
         {
             Write-ActivityHistory -MessageChannel 'Error' -Message "Attribute $($FoundAttribute.Name) is already present on $this.Name."
         }
     }
 
+    # Delegating methods for AddCustomAttribute
     [void] AddCustomAttribute (
-        [int] $AttributeID,
-        [Int] $AttributeValue)
+        [TeamDynamix_Api_CustomAttributes_CustomAttribute[]]$Attributes,
+        [boolean]$Overwrite)
     {
-        # Check to see if attribute is already present on the asset
-        $FoundAttribute = $this.Attributes | Where-Object ID -eq $AttributeID
-        if (-not $FoundAttribute)
+        foreach ($Attribute in $Attributes)
         {
-            # Add attribute
-            $this.Attributes += [TeamDynamix_Api_CustomAttributes_CustomAttribute]::new($AttributeID,$AttributeValue)
-        }
-        else
-        {
-            Write-ActivityHistory -MessageChannel 'Error' -Message "Attribute $($FoundAttribute.Name) is already present on $this.Name."
+            $this.AddCustomAttribute($Attribute,$Overwrite)
         }
     }
+
+    [void] AddCustomAttribute (
+        [TeamDynamix_Api_CustomAttributes_CustomAttribute[]]$Attributes)
+    {
+        foreach ($Attribute in $Attributes)
+        {
+            $this.AddCustomAttribute($Attribute,$false)
+        }
+    }
+
 
     [void] AddCustomAttribute (
         [int]    $AttributeID,
-        [Int]    $AttributeValue,
+        [int]    $AttributeValue,
         [boolean]$Overwrite)
     {
-        # Check to see if attribute is already present
-        $FoundAttribute = $this.Attributes | Where-Object ID -eq $AttributeID
-        # Remove if Overwrite is set and the attribute is present
-        if ($FoundAttribute -and $Overwrite)
-        {
-            $this.RemoveCustomAttribute($AttributeID)
-        }
-        if ((-not $FoundAttribute) -or $Overwrite)
-        {
-            # Add attribute
-            $this.Attributes += [TeamDynamix_Api_CustomAttributes_CustomAttribute]::new($AttributeID,$AttributeValue)
-        }
-        else
-        {
-            Write-ActivityHistory -MessageChannel 'Error' -Message "Attribute $($FoundAttribute.Name) is already present on $this.Name."
-        }
-    }
-
-    [void] AddCustomAttribute (
-        [string]   $AttributeName,
-        [string]   $AttributeValue,
-        [hashtable]$TDAuthentication,
-        [EnvironmentChoices]$Environment)
-    {
-        # Check to see if attribute is already present
-        $FoundAttribute = $this.Attributes | Where-Object Name -eq $AttributeName
-        if (-not $FoundAttribute)
-        {
-            # Add attribute
-            $this.Attributes += [TeamDynamix_Api_CustomAttributes_CustomAttribute]::new($AttributeName,$AttributeValue,'Asset',$TDAuthentication,$Environment)
-        }
-        else
-        {
-            Write-ActivityHistory -MessageChannel 'Error' -Message "Attribute $($FoundAttribute.Name) is already present on $this.Name."
-        }
+        $this.AddCustomAttribute([TeamDynamix_Api_CustomAttributes_CustomAttribute]::new($AttributeID,$AttributeValue),$Overwrite)
     }
 
     [void] AddCustomAttribute (
@@ -3483,22 +3374,29 @@ class TeamDynamix_Api_Users_User
         [hashtable]$TDAuthentication,
         [EnvironmentChoices]$Environment)
     {
-        # Check to see if attribute is already present
-        $FoundAttribute = $this.Attributes | Where-Object Name -eq $AttributeName
-        # Remove if Overwrite is set and the attribute is present
-        if ($FoundAttribute -and $Overwrite)
-        {
-            $this.RemoveCustomAttribute($FoundAttribute.ID)
-        }
-        if ((-not $FoundAttribute) -or $Overwrite)
-        {
-            # Add attribute
-            $this.Attributes += [TeamDynamix_Api_CustomAttributes_CustomAttribute]::new($AttributeName,$AttributeValue,'Asset',$TDAuthentication,$Environment)
-        }
-        else
-        {
-            Write-ActivityHistory -MessageChannel 'Error' -Message "Attribute $($FoundAttribute.Name) is already present on $this.Name."
-        }
+        $this.AddCustomAttribute([TeamDynamix_Api_CustomAttributes_CustomAttribute]::new($AttributeName,$AttributeValue,'Person',$TDAuthentication,$Environment),$Overwrite)
+    }
+
+    [void] AddCustomAttribute (
+        [TeamDynamix_Api_CustomAttributes_CustomAttribute]$Attribute)
+    {
+        $this.AddCustomAttribute($Attribute,$false)
+    }
+
+    [void] AddCustomAttribute (
+        [int] $AttributeID,
+        [int] $AttributeValue)
+    {
+        $this.AddCustomAttribute($AttributeID,$AttributeValue,$false)
+    }
+
+    [void] AddCustomAttribute (
+        [string]   $AttributeName,
+        [string]   $AttributeValue,
+        [hashtable]$TDAuthentication,
+        [EnvironmentChoices]$Environment)
+    {
+        $this.AddCustomAttribute($AttributeName,$AttributeValue,$false,$TDAuthentication,$Environment)
     }
 
     [void] RemoveCustomAttribute (
@@ -5006,22 +4904,6 @@ class TeamDynamix_Api_Assets_ProductModel
 
     # Methods
     [void] AddCustomAttribute (
-        [TeamDynamix_Api_CustomAttributes_CustomAttribute]$Attribute)
-    {
-        # Check to see if attribute is already present
-        $FoundAttribute = $this.Attributes | Where-Object ID -eq $Attribute.ID
-        if (-not $FoundAttribute)
-        {
-            # Add attribute
-            $this.Attributes += $Attribute
-        }
-        else
-        {
-            Write-ActivityHistory -MessageChannel 'Error' -Message "Attribute $($FoundAttribute.Name) is already present on $this.Name."
-        }
-    }
-
-    [void] AddCustomAttribute (
         [TeamDynamix_Api_CustomAttributes_CustomAttribute]$Attribute,
         [boolean]$Overwrite)
     {
@@ -5037,69 +4919,39 @@ class TeamDynamix_Api_Assets_ProductModel
             # Add attribute
             $this.Attributes += $Attribute
         }
-        else
+        else # $FoundAttribute is true and $Overwrite is false
         {
             Write-ActivityHistory -MessageChannel 'Error' -Message "Attribute $($FoundAttribute.Name) is already present on $this.Name."
         }
     }
 
+    # Delegating methods for AddCustomAttribute
     [void] AddCustomAttribute (
-        [int] $AttributeID,
-        [Int] $AttributeValue)
+        [TeamDynamix_Api_CustomAttributes_CustomAttribute[]]$Attributes,
+        [boolean]$Overwrite)
     {
-        # Check to see if attribute is already present on the asset
-        $FoundAttribute = $this.Attributes | Where-Object ID -eq $AttributeID
-        if (-not $FoundAttribute)
+        foreach ($Attribute in $Attributes)
         {
-            # Add attribute
-            $this.Attributes += [TeamDynamix_Api_CustomAttributes_CustomAttribute]::new($AttributeID,$AttributeValue)
-        }
-        else
-        {
-            Write-ActivityHistory -MessageChannel 'Error' -Message "Attribute $($FoundAttribute.Name) is already present on $this.Name."
+            $this.AddCustomAttribute($Attribute,$Overwrite)
         }
     }
+
+    [void] AddCustomAttribute (
+        [TeamDynamix_Api_CustomAttributes_CustomAttribute[]]$Attributes)
+    {
+        foreach ($Attribute in $Attributes)
+        {
+            $this.AddCustomAttribute($Attribute,$false)
+        }
+    }
+
 
     [void] AddCustomAttribute (
         [int]    $AttributeID,
-        [Int]    $AttributeValue,
+        [int]    $AttributeValue,
         [boolean]$Overwrite)
     {
-        # Check to see if attribute is already present
-        $FoundAttribute = $this.Attributes | Where-Object ID -eq $AttributeID
-        # Remove if Overwrite is set and the attribute is present
-        if ($FoundAttribute -and $Overwrite)
-        {
-            $this.RemoveCustomAttribute($AttributeID)
-        }
-        if ((-not $FoundAttribute) -or $Overwrite)
-        {
-            # Add attribute
-            $this.Attributes += [TeamDynamix_Api_CustomAttributes_CustomAttribute]::new($AttributeID,$AttributeValue)
-        }
-        else
-        {
-            Write-ActivityHistory -MessageChannel 'Error' -Message "Attribute $($FoundAttribute.Name) is already present on $this.Name."
-        }
-    }
-
-    [void] AddCustomAttribute (
-        [string]   $AttributeName,
-        [string]   $AttributeValue,
-        [hashtable]$TDAuthentication,
-        [EnvironmentChoices]$Environment)
-    {
-        # Check to see if attribute is already present
-        $FoundAttribute = $this.Attributes | Where-Object Name -eq $AttributeName
-        if (-not $FoundAttribute)
-        {
-            # Add attribute
-            $this.Attributes += [TeamDynamix_Api_CustomAttributes_CustomAttribute]::new($AttributeName,$AttributeValue,'Asset',$TDAuthentication,$Environment)
-        }
-        else
-        {
-            Write-ActivityHistory -MessageChannel 'Error' -Message "Attribute $($FoundAttribute.Name) is already present on $this.Name."
-        }
+        $this.AddCustomAttribute([TeamDynamix_Api_CustomAttributes_CustomAttribute]::new($AttributeID,$AttributeValue),$Overwrite)
     }
 
     [void] AddCustomAttribute (
@@ -5109,22 +4961,29 @@ class TeamDynamix_Api_Assets_ProductModel
         [hashtable]$TDAuthentication,
         [EnvironmentChoices]$Environment)
     {
-        # Check to see if attribute is already present
-        $FoundAttribute = $this.Attributes | Where-Object Name -eq $AttributeName
-        # Remove if Overwrite is set and the attribute is present
-        if ($FoundAttribute -and $Overwrite)
-        {
-            $this.RemoveCustomAttribute($FoundAttribute.ID)
-        }
-        if ((-not $FoundAttribute) -or $Overwrite)
-        {
-            # Add attribute
-            $this.Attributes += [TeamDynamix_Api_CustomAttributes_CustomAttribute]::new($AttributeName,$AttributeValue,'Asset',$TDAuthentication,$Environment)
-        }
-        else
-        {
-            Write-ActivityHistory -MessageChannel 'Error' -Message "Attribute $($FoundAttribute.Name) is already present on $this.Name."
-        }
+        $this.AddCustomAttribute([TeamDynamix_Api_CustomAttributes_CustomAttribute]::new($AttributeName,$AttributeValue,'ProductModel',$TDAuthentication,$Environment),$Overwrite)
+    }
+
+    [void] AddCustomAttribute (
+        [TeamDynamix_Api_CustomAttributes_CustomAttribute]$Attribute)
+    {
+        $this.AddCustomAttribute($Attribute,$false)
+    }
+
+    [void] AddCustomAttribute (
+        [int] $AttributeID,
+        [int] $AttributeValue)
+    {
+        $this.AddCustomAttribute($AttributeID,$AttributeValue,$false)
+    }
+
+    [void] AddCustomAttribute (
+        [string]   $AttributeName,
+        [string]   $AttributeValue,
+        [hashtable]$TDAuthentication,
+        [EnvironmentChoices]$Environment)
+    {
+        $this.AddCustomAttribute($AttributeName,$AttributeValue,$false,$TDAuthentication,$Environment)
     }
 
     [void] RemoveCustomAttribute (
@@ -5208,22 +5067,6 @@ class TeamDynamix_Api_Assets_ProductModelSearch
 
     # Methods
     [void] AddCustomAttribute (
-        [TeamDynamix_Api_CustomAttributes_CustomAttribute]$Attribute)
-    {
-        # Check to see if attribute is already present
-        $FoundAttribute = $this.CustomAttributes | Where-Object ID -eq $Attribute.ID
-        if (-not $FoundAttribute)
-        {
-            # Add attribute
-            $this.CustomAttributes += $Attribute
-        }
-        else
-        {
-            Write-ActivityHistory -MessageChannel 'Error' -Message "Attribute $($FoundAttribute.Name) is already present on $this.Name."
-        }
-    }
-
-    [void] AddCustomAttribute (
         [TeamDynamix_Api_CustomAttributes_CustomAttribute]$Attribute,
         [boolean]$Overwrite)
     {
@@ -5239,69 +5082,39 @@ class TeamDynamix_Api_Assets_ProductModelSearch
             # Add attribute
             $this.CustomAttributes += $Attribute
         }
-        else
+        else # $FoundAttribute is true and $Overwrite is false
         {
             Write-ActivityHistory -MessageChannel 'Error' -Message "Attribute $($FoundAttribute.Name) is already present on $this.Name."
         }
     }
 
+    # Delegating methods for AddCustomAttribute
     [void] AddCustomAttribute (
-        [int] $AttributeID,
-        [Int] $AttributeValue)
+        [TeamDynamix_Api_CustomAttributes_CustomAttribute[]]$Attributes,
+        [boolean]$Overwrite)
     {
-        # Check to see if attribute is already present
-        $FoundAttribute = $this.CustomAttributes | Where-Object ID -eq $AttributeID
-        if (-not $FoundAttribute)
+        foreach ($Attribute in $Attributes)
         {
-            # Add attribute
-            $this.CustomAttributes += [TeamDynamix_Api_CustomAttributes_CustomAttribute]::new($AttributeID,$AttributeValue)
-        }
-        else
-        {
-            Write-ActivityHistory -MessageChannel 'Error' -Message "Attribute $($FoundAttribute.Name) is already present on $this.Name."
+            $this.AddCustomAttribute($Attribute,$Overwrite)
         }
     }
+
+    [void] AddCustomAttribute (
+        [TeamDynamix_Api_CustomAttributes_CustomAttribute[]]$Attributes)
+    {
+        foreach ($Attribute in $Attributes)
+        {
+            $this.AddCustomAttribute($Attribute,$false)
+        }
+    }
+
 
     [void] AddCustomAttribute (
         [int]    $AttributeID,
-        [Int]    $AttributeValue,
+        [int]    $AttributeValue,
         [boolean]$Overwrite)
     {
-        # Check to see if attribute is already present
-        $FoundAttribute = $this.CustomAttributes | Where-Object ID -eq $AttributeID
-        # Remove if Overwrite is set and the attribute is present
-        if ($FoundAttribute -and $Overwrite)
-        {
-            $this.RemoveCustomAttribute($AttributeID)
-        }
-        if ((-not $FoundAttribute) -or $Overwrite)
-        {
-            # Add attribute
-            $this.CustomAttributes += [TeamDynamix_Api_CustomAttributes_CustomAttribute]::new($AttributeID,$AttributeValue)
-        }
-        else
-        {
-            Write-ActivityHistory -MessageChannel 'Error' -Message "Attribute $($FoundAttribute.Name) is already present on $this.Name."
-        }
-    }
-
-    [void] AddCustomAttribute (
-        [string]   $AttributeName,
-        [string]   $AttributeValue,
-        [hashtable]$TDAuthentication,
-        [EnvironmentChoices]$Environment)
-    {
-        # Check to see if attribute is already present
-        $FoundAttribute = $this.Attributes | Where-Object Name -eq $AttributeName
-        if (-not $FoundAttribute)
-        {
-            # Add attribute
-            $this.CustomAttributes += [TeamDynamix_Api_CustomAttributes_CustomAttribute]::new($AttributeName,$AttributeValue,'ProductModel',$TDAuthentication,$Environment)
-        }
-        else
-        {
-            Write-ActivityHistory -MessageChannel 'Error' -Message "Attribute $($FoundAttribute.Name) is already present on $this.Name."
-        }
+        $this.AddCustomAttribute([TeamDynamix_Api_CustomAttributes_CustomAttribute]::new($AttributeID,$AttributeValue),$Overwrite)
     }
 
     [void] AddCustomAttribute (
@@ -5311,22 +5124,29 @@ class TeamDynamix_Api_Assets_ProductModelSearch
         [hashtable]$TDAuthentication,
         [EnvironmentChoices]$Environment)
     {
-        # Check to see if attribute is already present
-        $FoundAttribute = $this.Attributes | Where-Object Name -eq $AttributeName
-        # Remove if Overwrite is set and the attribute is present
-        if ($FoundAttribute -and $Overwrite)
-        {
-            $this.RemoveCustomAttribute($FoundAttribute.ID)
-        }
-        if ((-not $FoundAttribute) -or $Overwrite)
-        {
-            # Add attribute
-            $this.CustomAttributes += [TeamDynamix_Api_CustomAttributes_CustomAttribute]::new($AttributeName,$AttributeValue,'ProductModel',$TDAuthentication,$Environment)
-        }
-        else
-        {
-            Write-ActivityHistory -MessageChannel 'Error' -Message "Attribute $($FoundAttribute.Name) is already present on $this.Name."
-        }
+        $this.AddCustomAttribute([TeamDynamix_Api_CustomAttributes_CustomAttribute]::new($AttributeName,$AttributeValue,'ProductModel',$TDAuthentication,$Environment),$Overwrite)
+    }
+
+    [void] AddCustomAttribute (
+        [TeamDynamix_Api_CustomAttributes_CustomAttribute]$Attribute)
+    {
+        $this.AddCustomAttribute($Attribute,$false)
+    }
+
+    [void] AddCustomAttribute (
+        [int] $AttributeID,
+        [int] $AttributeValue)
+    {
+        $this.AddCustomAttribute($AttributeID,$AttributeValue,$false)
+    }
+
+    [void] AddCustomAttribute (
+        [string]   $AttributeName,
+        [string]   $AttributeValue,
+        [hashtable]$TDAuthentication,
+        [EnvironmentChoices]$Environment)
+    {
+        $this.AddCustomAttribute($AttributeName,$AttributeValue,$false,$TDAuthentication,$Environment)
     }
 
     [void] RemoveCustomAttribute (
@@ -6502,22 +6322,6 @@ class TeamDynamix_Api_KnowledgeBase_Article
 
     # Methods
     [void] AddCustomAttribute (
-        [TeamDynamix_Api_CustomAttributes_CustomAttribute]$Attribute)
-    {
-        # Check to see if attribute is already present
-        $FoundAttribute = $this.Attributes | Where-Object ID -eq $Attribute.ID
-        if (-not $FoundAttribute)
-        {
-            # Add attribute
-            $this.Attributes += $Attribute
-        }
-        else
-        {
-            Write-ActivityHistory -MessageChannel 'Error' -Message "Attribute $($FoundAttribute.Name) is already present on $this.Name."
-        }
-    }
-
-    [void] AddCustomAttribute (
         [TeamDynamix_Api_CustomAttributes_CustomAttribute]$Attribute,
         [boolean]$Overwrite)
     {
@@ -6533,69 +6337,39 @@ class TeamDynamix_Api_KnowledgeBase_Article
             # Add attribute
             $this.Attributes += $Attribute
         }
-        else
+        else # $FoundAttribute is true and $Overwrite is false
         {
             Write-ActivityHistory -MessageChannel 'Error' -Message "Attribute $($FoundAttribute.Name) is already present on $this.Name."
         }
     }
 
+    # Delegating methods for AddCustomAttribute
     [void] AddCustomAttribute (
-        [int] $AttributeID,
-        [Int] $AttributeValue)
+        [TeamDynamix_Api_CustomAttributes_CustomAttribute[]]$Attributes,
+        [boolean]$Overwrite)
     {
-        # Check to see if attribute is already present on the asset
-        $FoundAttribute = $this.Attributes | Where-Object ID -eq $AttributeID
-        if (-not $FoundAttribute)
+        foreach ($Attribute in $Attributes)
         {
-            # Add attribute
-            $this.Attributes += [TeamDynamix_Api_CustomAttributes_CustomAttribute]::new($AttributeID,$AttributeValue)
-        }
-        else
-        {
-            Write-ActivityHistory -MessageChannel 'Error' -Message "Attribute $($FoundAttribute.Name) is already present on $this.Name."
+            $this.AddCustomAttribute($Attribute,$Overwrite)
         }
     }
+
+    [void] AddCustomAttribute (
+        [TeamDynamix_Api_CustomAttributes_CustomAttribute[]]$Attributes)
+    {
+        foreach ($Attribute in $Attributes)
+        {
+            $this.AddCustomAttribute($Attribute,$false)
+        }
+    }
+
 
     [void] AddCustomAttribute (
         [int]    $AttributeID,
-        [Int]    $AttributeValue,
+        [int]    $AttributeValue,
         [boolean]$Overwrite)
     {
-        # Check to see if attribute is already present
-        $FoundAttribute = $this.Attributes | Where-Object ID -eq $AttributeID
-        # Remove if Overwrite is set and the attribute is present
-        if ($FoundAttribute -and $Overwrite)
-        {
-            $this.RemoveCustomAttribute($AttributeID)
-        }
-        if ((-not $FoundAttribute) -or $Overwrite)
-        {
-            # Add attribute
-            $this.Attributes += [TeamDynamix_Api_CustomAttributes_CustomAttribute]::new($AttributeID,$AttributeValue)
-        }
-        else
-        {
-            Write-ActivityHistory -MessageChannel 'Error' -Message "Attribute $($FoundAttribute.Name) is already present on $this.Name."
-        }
-    }
-
-    [void] AddCustomAttribute (
-        [string]   $AttributeName,
-        [string]   $AttributeValue,
-        [hashtable]$TDAuthentication,
-        [EnvironmentChoices]$Environment)
-    {
-        # Check to see if attribute is already present
-        $FoundAttribute = $this.Attributes | Where-Object Name -eq $AttributeName
-        if (-not $FoundAttribute)
-        {
-            # Add attribute
-            $this.Attributes += [TeamDynamix_Api_CustomAttributes_CustomAttribute]::new($AttributeName,$AttributeValue,'KnowledgeBaseArticle',$TDAuthentication,$Environment)
-        }
-        else
-        {
-            Write-ActivityHistory -MessageChannel 'Error' -Message "Attribute $($FoundAttribute.Name) is already present on $this.Name."
-        }
+        $this.AddCustomAttribute([TeamDynamix_Api_CustomAttributes_CustomAttribute]::new($AttributeID,$AttributeValue),$Overwrite)
     }
 
     [void] AddCustomAttribute (
@@ -6605,22 +6379,29 @@ class TeamDynamix_Api_KnowledgeBase_Article
         [hashtable]$TDAuthentication,
         [EnvironmentChoices]$Environment)
     {
-        # Check to see if attribute is already present
-        $FoundAttribute = $this.Attributes | Where-Object Name -eq $AttributeName
-        # Remove if Overwrite is set and the attribute is present
-        if ($FoundAttribute -and $Overwrite)
-        {
-            $this.RemoveCustomAttribute($FoundAttribute.ID)
-        }
-        if ((-not $FoundAttribute) -or $Overwrite)
-        {
-            # Add attribute
-            $this.Attributes += [TeamDynamix_Api_CustomAttributes_CustomAttribute]::new($AttributeName,$AttributeValue,'KnowledgeBaseArticle',$TDAuthentication,$Environment)
-        }
-        else
-        {
-            Write-ActivityHistory -MessageChannel 'Error' -Message "Attribute $($FoundAttribute.Name) is already present on $this.Name."
-        }
+        $this.AddCustomAttribute([TeamDynamix_Api_CustomAttributes_CustomAttribute]::new($AttributeName,$AttributeValue,'KnowledgeBaseArticle',$TDAuthentication,$Environment),$Overwrite)
+    }
+
+    [void] AddCustomAttribute (
+        [TeamDynamix_Api_CustomAttributes_CustomAttribute]$Attribute)
+    {
+        $this.AddCustomAttribute($Attribute,$false)
+    }
+
+    [void] AddCustomAttribute (
+        [int] $AttributeID,
+        [int] $AttributeValue)
+    {
+        $this.AddCustomAttribute($AttributeID,$AttributeValue,$false)
+    }
+
+    [void] AddCustomAttribute (
+        [string]   $AttributeName,
+        [string]   $AttributeValue,
+        [hashtable]$TDAuthentication,
+        [EnvironmentChoices]$Environment)
+    {
+        $this.AddCustomAttribute($AttributeName,$AttributeValue,$false,$TDAuthentication,$Environment)
     }
 
     [void] RemoveCustomAttribute (
@@ -6768,6 +6549,89 @@ class TeamDynamix_Api_KnowledgeBase_ArticleSearch
     }
 }
 
+class TeamDynamix_Api_ServiceCatalog_ServiceOfferingListing
+{
+    [Int32]  $ID
+    [String] $Name
+    [String] $ShortDescription
+    [String] $LongDescription
+    [Double] $Order
+    [Boolean]$IsActive
+    [Guid]   $ManagerUid
+    [String] $ManagerFullName
+    [Int32]  $ManagingGroupID
+    [String] $ManagingGroupName
+    [String] $Uri
+
+    # Default constructor
+    TeamDynamix_Api_ServiceCatalog_ServiceOfferingListing ()
+    {
+    }
+
+    # Constructor from object (such as a return from REST API)
+    TeamDynamix_Api_ServiceCatalog_ServiceOfferingListing ([psobject]$ServiceOfferingListing)
+    {
+        foreach ($Parameter in ([TeamDynamix_Api_ServiceCatalog_ServiceOfferingListing]::new() | Get-Member -MemberType Property))
+        {
+            if ($Parameter.Definition -notmatch '^datetime')
+            {
+                $this.$($Parameter.Name) = $ServiceOfferingListing.$($Parameter.Name)
+            }
+            else
+            {
+                if ($Parameter.Definition -match '^datetime\[\]') # Handle array of dates
+                {
+                    if ($null -ne $this.$($Parameter.Name))
+                    {
+                        $this.$($Parameter.Name) = $ServiceOfferingListing.$($Parameter.Name) | ForEach-Object {$_ | Get-Date}
+                    }
+                }
+                else # Single date
+                {
+                    $this.$($Parameter.Name) = $ServiceOfferingListing.$($Parameter.Name) | Get-Date
+                }
+            }
+        }
+    }
+
+    # Full constructor
+    TeamDynamix_Api_ServiceCatalog_ServiceOfferingListing(
+        [Int32]  $ID,
+        [String] $Name,
+        [String] $ShortDescription,
+        [String] $LongDescription,
+        [Double] $Order,
+        [Boolean]$IsActive,
+        [Guid]   $ManagerUid,
+        [String] $ManagerFullName,
+        [Int32]  $ManagingGroupID,
+        [String] $ManagingGroupName,
+        [String] $Uri)
+    {
+        foreach ($Parameter in ([TeamDynamix_Api_ServiceCatalog_ServiceOfferingListing]::new() | Get-Member -MemberType Property))
+        {
+            if ($Parameter.Definition -notmatch '^datetime')
+            {
+                $this.$($Parameter.Name) = (Get-Variable -Name $Parameter.Name).Value
+            }
+            else
+            {
+                if ($Parameter.Definition -match '^datetime\[\]') # Handle array of dates
+                {
+                    if ($null -ne $this.$($Parameter.Name))
+                    {
+                        $this.$($Parameter.Name) = (Get-Variable -Name $Parameter.Name).Value | ForEach-Object {$_ | Get-Date}
+                    }
+                }
+                else # Single date
+                {
+                    $this.$($Parameter.Name) = (Get-Variable -Name $Parameter.Name).Value | Get-Date
+                }
+            }
+        }
+    }
+}
+
 class TeamDynamix_Api_ServiceCatalog_Service
 {
     [int]    $ID
@@ -6801,6 +6665,8 @@ class TeamDynamix_Api_ServiceCatalog_Service
     [int]    $MaintenanceScheduleID
     [string] $MaintenanceScheduleName
     [int]    $ConfigurationItemID
+    [int]    $ServiceOfferingsCount
+    [TeamDynamix_Api_ServiceCatalog_ServiceOfferingListing[]]$ServiceOfferings
     [TeamDynamix_Api_Attachments_Attachment[]]$Attachments
     [TeamDynamix_Api_CustomAttributes_CustomAttribute[]]$Attributes
     [string] $Uri
@@ -6859,6 +6725,8 @@ class TeamDynamix_Api_ServiceCatalog_Service
         [int]    $MaintenanceScheduleID,
         [string] $MaintenanceScheduleName,
         [int]    $ConfigurationItemID,
+        [int]    $ServiceOfferingsCount,
+        [TeamDynamix_Api_ServiceCatalog_ServiceOfferingListing[]]$ServiceOfferings,
         [TeamDynamix_Api_Attachments_Attachment[]]$Attachments,
         [TeamDynamix_Api_CustomAttributes_CustomAttribute[]]$Attributes,
         [string] $Uri)
@@ -6883,108 +6751,55 @@ class TeamDynamix_Api_ServiceCatalog_Service
     {
         return (Get-TDService -AuthenticationToken $TDAuthentication -Environment $Environment)
     }
-
     [void] AddCustomAttribute (
-        [TeamDynamix_Api_CustomAttributes_CustomAttribute[]]$Attributes)
-    {
-        foreach ($CustomAttribute in $Attributes)
-        {
-            # Check to see if attribute is already present
-            $FoundAttribute = $this.Attributes | Where-Object ID -eq $CustomAttribute.ID
-            if (-not $FoundAttribute)
-            {
-                # Add attribute
-                $this.Attributes += $CustomAttribute
-            }
-            else
-            {
-                Write-ActivityHistory -MessageChannel 'Error' -Message "Attribute $($FoundAttribute.Name) is already present on $this.Name."
-            }
-        }
-    }
-
-    [void] AddCustomAttribute (
-        [TeamDynamix_Api_CustomAttributes_CustomAttribute[]]$Attributes,
-        [boolean]$Overwrite)
-    {
-        foreach ($CustomAttribute in $Attributes)
-        {
-            # Check to see if attribute is already present
-            $FoundAttribute = $this.Attributes | Where-Object ID -eq $CustomAttribute.ID
-            # Remove if Overwrite is set and the attribute is present
-            if ($FoundAttribute -and $Overwrite)
-            {
-                $this.RemoveCustomAttribute($CustomAttribute.ID)
-            }
-            if ((-not $FoundAttribute) -or $Overwrite)
-            {
-                # Add attribute
-                $this.Attributes += $CustomAttribute
-            }
-            else
-            {
-                Write-ActivityHistory -MessageChannel 'Error' -Message "Attribute $($FoundAttribute.Name) is already present on $this.Name."
-            }
-        }
-    }
-
-    [void] AddCustomAttribute (
-        [int] $AttributeID,
-        [Int] $AttributeValue)
-    {
-        # Check to see if attribute is already present on the asset
-        $FoundAttribute = $this.Attributes | Where-Object ID -eq $AttributeID
-        if (-not $FoundAttribute)
-        {
-            # Add attribute
-            $this.Attributes += [TeamDynamix_Api_CustomAttributes_CustomAttribute]::new($AttributeID,$AttributeValue)
-        }
-        else
-        {
-            Write-ActivityHistory -MessageChannel 'Error' -Message "Attribute $($FoundAttribute.Name) is already present on $this.Name."
-        }
-    }
-
-    [void] AddCustomAttribute (
-        [int]    $AttributeID,
-        [Int]    $AttributeValue,
+        [TeamDynamix_Api_CustomAttributes_CustomAttribute]$Attribute,
         [boolean]$Overwrite)
     {
         # Check to see if attribute is already present
-        $FoundAttribute = $this.Attributes | Where-Object ID -eq $AttributeID
+        $FoundAttribute = $this.Attributes | Where-Object ID -eq $Attribute.ID
         # Remove if Overwrite is set and the attribute is present
         if ($FoundAttribute -and $Overwrite)
         {
-            $this.RemoveCustomAttribute($AttributeID)
+            $this.RemoveCustomAttribute($Attribute.ID)
         }
         if ((-not $FoundAttribute) -or $Overwrite)
         {
             # Add attribute
-            $this.Attributes += [TeamDynamix_Api_CustomAttributes_CustomAttribute]::new($AttributeID,$AttributeValue)
+            $this.Attributes += $Attribute
         }
-        else
+        else # $FoundAttribute is true and $Overwrite is false
         {
             Write-ActivityHistory -MessageChannel 'Error' -Message "Attribute $($FoundAttribute.Name) is already present on $this.Name."
         }
     }
 
+    # Delegating methods for AddCustomAttribute
     [void] AddCustomAttribute (
-        [string]   $AttributeName,
-        [string]   $AttributeValue,
-        [hashtable]$TDAuthentication,
-        [EnvironmentChoices]$Environment)
+        [TeamDynamix_Api_CustomAttributes_CustomAttribute[]]$Attributes,
+        [boolean]$Overwrite)
     {
-        # Check to see if attribute is already present
-        $FoundAttribute = $this.Attributes | Where-Object Name -eq $AttributeName
-        if (-not $FoundAttribute)
+        foreach ($Attribute in $Attributes)
         {
-            # Add attribute
-            $this.Attributes += [TeamDynamix_Api_CustomAttributes_CustomAttribute]::new($AttributeName,$AttributeValue,'Asset',$TDAuthentication,$Environment)
+            $this.AddCustomAttribute($Attribute,$Overwrite)
         }
-        else
+    }
+
+    [void] AddCustomAttribute (
+        [TeamDynamix_Api_CustomAttributes_CustomAttribute[]]$Attributes)
+    {
+        foreach ($Attribute in $Attributes)
         {
-            Write-ActivityHistory -MessageChannel 'Error' -Message "Attribute $($FoundAttribute.Name) is already present on $this.Name."
+            $this.AddCustomAttribute($Attribute,$false)
         }
+    }
+
+
+    [void] AddCustomAttribute (
+        [int]    $AttributeID,
+        [int]    $AttributeValue,
+        [boolean]$Overwrite)
+    {
+        $this.AddCustomAttribute([TeamDynamix_Api_CustomAttributes_CustomAttribute]::new($AttributeID,$AttributeValue),$Overwrite)
     }
 
     [void] AddCustomAttribute (
@@ -6994,22 +6809,29 @@ class TeamDynamix_Api_ServiceCatalog_Service
         [hashtable]$TDAuthentication,
         [EnvironmentChoices]$Environment)
     {
-        # Check to see if attribute is already present
-        $FoundAttribute = $this.Attributes | Where-Object Name -eq $AttributeName
-        # Remove if Overwrite is set and the attribute is present
-        if ($FoundAttribute -and $Overwrite)
-        {
-            $this.RemoveCustomAttribute($FoundAttribute.ID)
-        }
-        if ((-not $FoundAttribute) -or $Overwrite)
-        {
-            # Add attribute
-            $this.Attributes += [TeamDynamix_Api_CustomAttributes_CustomAttribute]::new($AttributeName,$AttributeValue,'Asset',$TDAuthentication,$Environment)
-        }
-        else
-        {
-            Write-ActivityHistory -MessageChannel 'Error' -Message "Attribute $($FoundAttribute.Name) is already present on $this.Name."
-        }
+        $this.AddCustomAttribute([TeamDynamix_Api_CustomAttributes_CustomAttribute]::new($AttributeName,$AttributeValue,'Service',$TDAuthentication,$Environment),$Overwrite)
+    }
+
+    [void] AddCustomAttribute (
+        [TeamDynamix_Api_CustomAttributes_CustomAttribute]$Attribute)
+    {
+        $this.AddCustomAttribute($Attribute,$false)
+    }
+
+    [void] AddCustomAttribute (
+        [int] $AttributeID,
+        [int] $AttributeValue)
+    {
+        $this.AddCustomAttribute($AttributeID,$AttributeValue,$false)
+    }
+
+    [void] AddCustomAttribute (
+        [string]   $AttributeName,
+        [string]   $AttributeValue,
+        [hashtable]$TDAuthentication,
+        [EnvironmentChoices]$Environment)
+    {
+        $this.AddCustomAttribute($AttributeName,$AttributeValue,$false,$TDAuthentication,$Environment)
     }
 
     [void] RemoveCustomAttribute (
@@ -7542,6 +7364,8 @@ class TeamDynamix_Api_Tickets_Ticket
     [String]  $RefCode
     [Int32]   $ServiceID
     [String]  $ServiceName
+    [Int32]   $ServiceOfferingID
+    [String]  $ServiceOfferingName
     [Int32]   $ServiceCategoryID
     [String]  $ServiceCategoryName
     [Int32]   $ArticleID
@@ -7675,6 +7499,8 @@ class TeamDynamix_Api_Tickets_Ticket
         [String]  $RefCode,
         [Int32]   $ServiceID,
         [String]  $ServiceName,
+        [Int32]   $ServiceOfferingID,
+        [String]  $ServiceOfferingName,
         [Int32]   $ServiceCategoryID,
         [String]  $ServiceCategoryName,
         [Int32]   $ArticleID,
@@ -7724,6 +7550,7 @@ class TeamDynamix_Api_Tickets_Ticket
         [Int32]   $LocationID,
         [Int32]   $LocationRoomID,
         [Int32]   $ServiceID,
+        [Int32]   $ServiceOfferingID,
         [TeamDynamix_Api_CustomAttributes_CustomAttribute[]]$Attributes)
     {
         $this.TypeID             = $TypeID
@@ -7748,26 +7575,11 @@ class TeamDynamix_Api_Tickets_Ticket
         $this.LocationID         = $LocationID
         $this.LocationRoomID     = $LocationRoomID
         $this.ServiceID          = $ServiceID
+        $this.ServiceOfferingID  = $ServiceOfferingID
         $this.Attributes         = $Attributes
     }
 
     # Methods
-    [void] AddCustomAttribute (
-        [TeamDynamix_Api_CustomAttributes_CustomAttribute]$Attribute)
-    {
-        # Check to see if attribute is already present
-        $FoundAttribute = $this.Attributes | Where-Object ID -eq $Attribute.ID
-        if (-not $FoundAttribute)
-        {
-            # Add attribute
-            $this.Attributes += $Attribute
-        }
-        else
-        {
-            Write-ActivityHistory -MessageChannel 'Error' -Message "Attribute $($FoundAttribute.Name) is already present on $this.Name."
-        }
-    }
-
     [void] AddCustomAttribute (
         [TeamDynamix_Api_CustomAttributes_CustomAttribute]$Attribute,
         [boolean]$Overwrite)
@@ -7784,69 +7596,39 @@ class TeamDynamix_Api_Tickets_Ticket
             # Add attribute
             $this.Attributes += $Attribute
         }
-        else
+        else # $FoundAttribute is true and $Overwrite is false
         {
             Write-ActivityHistory -MessageChannel 'Error' -Message "Attribute $($FoundAttribute.Name) is already present on $this.Name."
         }
     }
 
+    # Delegating methods for AddCustomAttribute
     [void] AddCustomAttribute (
-        [int] $AttributeID,
-        [Int] $AttributeValue)
+        [TeamDynamix_Api_CustomAttributes_CustomAttribute[]]$Attributes,
+        [boolean]$Overwrite)
     {
-        # Check to see if attribute is already present on the asset
-        $FoundAttribute = $this.Attributes | Where-Object ID -eq $AttributeID
-        if (-not $FoundAttribute)
+        foreach ($Attribute in $Attributes)
         {
-            # Add attribute
-            $this.Attributes += [TeamDynamix_Api_CustomAttributes_CustomAttribute]::new($AttributeID,$AttributeValue)
-        }
-        else
-        {
-            Write-ActivityHistory -MessageChannel 'Error' -Message "Attribute $($FoundAttribute.Name) is already present on $this.Name."
+            $this.AddCustomAttribute($Attribute,$Overwrite)
         }
     }
+
+    [void] AddCustomAttribute (
+        [TeamDynamix_Api_CustomAttributes_CustomAttribute[]]$Attributes)
+    {
+        foreach ($Attribute in $Attributes)
+        {
+            $this.AddCustomAttribute($Attribute,$false)
+        }
+    }
+
 
     [void] AddCustomAttribute (
         [int]    $AttributeID,
-        [Int]    $AttributeValue,
+        [int]    $AttributeValue,
         [boolean]$Overwrite)
     {
-        # Check to see if attribute is already present
-        $FoundAttribute = $this.Attributes | Where-Object ID -eq $AttributeID
-        # Remove if Overwrite is set and the attribute is present
-        if ($FoundAttribute -and $Overwrite)
-        {
-            $this.RemoveCustomAttribute($AttributeID)
-        }
-        if ((-not $FoundAttribute) -or $Overwrite)
-        {
-            # Add attribute
-            $this.Attributes += [TeamDynamix_Api_CustomAttributes_CustomAttribute]::new($AttributeID,$AttributeValue)
-        }
-        else
-        {
-            Write-ActivityHistory -MessageChannel 'Error' -Message "Attribute $($FoundAttribute.Name) is already present on $this.Name."
-        }
-    }
-
-    [void] AddCustomAttribute (
-        [string]   $AttributeName,
-        [string]   $AttributeValue,
-        [hashtable]$TDAuthentication,
-        [EnvironmentChoices]$Environment)
-    {
-        # Check to see if attribute is already present
-        $FoundAttribute = $this.Attributes | Where-Object Name -eq $AttributeName
-        if (-not $FoundAttribute)
-        {
-            # Add attribute
-            $this.Attributes += [TeamDynamix_Api_CustomAttributes_CustomAttribute]::new($AttributeName,$AttributeValue,'Asset',$TDAuthentication,$Environment)
-        }
-        else
-        {
-            Write-ActivityHistory -MessageChannel 'Error' -Message "Attribute $($FoundAttribute.Name) is already present on $this.Name."
-        }
+        $this.AddCustomAttribute([TeamDynamix_Api_CustomAttributes_CustomAttribute]::new($AttributeID,$AttributeValue),$Overwrite)
     }
 
     [void] AddCustomAttribute (
@@ -7856,22 +7638,29 @@ class TeamDynamix_Api_Tickets_Ticket
         [hashtable]$TDAuthentication,
         [EnvironmentChoices]$Environment)
     {
-        # Check to see if attribute is already present
-        $FoundAttribute = $this.Attributes | Where-Object Name -eq $AttributeName
-        # Remove if Overwrite is set and the attribute is present
-        if ($FoundAttribute -and $Overwrite)
-        {
-            $this.RemoveCustomAttribute($FoundAttribute.ID)
-        }
-        if ((-not $FoundAttribute) -or $Overwrite)
-        {
-            # Add attribute
-            $this.Attributes += [TeamDynamix_Api_CustomAttributes_CustomAttribute]::new($AttributeName,$AttributeValue,'Asset',$TDAuthentication,$Environment)
-        }
-        else
-        {
-            Write-ActivityHistory -MessageChannel 'Error' -Message "Attribute $($FoundAttribute.Name) is already present on $this.Name."
-        }
+        $this.AddCustomAttribute([TeamDynamix_Api_CustomAttributes_CustomAttribute]::new($AttributeName,$AttributeValue,'Ticket',$TDAuthentication,$Environment),$Overwrite)
+    }
+
+    [void] AddCustomAttribute (
+        [TeamDynamix_Api_CustomAttributes_CustomAttribute]$Attribute)
+    {
+        $this.AddCustomAttribute($Attribute,$false)
+    }
+
+    [void] AddCustomAttribute (
+        [int] $AttributeID,
+        [int] $AttributeValue)
+    {
+        $this.AddCustomAttribute($AttributeID,$AttributeValue,$false)
+    }
+
+    [void] AddCustomAttribute (
+        [string]   $AttributeName,
+        [string]   $AttributeValue,
+        [hashtable]$TDAuthentication,
+        [EnvironmentChoices]$Environment)
+    {
+        $this.AddCustomAttribute($AttributeName,$AttributeValue,$false,$TDAuthentication,$Environment)
     }
 
     [void] RemoveCustomAttribute (
@@ -8104,6 +7893,8 @@ class TD_TeamDynamix_Api_Tickets_Ticket
     [String] $RefCode
     [Int32]  $ServiceID
     [String] $ServiceName
+    [Int32]  $ServiceOfferingID
+    [String] $ServiceOfferingName
     [Int32]  $ServiceCategoryID
     [String] $ServiceCategoryName
     [Int32]  $ArticleID
@@ -9369,6 +9160,7 @@ class TeamDynamix_Api_Time_TimeEntry
         [Double]  $BillRate
         [Boolean] $Limited
         [Int32]   $TimeTypeID
+        [Int32]   $FunctionalRoleID
         [Boolean] $Billable
         [Int32]   $AppID
         [String]  $AppName
@@ -9423,6 +9215,7 @@ class TeamDynamix_Api_Time_TimeEntry
         [Double]  $BillRate,
         [Boolean] $Limited,
         [Int32]   $TimeTypeID,
+        [Int32]   $FunctionalRoleID,
         [Boolean] $Billable,
         [Int32]   $AppID,
         [String]  $AppName,
@@ -9481,6 +9274,7 @@ class TD_TeamDynamix_Api_Time_TimeEntry
     [Double]  $BillRate
     [Boolean] $Limited
     [Int32]   $TimeTypeID
+    [Int32]   $FunctionalRoleID
     [Boolean] $Billable
     [Int32]   $AppID
     [String]  $AppName
@@ -10068,6 +9862,81 @@ class TeamDynamix_Api_Projects_CustomColumn
     }
 }
 
+class TeamDynamix_Api_Users_UserSummary
+{
+    [Guid]  $UID
+    [Int32] $ReferenceID
+    [String]$FullName
+    [String]$FirstName
+    [String]$LastName
+    [String]$ProfileImageFileName
+    [String]$AlertEmail
+
+    # Default constructor
+    TeamDynamix_Api_Users_UserSummary ()
+    {
+    }
+
+    # Constructor from object (such as a return from REST API)
+    TeamDynamix_Api_Users_UserSummary ([psobject]$UserSummary)
+    {
+        foreach ($Parameter in ([TeamDynamix_Api_Users_UserSummary]::new() | Get-Member -MemberType Property))
+        {
+            if ($Parameter.Definition -notmatch '^datetime')
+            {
+                $this.$($Parameter.Name) = $UserSummary.$($Parameter.Name)
+            }
+            else
+            {
+                if ($Parameter.Definition -match '^datetime\[\]') # Handle array of dates
+                {
+                    if ($null -ne $this.$($Parameter.Name))
+                    {
+                        $this.$($Parameter.Name) = $UserSummary.$($Parameter.Name) | ForEach-Object {$_ | Get-Date}
+                    }
+                }
+                else # Single date
+                {
+                    $this.$($Parameter.Name) = $UserSummary.$($Parameter.Name) | Get-Date
+                }
+            }
+        }
+    }
+
+    # Full constructor
+    TeamDynamix_Api_Users_UserSummary(
+        [Guid]  $UID,
+        [Int32] $ReferenceID,
+        [String]$FullName,
+        [String]$FirstName,
+        [String]$LastName,
+        [String]$ProfileImageFileName,
+        [String]$AlertEmail)
+    {
+        foreach ($Parameter in ([TeamDynamix_Api_Users_UserSummary]::new() | Get-Member -MemberType Property))
+        {
+            if ($Parameter.Definition -notmatch '^datetime')
+            {
+                $this.$($Parameter.Name) = (Get-Variable -Name $Parameter.Name).Value
+            }
+            else
+            {
+                if ($Parameter.Definition -match '^datetime\[\]') # Handle array of dates
+                {
+                    if ($null -ne $this.$($Parameter.Name))
+                    {
+                        $this.$($Parameter.Name) = (Get-Variable -Name $Parameter.Name).Value | ForEach-Object {$_ | Get-Date}
+                    }
+                }
+                else # Single date
+                {
+                    $this.$($Parameter.Name) = (Get-Variable -Name $Parameter.Name).Value | Get-Date
+                }
+            }
+        }
+    }
+}
+
 class TeamDynamix_Api_Projects_Project
 {
     [Int32]   $ID
@@ -10123,6 +9992,7 @@ class TeamDynamix_Api_Projects_Project
     [Guid]    $Admin2UID
     [String]  $Admin2FullName
     [String]  $Admin2Email
+    [TeamDynamix_Api_Users_UserSummary[]]$AlternateManagers
     [Int32]   $RequestWorkflowID
     [Int32]   $ClassificationID
     [String]  $ClassificationName
@@ -10184,6 +10054,8 @@ class TeamDynamix_Api_Projects_Project
     [Boolean] $IsBackupSupported
     [Int32]   $ServiceID
     [String]  $ServiceName
+    [Int32]   $ServiceOfferingID
+    [String]  $ServiceOfferingName
     [Int32]   $ServiceCategoryID
     [String]  $ServiceCategoryName
     [DateTime[]]$NonWorkingDays
@@ -10274,6 +10146,7 @@ class TeamDynamix_Api_Projects_Project
         [Guid]    $Admin2UID,
         [String]  $Admin2FullName,
         [String]  $Admin2Email,
+        [TeamDynamix_Api_Users_UserSummary[]]$AlternateManagers,
         [Int32]   $RequestWorkflowID,
         [Int32]   $ClassificationID,
         [String]  $ClassificationName,
@@ -10335,6 +10208,8 @@ class TeamDynamix_Api_Projects_Project
         [Boolean] $IsBackupSupported,
         [Int32]   $ServiceID,
         [String]  $ServiceName,
+        [Int32]   $ServiceOfferingID,
+        [String]  $ServiceOfferingName,
         [Int32]   $ServiceCategoryID,
         [String]  $ServiceCategoryName,
         [DateTime[]]$NonWorkingDays)
@@ -10380,7 +10255,8 @@ class TeamDynamix_Api_Projects_Project
         [DateTime]$EndDate,
         [DateTime]$StartDate,
         [TeamDynamix_Api_CustomAttributes_CustomAttribute[]]$Attributes,
-        [Int32]   $ServiceID)
+        [Int32]   $ServiceID,
+        [Int32]   $ServiceOfferingID)
     {
         $this.Name                          = $Name
         $this.Budget                        = $Budget
@@ -10409,110 +10285,59 @@ class TeamDynamix_Api_Projects_Project
         $this.StartDate                     = $StartDate                     | Get-Date
         $this.Attributes                    = $Attributes
         $this.ServiceID                     = $ServiceID
+        $this.ServiceOfferingID             = $ServiceOfferingID
     }
 
     # Methods
     [void] AddCustomAttribute (
-        [TeamDynamix_Api_CustomAttributes_CustomAttribute[]]$Attributes)
-    {
-        foreach ($CustomAttribute in $Attributes)
-        {
-            # Check to see if attribute is already present
-            $FoundAttribute = $this.Attributes | Where-Object ID -eq $CustomAttribute.ID
-            if (-not $FoundAttribute)
-            {
-                # Add attribute
-                $this.Attributes += $CustomAttribute
-            }
-            else
-            {
-                Write-ActivityHistory -MessageChannel 'Error' -Message "Attribute $($FoundAttribute.Name) is already present on $this.Name."
-            }
-        }
-    }
-
-    [void] AddCustomAttribute (
-        [TeamDynamix_Api_CustomAttributes_CustomAttribute[]]$Attributes,
-        [boolean]$Overwrite)
-    {
-        foreach ($CustomAttribute in $Attributes)
-        {
-            # Check to see if attribute is already present
-            $FoundAttribute = $this.Attributes | Where-Object ID -eq $CustomAttribute.ID
-            # Remove if Overwrite is set and the attribute is present
-            if ($FoundAttribute -and $Overwrite)
-            {
-                $this.RemoveCustomAttribute($CustomAttribute.ID)
-            }
-            if ((-not $FoundAttribute) -or $Overwrite)
-            {
-                # Add attribute
-                $this.Attributes += $CustomAttribute
-            }
-            else
-            {
-                Write-ActivityHistory -MessageChannel 'Error' -Message "Attribute $($FoundAttribute.Name) is already present on $this.Name."
-            }
-        }
-    }
-
-    [void] AddCustomAttribute (
-        [int] $AttributeID,
-        [Int] $AttributeValue)
-    {
-        # Check to see if attribute is already present on the asset
-        $FoundAttribute = $this.Attributes | Where-Object ID -eq $AttributeID
-        if (-not $FoundAttribute)
-        {
-            # Add attribute
-            $this.Attributes += [TeamDynamix_Api_CustomAttributes_CustomAttribute]::new($AttributeID,$AttributeValue)
-        }
-        else
-        {
-            Write-ActivityHistory -MessageChannel 'Error' -Message "Attribute $($FoundAttribute.Name) is already present on $this.Name."
-        }
-    }
-
-    [void] AddCustomAttribute (
-        [int]    $AttributeID,
-        [Int]    $AttributeValue,
+        [TeamDynamix_Api_CustomAttributes_CustomAttribute]$Attribute,
         [boolean]$Overwrite)
     {
         # Check to see if attribute is already present
-        $FoundAttribute = $this.Attributes | Where-Object ID -eq $AttributeID
+        $FoundAttribute = $this.Attributes | Where-Object ID -eq $Attribute.ID
         # Remove if Overwrite is set and the attribute is present
         if ($FoundAttribute -and $Overwrite)
         {
-            $this.RemoveCustomAttribute($AttributeID)
+            $this.RemoveCustomAttribute($Attribute.ID)
         }
         if ((-not $FoundAttribute) -or $Overwrite)
         {
             # Add attribute
-            $this.Attributes += [TeamDynamix_Api_CustomAttributes_CustomAttribute]::new($AttributeID,$AttributeValue)
+            $this.Attributes += $Attribute
         }
-        else
+        else # $FoundAttribute is true and $Overwrite is false
         {
             Write-ActivityHistory -MessageChannel 'Error' -Message "Attribute $($FoundAttribute.Name) is already present on $this.Name."
         }
     }
 
+    # Delegating methods for AddCustomAttribute
     [void] AddCustomAttribute (
-        [string]   $AttributeName,
-        [string]   $AttributeValue,
-        [hashtable]$TDAuthentication,
-        [EnvironmentChoices]$Environment)
+        [TeamDynamix_Api_CustomAttributes_CustomAttribute[]]$Attributes,
+        [boolean]$Overwrite)
     {
-        # Check to see if attribute is already present
-        $FoundAttribute = $this.Attributes | Where-Object Name -eq $AttributeName
-        if (-not $FoundAttribute)
+        foreach ($Attribute in $Attributes)
         {
-            # Add attribute
-            $this.Attributes += [TeamDynamix_Api_CustomAttributes_CustomAttribute]::new($AttributeName,$AttributeValue,'Asset',$TDAuthentication,$Environment)
+            $this.AddCustomAttribute($Attribute,$Overwrite)
         }
-        else
+    }
+
+    [void] AddCustomAttribute (
+        [TeamDynamix_Api_CustomAttributes_CustomAttribute[]]$Attributes)
+    {
+        foreach ($Attribute in $Attributes)
         {
-            Write-ActivityHistory -MessageChannel 'Error' -Message "Attribute $($FoundAttribute.Name) is already present on $this.Name."
+            $this.AddCustomAttribute($Attribute,$false)
         }
+    }
+
+
+    [void] AddCustomAttribute (
+        [int]    $AttributeID,
+        [int]    $AttributeValue,
+        [boolean]$Overwrite)
+    {
+        $this.AddCustomAttribute([TeamDynamix_Api_CustomAttributes_CustomAttribute]::new($AttributeID,$AttributeValue),$Overwrite)
     }
 
     [void] AddCustomAttribute (
@@ -10522,22 +10347,29 @@ class TeamDynamix_Api_Projects_Project
         [hashtable]$TDAuthentication,
         [EnvironmentChoices]$Environment)
     {
-        # Check to see if attribute is already present
-        $FoundAttribute = $this.Attributes | Where-Object Name -eq $AttributeName
-        # Remove if Overwrite is set and the attribute is present
-        if ($FoundAttribute -and $Overwrite)
-        {
-            $this.RemoveCustomAttribute($FoundAttribute.ID)
-        }
-        if ((-not $FoundAttribute) -or $Overwrite)
-        {
-            # Add attribute
-            $this.Attributes += [TeamDynamix_Api_CustomAttributes_CustomAttribute]::new($AttributeName,$AttributeValue,'Asset',$TDAuthentication,$Environment)
-        }
-        else
-        {
-            Write-ActivityHistory -MessageChannel 'Error' -Message "Attribute $($FoundAttribute.Name) is already present on $this.Name."
-        }
+        $this.AddCustomAttribute([TeamDynamix_Api_CustomAttributes_CustomAttribute]::new($AttributeName,$AttributeValue,'Project',$TDAuthentication,$Environment),$Overwrite)
+    }
+
+    [void] AddCustomAttribute (
+        [TeamDynamix_Api_CustomAttributes_CustomAttribute]$Attribute)
+    {
+        $this.AddCustomAttribute($Attribute,$false)
+    }
+
+    [void] AddCustomAttribute (
+        [int] $AttributeID,
+        [int] $AttributeValue)
+    {
+        $this.AddCustomAttribute($AttributeID,$AttributeValue,$false)
+    }
+
+    [void] AddCustomAttribute (
+        [string]   $AttributeName,
+        [string]   $AttributeValue,
+        [hashtable]$TDAuthentication,
+        [EnvironmentChoices]$Environment)
+    {
+        $this.AddCustomAttribute($AttributeName,$AttributeValue,$false,$TDAuthentication,$Environment)
     }
 
     [void] RemoveCustomAttribute (
@@ -10610,6 +10442,7 @@ class TD_TeamDynamix_Api_Projects_Project
         [Guid]   $Admin2UID
         [String] $Admin2FullName
         [String] $Admin2Email
+        [TeamDynamix_Api_Users_UserSummary[]]$AlternateManagers
         [Int32]  $RequestWorkflowID
         [Int32]  $ClassificationID
         [String] $ClassificationName
@@ -10670,6 +10503,8 @@ class TD_TeamDynamix_Api_Projects_Project
         [Boolean] $IsBackupSupported
         [Int32]   $ServiceID
         [String]  $ServiceName
+        [Int32]   $ServiceOfferingID
+        [String]  $ServiceOfferingName
         [Int32]   $ServiceCategoryID
         [String]  $ServiceCategoryName
         [String[]]$NonWorkingDays
@@ -10711,6 +10546,11 @@ class TeamDynamix_Api_Projects_Resource
     [String] $ProfileImageFileName
     [Boolean]$IsProjectActive
     [Boolean]$IsUserActive
+    [Int32]  $RoleID
+    [String] $RoleName
+    [String] $UniqueKey
+    [Boolean]$UserHasMultipleRolesOnProject
+    [TeamDynamix_Api_FunctionalRole_FunctionalRole[]]$FunctionalRoles
 
     # Default constructor
     TeamDynamix_Api_Projects_Resource ()
@@ -10752,7 +10592,12 @@ class TeamDynamix_Api_Projects_Resource
         [Int32]  $ReferenceID,
         [String] $ProfileImageFileName,
         [Boolean]$IsProjectActive,
-        [Boolean]$IsUserActive)
+        [Boolean]$IsUserActive,
+        [Int32]  $RoleID,
+        [String] $RoleName,
+        [String] $UniqueKey,
+        [Boolean]$UserHasMultipleRolesOnProject,
+        [TeamDynamix_Api_FunctionalRole_FunctionalRole[]]$FunctionalRoles)
     {
         foreach ($Parameter in ([TeamDynamix_Api_Projects_Resource]::new() | Get-Member -MemberType Property))
         {
@@ -10829,9 +10674,13 @@ class TeamDynamix_Api_Plans_TaskRelationship
 
 class TeamDynamix_Api_Plans_TaskResource
 {
-    [String]  $ResourceUID
-    [String]  $ResourceFullName
-    [Double]  $PercentAssignedWhole
+    [String] $ResourceUID
+    [String] $ResourceFullName
+    [Double] $PercentAssignedWhole
+    [Int32]  $ResourceRoleID
+    [String] $ResourceRoleName
+    [Boolean]$HasMultipleRolesOnProject
+    [String] $UniqueKey
 
     # Default constructor
     TeamDynamix_Api_Plans_TaskResource ()
@@ -10856,9 +10705,13 @@ class TeamDynamix_Api_Plans_TaskResource
 
     # Full constructor
     TeamDynamix_Api_Plans_TaskResource(
-            [String]  $ResourceUID,
-            [String]  $ResourceFullName,
-            [Double]  $PercentAssignedWhole)
+            [String] $ResourceUID,
+            [String] $ResourceFullName,
+            [Double] $PercentAssignedWhole,
+            [Int32]  $ResourceRoleID,
+            [String] $ResourceRoleName,
+            [Boolean]$HasMultipleRolesOnProject,
+            [String] $UniqueKey)
     {
         foreach ($Parameter in ([TeamDynamix_Api_Plans_TaskResource]::new() | Get-Member -MemberType Property))
         {
@@ -11848,6 +11701,7 @@ class TeamDynamix_Api_Plans_TaskUpdate
     [String]  $Comments
     [DateTime]$CompletedDate
     [Int32]   $TimeTypeId
+    [Int32]   $FunctionalRoleID
     [Double]  $HoursWorked
     [DateTime]$DateWorked
     [Double]  $PercentComplete
@@ -11895,6 +11749,7 @@ class TeamDynamix_Api_Plans_TaskUpdate
         [String]  $Comments,
         [DateTime]$CompletedDate,
         [Int32]   $TimeTypeId,
+        [Int32]   $FunctionalRoleID,
         [Double]  $HoursWorked,
         [DateTime]$DateWorked,
         [Double]  $PercentComplete,
@@ -11935,6 +11790,7 @@ class TD_TeamDynamix_Api_Plans_TaskUpdate
     [String]  $Comments
     [String]  $CompletedDate
     [Int32]   $TimeTypeId
+    [Int32]   $FunctionalRoleID
     [Double]  $HoursWorked
     [String]  $DateWorked
     [Double]  $PercentComplete
@@ -12139,106 +11995,54 @@ class TeamDynamix_Api_Issues_Risk
 
     # Methods
     [void] AddCustomAttribute (
-        [TeamDynamix_Api_CustomAttributes_CustomAttribute[]]$Attributes)
-    {
-        foreach ($CustomAttribute in $Attributes)
-        {
-            # Check to see if attribute is already present
-            $FoundAttribute = $this.Attributes | Where-Object ID -eq $CustomAttribute.ID
-            if (-not $FoundAttribute)
-            {
-                # Add attribute
-                $this.Attributes += $CustomAttribute
-            }
-            else
-            {
-                Write-ActivityHistory -MessageChannel 'Error' -Message "Attribute $($FoundAttribute.Name) is already present on $this.Name."
-            }
-        }
-    }
-
-    [void] AddCustomAttribute (
-        [TeamDynamix_Api_CustomAttributes_CustomAttribute[]]$Attributes,
-        [boolean]$Overwrite)
-    {
-        foreach ($CustomAttribute in $Attributes)
-        {
-            # Check to see if attribute is already present
-            $FoundAttribute = $this.Attributes | Where-Object ID -eq $CustomAttribute.ID
-            # Remove if Overwrite is set and the attribute is present
-            if ($FoundAttribute -and $Overwrite)
-            {
-                $this.RemoveCustomAttribute($CustomAttribute.ID)
-            }
-            if ((-not $FoundAttribute) -or $Overwrite)
-            {
-                # Add attribute
-                $this.Attributes += $CustomAttribute
-            }
-            else
-            {
-                Write-ActivityHistory -MessageChannel 'Error' -Message "Attribute $($FoundAttribute.Name) is already present on $this.Name."
-            }
-        }
-    }
-
-    [void] AddCustomAttribute (
-        [int] $AttributeID,
-        [Int] $AttributeValue)
-    {
-        # Check to see if attribute is already present on the asset
-        $FoundAttribute = $this.Attributes | Where-Object ID -eq $AttributeID
-        if (-not $FoundAttribute)
-        {
-            # Add attribute
-            $this.Attributes += [TeamDynamix_Api_CustomAttributes_CustomAttribute]::new($AttributeID,$AttributeValue)
-        }
-        else
-        {
-            Write-ActivityHistory -MessageChannel 'Error' -Message "Attribute $($FoundAttribute.Name) is already present on $this.Name."
-        }
-    }
-
-    [void] AddCustomAttribute (
-        [int]    $AttributeID,
-        [Int]    $AttributeValue,
+        [TeamDynamix_Api_CustomAttributes_CustomAttribute]$Attribute,
         [boolean]$Overwrite)
     {
         # Check to see if attribute is already present
-        $FoundAttribute = $this.Attributes | Where-Object ID -eq $AttributeID
+        $FoundAttribute = $this.Attributes | Where-Object ID -eq $Attribute.ID
         # Remove if Overwrite is set and the attribute is present
         if ($FoundAttribute -and $Overwrite)
         {
-            $this.RemoveCustomAttribute($AttributeID)
+            $this.RemoveCustomAttribute($Attribute.ID)
         }
         if ((-not $FoundAttribute) -or $Overwrite)
         {
             # Add attribute
-            $this.Attributes += [TeamDynamix_Api_CustomAttributes_CustomAttribute]::new($AttributeID,$AttributeValue)
+            $this.Attributes += $Attribute
         }
-        else
+        else # $FoundAttribute is true and $Overwrite is false
         {
             Write-ActivityHistory -MessageChannel 'Error' -Message "Attribute $($FoundAttribute.Name) is already present on $this.Name."
         }
     }
 
+    # Delegating methods for AddCustomAttribute
     [void] AddCustomAttribute (
-        [string]   $AttributeName,
-        [string]   $AttributeValue,
-        [hashtable]$TDAuthentication,
-        [EnvironmentChoices]$Environment)
+        [TeamDynamix_Api_CustomAttributes_CustomAttribute[]]$Attributes,
+        [boolean]$Overwrite)
     {
-        # Check to see if attribute is already present
-        $FoundAttribute = $this.Attributes | Where-Object Name -eq $AttributeName
-        if (-not $FoundAttribute)
+        foreach ($Attribute in $Attributes)
         {
-            # Add attribute
-            $this.Attributes += [TeamDynamix_Api_CustomAttributes_CustomAttribute]::new($AttributeName,$AttributeValue,'Project',$TDAuthentication,$Environment)
+            $this.AddCustomAttribute($Attribute,$Overwrite)
         }
-        else
+    }
+
+    [void] AddCustomAttribute (
+        [TeamDynamix_Api_CustomAttributes_CustomAttribute[]]$Attributes)
+    {
+        foreach ($Attribute in $Attributes)
         {
-            Write-ActivityHistory -MessageChannel 'Error' -Message "Attribute $($FoundAttribute.Name) is already present on $this.Name."
+            $this.AddCustomAttribute($Attribute,$false)
         }
+    }
+
+
+    [void] AddCustomAttribute (
+        [int]    $AttributeID,
+        [int]    $AttributeValue,
+        [boolean]$Overwrite)
+    {
+        $this.AddCustomAttribute([TeamDynamix_Api_CustomAttributes_CustomAttribute]::new($AttributeID,$AttributeValue),$Overwrite)
     }
 
     [void] AddCustomAttribute (
@@ -12248,22 +12052,29 @@ class TeamDynamix_Api_Issues_Risk
         [hashtable]$TDAuthentication,
         [EnvironmentChoices]$Environment)
     {
-        # Check to see if attribute is already present
-        $FoundAttribute = $this.Attributes | Where-Object Name -eq $AttributeName
-        # Remove if Overwrite is set and the attribute is present
-        if ($FoundAttribute -and $Overwrite)
-        {
-            $this.RemoveCustomAttribute($FoundAttribute.ID)
-        }
-        if ((-not $FoundAttribute) -or $Overwrite)
-        {
-            # Add attribute
-            $this.Attributes += [TeamDynamix_Api_CustomAttributes_CustomAttribute]::new($AttributeName,$AttributeValue,'Project',$TDAuthentication,$Environment)
-        }
-        else
-        {
-            Write-ActivityHistory -MessageChannel 'Error' -Message "Attribute $($FoundAttribute.Name) is already present on $this.Name."
-        }
+        $this.AddCustomAttribute([TeamDynamix_Api_CustomAttributes_CustomAttribute]::new($AttributeName,$AttributeValue,'Risk',$TDAuthentication,$Environment),$Overwrite)
+    }
+
+    [void] AddCustomAttribute (
+        [TeamDynamix_Api_CustomAttributes_CustomAttribute]$Attribute)
+    {
+        $this.AddCustomAttribute($Attribute,$false)
+    }
+
+    [void] AddCustomAttribute (
+        [int] $AttributeID,
+        [int] $AttributeValue)
+    {
+        $this.AddCustomAttribute($AttributeID,$AttributeValue,$false)
+    }
+
+    [void] AddCustomAttribute (
+        [string]   $AttributeName,
+        [string]   $AttributeValue,
+        [hashtable]$TDAuthentication,
+        [EnvironmentChoices]$Environment)
+    {
+        $this.AddCustomAttribute($AttributeName,$AttributeValue,$false,$TDAuthentication,$Environment)
     }
 
     [void] RemoveCustomAttribute (
@@ -12763,106 +12574,54 @@ class TeamDynamix_Api_Issues_Issue
 
     # Methods
     [void] AddCustomAttribute (
-        [TeamDynamix_Api_CustomAttributes_CustomAttribute[]]$Attributes)
-    {
-        foreach ($CustomAttribute in $Attributes)
-        {
-            # Check to see if attribute is already present
-            $FoundAttribute = $this.Attributes | Where-Object ID -eq $CustomAttribute.ID
-            if (-not $FoundAttribute)
-            {
-                # Add attribute
-                $this.Attributes += $CustomAttribute
-            }
-            else
-            {
-                Write-ActivityHistory -MessageChannel 'Error' -Message "Attribute $($FoundAttribute.Name) is already present on $this.Name."
-            }
-        }
-    }
-
-    [void] AddCustomAttribute (
-        [TeamDynamix_Api_CustomAttributes_CustomAttribute[]]$Attributes,
-        [boolean]$Overwrite)
-    {
-        foreach ($CustomAttribute in $Attributes)
-        {
-            # Check to see if attribute is already present
-            $FoundAttribute = $this.Attributes | Where-Object ID -eq $CustomAttribute.ID
-            # Remove if Overwrite is set and the attribute is present
-            if ($FoundAttribute -and $Overwrite)
-            {
-                $this.RemoveCustomAttribute($CustomAttribute.ID)
-            }
-            if ((-not $FoundAttribute) -or $Overwrite)
-            {
-                # Add attribute
-                $this.Attributes += $CustomAttribute
-            }
-            else
-            {
-                Write-ActivityHistory -MessageChannel 'Error' -Message "Attribute $($FoundAttribute.Name) is already present on $this.Name."
-            }
-        }
-    }
-
-    [void] AddCustomAttribute (
-        [int] $AttributeID,
-        [Int] $AttributeValue)
-    {
-        # Check to see if attribute is already present on the asset
-        $FoundAttribute = $this.Attributes | Where-Object ID -eq $AttributeID
-        if (-not $FoundAttribute)
-        {
-            # Add attribute
-            $this.Attributes += [TeamDynamix_Api_CustomAttributes_CustomAttribute]::new($AttributeID,$AttributeValue)
-        }
-        else
-        {
-            Write-ActivityHistory -MessageChannel 'Error' -Message "Attribute $($FoundAttribute.Name) is already present on $this.Name."
-        }
-    }
-
-    [void] AddCustomAttribute (
-        [int]    $AttributeID,
-        [Int]    $AttributeValue,
+        [TeamDynamix_Api_CustomAttributes_CustomAttribute]$Attribute,
         [boolean]$Overwrite)
     {
         # Check to see if attribute is already present
-        $FoundAttribute = $this.Attributes | Where-Object ID -eq $AttributeID
+        $FoundAttribute = $this.Attributes | Where-Object ID -eq $Attribute.ID
         # Remove if Overwrite is set and the attribute is present
         if ($FoundAttribute -and $Overwrite)
         {
-            $this.RemoveCustomAttribute($AttributeID)
+            $this.RemoveCustomAttribute($Attribute.ID)
         }
         if ((-not $FoundAttribute) -or $Overwrite)
         {
             # Add attribute
-            $this.Attributes += [TeamDynamix_Api_CustomAttributes_CustomAttribute]::new($AttributeID,$AttributeValue)
+            $this.Attributes += $Attribute
         }
-        else
+        else # $FoundAttribute is true and $Overwrite is false
         {
             Write-ActivityHistory -MessageChannel 'Error' -Message "Attribute $($FoundAttribute.Name) is already present on $this.Name."
         }
     }
 
+    # Delegating methods for AddCustomAttribute
     [void] AddCustomAttribute (
-        [string]   $AttributeName,
-        [string]   $AttributeValue,
-        [hashtable]$TDAuthentication,
-        [EnvironmentChoices]$Environment)
+        [TeamDynamix_Api_CustomAttributes_CustomAttribute[]]$Attributes,
+        [boolean]$Overwrite)
     {
-        # Check to see if attribute is already present
-        $FoundAttribute = $this.Attributes | Where-Object Name -eq $AttributeName
-        if (-not $FoundAttribute)
+        foreach ($Attribute in $Attributes)
         {
-            # Add attribute
-            $this.Attributes += [TeamDynamix_Api_CustomAttributes_CustomAttribute]::new($AttributeName,$AttributeValue,'Issue',$TDAuthentication,$Environment)
+            $this.AddCustomAttribute($Attribute,$Overwrite)
         }
-        else
+    }
+
+    [void] AddCustomAttribute (
+        [TeamDynamix_Api_CustomAttributes_CustomAttribute[]]$Attributes)
+    {
+        foreach ($Attribute in $Attributes)
         {
-            Write-ActivityHistory -MessageChannel 'Error' -Message "Attribute $($FoundAttribute.Name) is already present on $this.Name."
+            $this.AddCustomAttribute($Attribute,$false)
         }
+    }
+
+
+    [void] AddCustomAttribute (
+        [int]    $AttributeID,
+        [int]    $AttributeValue,
+        [boolean]$Overwrite)
+    {
+        $this.AddCustomAttribute([TeamDynamix_Api_CustomAttributes_CustomAttribute]::new($AttributeID,$AttributeValue),$Overwrite)
     }
 
     [void] AddCustomAttribute (
@@ -12872,22 +12631,29 @@ class TeamDynamix_Api_Issues_Issue
         [hashtable]$TDAuthentication,
         [EnvironmentChoices]$Environment)
     {
-        # Check to see if attribute is already present
-        $FoundAttribute = $this.Attributes | Where-Object Name -eq $AttributeName
-        # Remove if Overwrite is set and the attribute is present
-        if ($FoundAttribute -and $Overwrite)
-        {
-            $this.RemoveCustomAttribute($FoundAttribute.ID)
-        }
-        if ((-not $FoundAttribute) -or $Overwrite)
-        {
-            # Add attribute
-            $this.Attributes += [TeamDynamix_Api_CustomAttributes_CustomAttribute]::new($AttributeName,$AttributeValue,'Issue',$TDAuthentication,$Environment)
-        }
-        else
-        {
-            Write-ActivityHistory -MessageChannel 'Error' -Message "Attribute $($FoundAttribute.Name) is already present on $this.Name."
-        }
+        $this.AddCustomAttribute([TeamDynamix_Api_CustomAttributes_CustomAttribute]::new($AttributeName,$AttributeValue,'Issue',$TDAuthentication,$Environment),$Overwrite)
+    }
+
+    [void] AddCustomAttribute (
+        [TeamDynamix_Api_CustomAttributes_CustomAttribute]$Attribute)
+    {
+        $this.AddCustomAttribute($Attribute,$false)
+    }
+
+    [void] AddCustomAttribute (
+        [int] $AttributeID,
+        [int] $AttributeValue)
+    {
+        $this.AddCustomAttribute($AttributeID,$AttributeValue,$false)
+    }
+
+    [void] AddCustomAttribute (
+        [string]   $AttributeName,
+        [string]   $AttributeValue,
+        [hashtable]$TDAuthentication,
+        [EnvironmentChoices]$Environment)
+    {
+        $this.AddCustomAttribute($AttributeName,$AttributeValue,$false,$TDAuthentication,$Environment)
     }
 
     [void] RemoveCustomAttribute (
@@ -13144,6 +12910,7 @@ class TeamDynamix_Api_Issues_IssueUpdate
     [DateTime]$TimeEntryDate
     [Double]  $HoursWorked
     [Int32]   $TimeTypeId
+    [Int32]   $FunctionalRoleID
     [Int32]   $ParentId
     [Int32]   $ProjectId
     [Int32]   $StatusID
@@ -13189,6 +12956,7 @@ class TeamDynamix_Api_Issues_IssueUpdate
         [DateTime]$TimeEntryDate,
         [Double]  $HoursWorked,
         [Int32]   $TimeTypeId,
+        [Int32]   $FunctionalRoleID,
         [Int32]   $ParentId,
         [Int32]   $ProjectId,
         [Int32]   $StatusID,
@@ -13227,6 +12995,7 @@ class TD_TeamDynamix_Api_Issues_IssueUpdate
     [String]  $TimeEntryDate
     [Double]  $HoursWorked
     [Int32]   $TimeTypeId
+    [Int32]   $FunctionalRoleID
     [Int32]   $ParentId
     [Int32]   $ProjectId
     [Int32]   $StatusID
@@ -13673,6 +13442,210 @@ class TeamDynamix_Api_Users_UserAccountsBulkManagementParameters
         }
     }
 }
+
+class TeamDynamix_Api_ServiceCatalog_ServiceOffering
+{
+    [Int32]  $ID
+    [Int32]  $AppID
+    [String] $AppName
+    [String] $Name
+    [String] $ShortDescription
+    [String] $LongDescription
+    [Int32]  $ParentServiceID
+    [String] $ParentServiceName
+    [Int32]  $CategoryID
+    [String] $CategoryName
+    [String] $FullCategoryText
+    [String] $CompositeName
+    [Double] $Order
+    [Boolean]$IsActive
+    [Boolean]$IsPublic
+    [Guid]   $ManagerUid
+    [String] $ManagerFullName
+    [Int32]  $ManagingGroupID
+    [String] $ManagingGroupName
+    [String] $RequestText
+    [String] $RequestUrl
+    [Int32]  $RequestApplicationID
+    [String] $RequestApplicationName
+    [Boolean]$RequestApplicationIsActive
+    [Int32]  $RequestTypeID
+    [String] $RequestTypeName
+    [Boolean]$RequestTypeIsActive
+    [TeamDynamix_Api_ServiceCatalog_RequestComponent]$RequestTypeComponent
+    [Int32]  $RequestTypeCategoryID
+    [String] $RequestTypeCategoryName
+    [Int32]  $MaintenanceScheduleID
+    [String] $MaintenanceScheduleName
+    [Int32]  $ConfigurationItemID
+    [String] $ConfigurationItemName
+    [Int32]  $ConfigurationItemAppID
+    [String] $ConfigurationItemAppName
+    [TeamDynamix_Api_Attachments_Attachment[]]$Attachments
+    [TeamDynamix_Api_CustomAttributes_CustomAttribute[]]$Attributes
+    [String] $Uri
+
+    # Default constructor
+    TeamDynamix_Api_ServiceCatalog_ServiceOffering ()
+    {
+    }
+
+    # Constructor from object (such as a return from REST API)
+    TeamDynamix_Api_ServiceCatalog_ServiceOffering ([psobject]$ServiceOffering)
+    {
+        foreach ($Parameter in ([TeamDynamix_Api_ServiceCatalog_ServiceOffering]::new() | Get-Member -MemberType Property))
+        {
+            if ($Parameter.Definition -notmatch '^datetime')
+            {
+                $this.$($Parameter.Name) = $ServiceOffering.$($Parameter.Name)
+            }
+            else
+            {
+                if ($Parameter.Definition -match '^datetime\[\]') # Handle array of dates
+                {
+                    if ($null -ne $this.$($Parameter.Name))
+                    {
+                        $this.$($Parameter.Name) = $ServiceOffering.$($Parameter.Name) | ForEach-Object {$_ | Get-Date}
+                    }
+                }
+                else # Single date
+                {
+                    $this.$($Parameter.Name) = $ServiceOffering.$($Parameter.Name) | Get-Date
+                }
+            }
+        }
+    }
+
+    # Full constructor
+    TeamDynamix_Api_ServiceCatalog_ServiceOffering(
+        [Int32]  $ID,
+        [Int32]  $AppID,
+        [String] $AppName,
+        [String] $Name,
+        [String] $ShortDescription,
+        [String] $LongDescription,
+        [Int32]  $ParentServiceID,
+        [String] $ParentServiceName,
+        [Int32]  $CategoryID,
+        [String] $CategoryName,
+        [String] $FullCategoryText,
+        [String] $CompositeName,
+        [Double] $Order,
+        [Boolean]$IsActive,
+        [Boolean]$IsPublic,
+        [Guid]   $ManagerUid,
+        [String] $ManagerFullName,
+        [Int32]  $ManagingGroupID,
+        [String] $ManagingGroupName,
+        [String] $RequestText,
+        [String] $RequestUrl,
+        [Int32]  $RequestApplicationID,
+        [String] $RequestApplicationName,
+        [Boolean]$RequestApplicationIsActive,
+        [Int32]  $RequestTypeID,
+        [String] $RequestTypeName,
+        [Boolean]$RequestTypeIsActive,
+        [TeamDynamix_Api_ServiceCatalog_RequestComponent]$RequestTypeComponent,
+        [Int32]  $RequestTypeCategoryID,
+        [String] $RequestTypeCategoryName,
+        [Int32]  $MaintenanceScheduleID,
+        [String] $MaintenanceScheduleName,
+        [Int32]  $ConfigurationItemID,
+        [String] $ConfigurationItemName,
+        [Int32]  $ConfigurationItemAppID,
+        [String] $ConfigurationItemAppName,
+        [TeamDynamix_Api_Attachments_Attachment[]]$Attachments,
+        [TeamDynamix_Api_CustomAttributes_CustomAttribute[]]$Attributes,
+        [String] $Uri)
+    {
+        foreach ($Parameter in ([TeamDynamix_Api_ServiceCatalog_ServiceOffering]::new() | Get-Member -MemberType Property))
+        {
+            if ($Parameter.Definition -notmatch '^datetime')
+            {
+                $this.$($Parameter.Name) = (Get-Variable -Name $Parameter.Name).Value
+            }
+            else
+            {
+                if ($Parameter.Definition -match '^datetime\[\]') # Handle array of dates
+                {
+                    if ($null -ne $this.$($Parameter.Name))
+                    {
+                        $this.$($Parameter.Name) = (Get-Variable -Name $Parameter.Name).Value | ForEach-Object {$_ | Get-Date}
+                    }
+                }
+                else # Single date
+                {
+                    $this.$($Parameter.Name) = (Get-Variable -Name $Parameter.Name).Value | Get-Date
+                }
+            }
+        }
+    }
+}
+
+class TeamDynamix_Api_FunctionalRole_FunctionalRole
+{
+    [Int32] $ID
+    [String]$Name
+
+    # Default constructor
+    TeamDynamix_Api_FunctionalRole_FunctionalRole ()
+    {
+    }
+
+    # Constructor from object (such as a return from REST API)
+    TeamDynamix_Api_FunctionalRole_FunctionalRole ([psobject]$FunctionalRole)
+    {
+        foreach ($Parameter in ([TeamDynamix_Api_FunctionalRole_FunctionalRole]::new() | Get-Member -MemberType Property))
+        {
+            if ($Parameter.Definition -notmatch '^datetime')
+            {
+                $this.$($Parameter.Name) = $FunctionalRole.$($Parameter.Name)
+            }
+            else
+            {
+                if ($Parameter.Definition -match '^datetime\[\]') # Handle array of dates
+                {
+                    if ($null -ne $this.$($Parameter.Name))
+                    {
+                        $this.$($Parameter.Name) = $FunctionalRole.$($Parameter.Name) | ForEach-Object {$_ | Get-Date}
+                    }
+                }
+                else # Single date
+                {
+                    $this.$($Parameter.Name) = $FunctionalRole.$($Parameter.Name) | Get-Date
+                }
+            }
+        }
+    }
+
+    # Full constructor
+    TeamDynamix_Api_FunctionalRole_FunctionalRole(
+        [Int32] $ID,
+        [String]$Name)
+    {
+        foreach ($Parameter in ([TeamDynamix_Api_FunctionalRole_FunctionalRole]::new() | Get-Member -MemberType Property))
+        {
+            if ($Parameter.Definition -notmatch '^datetime')
+            {
+                $this.$($Parameter.Name) = (Get-Variable -Name $Parameter.Name).Value
+            }
+            else
+            {
+                if ($Parameter.Definition -match '^datetime\[\]') # Handle array of dates
+                {
+                    if ($null -ne $this.$($Parameter.Name))
+                    {
+                        $this.$($Parameter.Name) = (Get-Variable -Name $Parameter.Name).Value | ForEach-Object {$_ | Get-Date}
+                    }
+                }
+                else # Single date
+                {
+                    $this.$($Parameter.Name) = (Get-Variable -Name $Parameter.Name).Value | Get-Date
+                }
+            }
+        }
+    }
+}
 #endregion
 
 #region Script working classes, not derived from TeamDynamix objects
@@ -13695,10 +13668,14 @@ class TD_UserInfo
     [string]  $WorkZip
     [string]  $WorkPhone
     [int]     $LocationRoomID
+    [string]  $LocationRoomName
     [int]     $LocationID
+    [string]  $LocationName
     [int]     $DefaultAccountID
+    [string]  $DefaultAccountName
     [string]  $AlternateID
     [string]  $SecurityRoleID
+    [string]  $SecurityRoleName
     [string[]]$Applications
     [TeamDynamix_Api_Apps_UserApplication[]]$OrgApplications
 
@@ -13751,10 +13728,14 @@ class TD_UserInfo
         [string]  $WorkZip,
         [string]  $WorkPhone,
         [int]     $LocationRoomID,
+        [string]  $LocationRoomName,
         [int]     $LocationID,
+        [string]  $LocationName,
         [int]     $DefaultAccountID,
+        [string]  $DefaultAccountName,
         [string]  $AlternateID,
         [string]  $SecurityRoleID,
+        [string]  $SecurityRoleName,
         [string[]]$Applications,
         [TeamDynamix_Api_Apps_UserApplication[]]$OrgApplications)
     {
@@ -13786,43 +13767,13 @@ class TD_UserInfo
         [string]$UserRoleName)
     {
         $RoleData = $script:TDConfig.UserRoles | Where-Object Name -eq $UserRoleName
-        $this.SecurityRoleID = (Get-TDSecurityRole -NameLike $RoleData.UserSecurityRole -Exact).ID
-        $this.Applications = $RoleData.Applications
-        $this.OrgApplications = Get-OrgAppsByRoleName -UserRoleName $UserRoleName
-
-        <#
-        switch ($SecurityRoleName)
+        if ($RoleData)
         {
-            'Student Technician'
-            {
-                $this.SecurityRoleID  = $script:DefaultSecurityRoleIDStudentTechnician
-                $this.Applications    = $script:TDConfig.DefaultApplicationListStudentTechnician
-                $this.OrgApplications = $script:DefaultOrgAppsStudentTechnician
-            }
-            'Technician'
-            {
-                $this.SecurityRoleID  = $script:DefaultSecurityRoleIDTechnician
-                $this.Applications    = $script:TDConfig.DefaultApplicationListTechnician
-                $this.OrgApplications = $script:DefaultOrgAppsTechnician
-            }
-            'Project Manager'
-            {
-                $this.SecurityRoleID  = $script:DefaultSecurityRoleIDProjectManager
-                $this.Applications    = $script:TDConfig.DefaultApplicationListProjectManager
-                $this.OrgApplications = $script:DefaultOrgAppsProjectManager
-            }
-            'Customer'
-            {
-                $this.SecurityRoleID  = $script:DefaultSecurityRoleIDCustomer
-                $this.Applications    = $script:TDConfig.DefaultApplicationListCustomer
-                $this.OrgApplications = $script:DefaultOrgAppsCustomer
-            }
-            default
-            {
-                throw 'Unknown security role. Valid roles are Student Technician, Technician, Project Manager, and Customer.'
-            }
+            $this.SecurityRoleID   = (Get-TDSecurityRole -NameLike $RoleData.UserSecurityRole -Exact).ID
+            $this.SecurityRoleName = $UserRoleName
+            $this.Applications     = $RoleData.Applications
+            $this.OrgApplications  = Get-OrgAppsByRoleName -UserRoleName $UserRoleName
         }
-        #>
     }
     [void] SetSecurityRoleID (
         [string]$SecurityRoleID)
@@ -14452,18 +14403,25 @@ class TD_Location_Cache : Object_Cache
     # GetByExternalID
     #  Get a target from the cache by external ID
     [TeamDynamix_Api_Locations_Location]GetByExternalID(
-        [int]               $ExternalID,
+        [string]            $ExternalID,
         [EnvironmentChoices]$Environment
         )
     {
         # Find target
-        $Target = $this.GetAll($this.DefaultAppID,$Environment) | Where-Object {[int]$_.ExternalID -eq $ExternalID}
+        $Target = $this.GetAll($this.DefaultAppID,$Environment) | Where-Object ExternalID -eq $ExternalID
         # Ensure detail data in included by passing through Get by ID, which pulls detail data
-        return $this.Get($Target.ID,$this.DefaultAppID,$Environment)
+        if ($Target)
+        {
+            return $this.Get($Target.ID,$this.DefaultAppID,$Environment)
+        }
+        else
+        {
+            return $null
+        }
     }
     #  Delegating method for GetByExternalID
     [TeamDynamix_Api_Locations_Location]GetByExternalID(
-        [int]$ExternalID
+        [string]$ExternalID
         )
     {
         return $this.GetByExternalID($ExternalID,$script:WorkingEnvironment)
@@ -14521,7 +14479,7 @@ class TD_Location_Cache : Object_Cache
         $DetailObject = $TargetObject.Rooms | Where-Object Name -eq $RoomName
         return $DetailObject
     }
-    #  Delegating method for GetByExternalID
+    #  Delegating method for GetRoom
     [TeamDynamix_Api_Locations_LocationRoom]GetRoom(
         [int]$LocationID,
         [int]$RoomID
@@ -15576,6 +15534,89 @@ class TD_TicketType_Cache : Object_Cache
     }
 }
 
+# Stores product type data
+class TD_Service_Cache : Object_Cache
+{
+    # Default constructor
+    TD_Service_Cache ()
+    {
+        $this.DefaultAppID = $script:TicketingAppID
+    }
+
+    TD_Service_Cache ([int]$AppID)
+    {
+        $this.DefaultAppID = $AppID
+    }
+
+    # Override methods
+    #  Add by target name
+    hidden [void]Add(
+        [string]            $TargetName,
+        [int]               $AppID,
+        [EnvironmentChoices]$Environment,
+        [switch]            $Detail
+        )
+    {
+        throw "Invalid cache action"
+    }
+    #  Add by target ID
+    hidden [void]Add(
+        [int]               $TargetID,
+        [int]               $AppID,
+        [EnvironmentChoices]$Environment,
+        [switch]            $Detail
+        )
+    {
+        $this.Add((Get-TDService -ID $TargetID -AppID $AppID -Environment $Environment),$AppID,$Environment,$Detail,$true)
+    }
+    # LoadTargets
+    #  Load existing targets into cache, no detail data
+    [void]LoadTargets(
+        [int]               $AppID,
+        [EnvironmentChoices]$Environment
+        )
+    {
+        # Only load existing targets if there's nothing in the cache - don't load detail data, skip cache checks
+        if (-not $this.$Environment."AppID$AppID")
+        {
+            $this.Add((Get-TDService -AppID $AppID -Environment $Environment),$AppID,$Environment,$false,$false)
+        }
+    }
+
+    # Custom methods
+    # GetByCategory
+    #  Get a target from the cache by category
+    [TeamDynamix_Api_ServiceCatalog_Service[]]GetByCategory(
+        [string]                  $CategoryName,
+        [int]                     $AppID,
+        [EnvironmentChoices]      $Environment,
+        [system.nullable[boolean]]$IsActive
+        )
+    {
+        # Find target
+        $Target = $this.GetAll($AppID,$Environment) | Where-Object CategoryName -eq $CategoryName | Where-Object IsActive -eq $IsActive
+        return $Target
+    }
+    [TeamDynamix_Api_ServiceCatalog_Service[]]GetByCategory(
+        [int]                     $CategoryID,
+        [int]                     $AppID,
+        [EnvironmentChoices]      $Environment,
+        [system.nullable[boolean]]$IsActive
+        )
+    {
+        # Find target
+        $Target = $this.GetAll($AppID,$Environment) | Where-Object CategoryID -eq $CategoryID | Where-Object IsActive -eq $IsActive
+        return $Target
+    }
+    #  Delegating method for GetByCategory
+    [TeamDynamix_Api_ServiceCatalog_Service[]]GetByCategory(
+        [string]$CategoryName
+        )
+    {
+        return $this.GetByCategory($CategoryName,$this.DefaultAppID,$script:WorkingEnvironment,$null)
+    }
+}
+
 # Stores ticket source data
 class TD_TicketSource_Cache : Object_Cache
 {
@@ -15996,32 +16037,21 @@ try
     $script:TDTicketTypes         = [TD_TicketType_Cache    ]::new($TicketingAppID)
     $script:TDTicketStatusClasses = Get-TDTicketStatusClass -AuthenticationToken $TDAuthentication -Environment $WorkingEnvironment | Sort-Object Name
 
-    Write-Progress -ID 100 -Activity 'Loading module' -Status 'Loading vendors' -PercentComplete 50
-    $script:TDVendors       = [TD_Vendor_Cache]::new($AssetCIAppID)
-
-    Write-Progress -ID 100 -Activity 'Loading module' -Status 'Loading product types and models' -PercentComplete 60
-    $script:TDProductTypes  = [TD_ProductType_Cache ]::new($AssetCIAppID)
-    $script:TDProductModels = [TD_ProductModel_Cache]::new($AssetCIAppID)
-
-    Write-Progress -ID 100 -Activity 'Loading module' -Status 'Loading departments' -PercentComplete 70
-    $script:TDAccounts      = [TD_Account_Cache]::new()
-
-    Write-Progress -ID 100 -Activity 'Loading module' -Status 'Loading groups and forms' -PercentComplete 78
-    $script:TDGroups        = [TD_Group_Cache]::new()
-    $script:TDForms         = [TD_Form_Cache ]::new()
-
-    Write-Progress -ID 100 -Activity 'Loading module' -Status 'Loading searches' -PercentComplete 80
-    $script:TDAssetSearches = [TD_AssetSearch_Cache]::new()
+    Write-Progress -ID 100 -Activity 'Loading module' -Status 'Loading time zones' -PercentComplete 50
     $script:TDTimeZones     = Get-TDTimeZoneInformation -SortByGMTOffset
 
-    Write-Progress -ID 100 -Activity 'Loading module' -Status 'Loading configuration types' -PercentComplete 90
+    Write-Progress -ID 100 -Activity 'Loading module' -Status 'Initiating data caches' -PercentComplete 60
+    $script:TDVendors                = [TD_Vendor_Cache]::new($AssetCIAppID)
+    $script:TDProductTypes           = [TD_ProductType_Cache ]::new($AssetCIAppID)
+    $script:TDProductModels          = [TD_ProductModel_Cache]::new($AssetCIAppID)
+    $script:TDAccounts               = [TD_Account_Cache]::new()
+    $script:TDGroups                 = [TD_Group_Cache]::new()
+    $script:TDForms                  = [TD_Form_Cache ]::new()
+    $script:TDAssetSearches          = [TD_AssetSearch_Cache]::new()
     $script:TDConfigurationItemTypes = [TD_ConfigurationItemType_Cache]::new()
-
-    Write-Progress -ID 100 -Activity 'Loading module' -Status 'Loading security roles' -PercentComplete 92
-    $script:TDSecurityRoles = [TD_SecurityRole_Cache]::new()
-
-    Write-Progress -ID 100 -Activity 'Initiating data caches' -Status 'Initializing location cache' -PercentComplete 94
-    $script:TDBuildingsRooms = [TD_Location_Cache]::new()
+    $script:TDSecurityRoles          = [TD_SecurityRole_Cache]::new()
+    $script:TDBuildingsRooms         = [TD_Location_Cache]::new()
+    $script:TDServices               = [TD_Service_Cache]::new()
 }
 catch
 {

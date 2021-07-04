@@ -949,7 +949,7 @@ function $FunctionName
     )
     Begin
     {
-        Write-ActivityHistory "-----``nIn $($MyInvocation.MyCommand.Name)"
+        Write-ActivityHistory "-----``nIn `$(`$MyInvocation.MyCommand.Name)"
         `$ContentType = 'application/json; charset=utf-8'
         `$BaseURI = Get-URI -Environment `$Environment
         if (-not `$AuthenticationToken)
@@ -965,7 +965,7 @@ function $FunctionName
     }
     End
     {
-        Write-ActivityHistory "Leaving $($MyInvocation.MyCommand.Name)``n-----"
+        Write-ActivityHistory "-----``nLeaving `$(`$MyInvocation.MyCommand.Name)"
     }
 }
 "@
@@ -1360,6 +1360,10 @@ function Get-TDOpenTicketActivity
                 # Get user information
                 Write-Progress -ID 101 -Activity "Technician: $User" -Status 'Retrieving user information' -PercentComplete ($PercentComplete += + (100 / $PartsCount / 3))
                 $TDUser       = Get-TDUser -UserName "$User@osu.edu" -AuthenticationToken $AuthenticationToken -Environment $Environment
+                if (-not $TDUser)
+                {
+                    Write-ActivityHistory -ThrowError -MessageChannel 'Error' -Message "Unable to find technician, $User"
+                }
                 $UserIDs     += $TDUser.UID
 
                 # Add to report name
@@ -1700,10 +1704,14 @@ function Get-TDTicketActivityCounts
         Write-Output "`tTickets opened and closed $($DateString): $(($Tickets.Opened | Where-Object {($_.CreatedDate).DayOfYear -eq ($_.CompletedDate).DayOfYear}).Count)"
         $Tickets.Closed | Group-Object ResponsibleGroupName | Sort-Object -Descending Count | Select-Object Count,@{Name="Support Team";Expression={$_.Name}} | Out-String
 
-        # Get appropriate URI for the user portal so that selected tickets can be retrieved from the GridView
-        $BaseURI = Get-URI -Environment $Environment -Portal
-        # Pop up grid view of opened tickets for more detailed review
-        $Tickets.Opened.ID | Get-TDTicket | Select-Object ID, Title, ResponsibleGroupName, Description | Out-GridView -OutputMode Multiple | ForEach-Object {Start-Process "$BaseURI/Apps/$TicketingAppID/Tickets/TicketDet?TicketID=$($_.ID)"}
+        # If there were tickets opened, review in a GridView
+        if ($Tickets.Opened)
+        {
+            # Get appropriate URI for the user portal so that selected tickets can be retrieved from the GridView
+            $BaseURI = Get-URI -Environment $Environment -Portal
+            # Pop up grid view of opened tickets for more detailed review
+            $Tickets.Opened.ID | Get-TDTicket | Select-Object ID, Title, ResponsibleGroupName, Description | Out-GridView -OutputMode Multiple | ForEach-Object {Start-Process "$BaseURI/Apps/$TicketingAppID/Tickets/TicketDet?TicketID=$($_.ID)"}
+        }
     }
 }
 
@@ -2172,11 +2180,9 @@ function ParseJsonArray
     Write-ActivityHistory "-----"
     Write-ActivityHistory "In $($MyInvocation.MyCommand.Name)"
     $Result = @()
-    $ProgressCount = 0
     foreach ($JsonItem in $JsonArray)
     {
-        $ProgressCount++
-        Write-Progress -Activity 'Converting JSON result into PowerShell object' -PercentComplete ($ProgressCount / $JsonArray.Count * 100)
+        Write-ActivityHistory 'Converting JSON result into PowerShell object'
         $Parsed = New-Object psobject -Property $JsonItem
         $Result += $Parsed
     }
@@ -2544,8 +2550,18 @@ function Update-Object
                 {
                     'System.Collections.Hashtable'
                     {
-                        # Add hashtable directly, overwriting existing attributes
-                        $InputObject.AddCustomAttribute($Attributes,$true)
+                        # Add each entry from the hashtable, overwriting existing attributes
+                        foreach ($Key in $Attributes.Keys)
+                        {
+                            if ($Key -match '^\d+$')
+                            {
+                                $InputObject.AddCustomAttribute($Key,$Attributes.$Key,$true)
+                            }
+                            else
+                            {
+                                $InputObject.AddCustomAttribute($Key,$Attributes.$Key,$true,$AuthenticationToken,$Environment)
+                            }
+                        }
                     }
                     'System.String'
                     {
@@ -3619,43 +3635,52 @@ function Get-IDsFromNames
                         break
                     }
                 }
-                # Test to see if the parameter value is an array
-                if ($DynamicParameter.Value.Value.GetType().BaseType.Name -eq 'Array')
+                # Check to see if the dynamic parameter should be used as-is (no IDsMethod), or if it should set an ID variable (IDsMethod)
+                if ($IDsMethod)
                 {
-                    # Store results in an array, since input is an array
-                    $DynamicParameterValue = @()
-                    # Step through each value on the dynamic parameter to get the ID for each entry
-                    foreach ($DynamicParameterValueItem in $DynamicParameter.Value.Value)
+                    # Test to see if the parameter value is an array
+                    if ($DynamicParameter.Value.Value.GetType().BaseType.Name -eq 'Array')
+                    {
+                        # Store results in an array, since input is an array
+                        $DynamicParameterValue = @()
+                        # Step through each value on the dynamic parameter to get the ID for each entry
+                        foreach ($DynamicParameterValueItem in $DynamicParameter.Value.Value)
+                        {
+                            # Use IDsMethod to look up object containing ID
+                            $DynamicParameterValueObject = Invoke-Expression $IDsMethod | Where-Object Name -eq $DynamicParameterValueItem
+                            #
+                            if ($DynamicParameter.Key -eq 'AppName')
+                            {
+                                $DynamicParameterValue += $DynamicParameterValueObject.AppID
+                            }
+                            else
+                            {
+                                $DynamicParameterValue += $DynamicParameterValueObject.ID
+                            }
+                        }
+                    }
+                    # Parameter value is a single entity, not an array
+                    else
                     {
                         # Use IDsMethod to look up object containing ID
-                        $DynamicParameterValueObject = Invoke-Expression $IDsMethod | Where-Object Name -eq $DynamicParameterValueItem
+                        $DynamicParameterValueObject = Invoke-Expression $IDsMethod | Where-Object Name -eq $DynamicParameter.Value.Value
                         #
                         if ($DynamicParameter.Key -eq 'AppName')
                         {
-                            $DynamicParameterValue += $DynamicParameterValueObject.AppID
+                            $DynamicParameterValue = $DynamicParameterValueObject.AppID
                         }
                         else
                         {
-                            $DynamicParameterValue += $DynamicParameterValueObject.ID
+                            $DynamicParameterValue = $DynamicParameterValueObject.ID
                         }
                     }
+                    $Return += [psobject]@{Name = $IDParameter; Value = $DynamicParameterValue}
                 }
-                # Parameter value is a single entity, not an array
+                # Parameter should be used as-is, no conversion to ID
                 else
                 {
-                    # Use IDsMethod to look up object containing ID
-                    $DynamicParameterValueObject = Invoke-Expression $IDsMethod | Where-Object Name -eq $DynamicParameter.Value.Value
-                    #
-                    if ($DynamicParameter.Key -eq 'AppName')
-                    {
-                        $DynamicParameterValue = $DynamicParameterValueObject.AppID
-                    }
-                    else
-                    {
-                        $DynamicParameterValue = $DynamicParameterValueObject.ID
-                    }
+                    $Return += [psobject]@{Name = $DynamicParameter.Key; Value = $DynamicParameter.Value.Value}
                 }
-                $Return += [psobject]@{Name = $IDParameter; Value = $DynamicParameterValue}
             }
         }
         return $Return
@@ -3717,6 +3742,11 @@ function Get-Params
             $CommandParameters = (Get-Command (Get-PSCallStack)[1].Command).Parameters
         }
 
+        $IgnoreParameters = @()
+
+        # Add globally-ignored parameters
+        $script:GlobalIgnoreParameters | ForEach-Object {$IgnoreParameters += $_}
+
         # Get parameters to ignore (none if there's no key type)
         if ($KeyType)
         {
@@ -3724,10 +3754,6 @@ function Get-Params
             $KeyTypeMembers = (New-Object -TypeName $KeyType | Get-Member -MemberType Properties).Name
             $IgnoreParameters  = $CommandParameters.Keys  | Where-Object {$_ -notin $KeyTypeMembers}
             $IgnoreParameters += ($CommandParameters.GetEnumerator() | Where-Object {$_.Value.IsDynamic -eq $true}).Key
-        }
-        else
-        {
-            $IgnoreParameters = $null
         }
 
         return @{Command = $CommandParameters.Keys
@@ -3768,37 +3794,22 @@ function Get-URI {
         [switch]
         $Portal
     )
-    switch ($Environment)
+    if (-not $Portal) # API
     {
-        Production {
-            if ($Portal)
-            {
-                $BaseURI = "$($TDConfig.DefaultTDPortalBaseURI)$($script:DefaultTDPortalTargetURI)"
-            }
-            else
-            {
-                $BaseURI = "$($script:DefaultTDBaseURI)$script:DefaultTDTargetURI"
-            }
+        switch ($Environment)
+        {
+            Production {$BaseURI = "$($TDConfig.DefaultTDBaseURI)$script:DefaultTDTargetURI"       }
+            Sandbox    {$BaseURI = "$($TDConfig.DefaultTDBaseURI)$script:DefaultTDSandboxTargetURI"}
+            Preview    {$BaseURI = "$($TDConfig.DefaultTDPreviewBaseURI)$script:DefaultTDTargetURI"}
         }
-        Preview {
-            if ($Portal)
-            {
-                $BaseURI = "$($TDConfig.DefaultTDPortalPreviewBaseURI)$($script:DefaultTDPortalTargetURI)"
-            }
-            else
-            {
-                $BaseURI = "$($script:DefaultTDPreviewBaseURI)$script:DefaultTDTargetURI"
-            }
-        }
-        Sandbox {
-            if ($Portal)
-            {
-                $BaseURI = "$($TDConfig.DefaultTDPortalBaseURI)$($script:DefaultTDPortalSandboxTargetURI)"
-            }
-            else
-            {
-                $BaseURI = "$($script:DefaultTDBaseURI)$script:DefaultTDSandboxTargetURI"
-            }
+    }
+    else # Portal
+    {
+        switch ($Environment)
+        {
+            Production {$BaseURI = "$($TDConfig.DefaultTDBaseURI)$script:DefaultTDPortalTargetURI"       }
+            Sandbox    {$BaseURI = "$($TDConfig.DefaultTDBaseURI)$script:DefaultTDPortalSandboxTargetURI"}
+            Preview    {$BaseURI = "$($TDConfig.DefaultTDPreviewBaseURI)$script:DefaultTDPortalTargetURI"}
         }
     }
     return $BaseURI
@@ -4346,8 +4357,9 @@ function Get-AssetSerialNumber
         [string[]]
         $SNLocation,
 
-        # Bad serial numbers - ignore
+        # Bad serial numbers to ignore
         [Parameter(Mandatory=$true)]
+        [AllowEmptyString()]
         [string[]]
         $BadSerialNumbers
     )
@@ -4404,14 +4416,31 @@ function Get-AssetProductModelID
         $ProductNameLocation,
 
         # Product part, as reported by connector
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory=$false)]
         [string]
-        $ProductPartLocation
+        $ProductPartLocation,
+
+        # Application ID number
+        [Parameter(Mandatory=$false)]
+        [int]
+        $AppID = $AssetCIAppID,
+
+        # TeamDynamix working environment
+        [Parameter(Mandatory=$false)]
+        [EnvironmentChoices]
+        $Environment = $WorkingEnvironment
     )
 
     if ($ProductNameLocation)
     {
-        $ProductName = Invoke-Expression -Command $ProductNameLocation
+        try
+        {
+            $ProductName = Invoke-Expression -Command $ProductNameLocation
+        }
+        catch
+        {
+            Write-ActivityHistory -MessageChannel Warning -Message "No product name `n$($Asset | Out-String)"
+        }
     }
     if ($ProductPartLocation)
     {
@@ -4420,18 +4449,18 @@ function Get-AssetProductModelID
     $ProductModelID = $null
     if ($ProductName)
     {
-        $ProductModelID = ($ProductModels | Where-Object Name -eq $ProductName).ID
+        $ProductModelID = $TDProductModels.Get($ProductName,$AppID,$Environment).ID
         # If model not found, check part number, but not if the product name is blank
         if (-not $ProductModelID)
         {
-            # Switch to search the product part, using the part (for input types that have one), or the name for those that don't
+            # Switch to search the product part number, using the part (for input types that have one), or the name for those that don't
             if ($ProductPart)
             {
-                $ProductModelID = ($ProductModels | Where-Object PartNumber -eq $ProductPart).ID
+                $ProductModelID = $TDProductModels.GetByPartNumber($ProductPart,$AppID,$Environment).ID
             }
             else
             {
-                $ProductModelID = ($ProductModels | Where-Object PartNumber -eq $ProductName).ID
+                $ProductModelID = $TDProductModels.GetByPartNumber($ProductName,$AppID,$Environment).ID
             }
         }
         # If product model is found more than once, show an error
@@ -4577,17 +4606,18 @@ function Get-OrgAppsByRoleName {
             {
                 # Get security role ID
                 $AppSecurityID = (Get-TDSecurityRole -AppName $OrgAppConfig.Name -AuthenticationToken $TDAuthentication -Environment $WorkingEnvironment | Where-Object Name -eq $AppSecurityRoleName).ID
-                # Determine if role is an app administrator
+                # Determine if role is an app administrator !!! needs fixed (not everyone should be an app admin)
                 if ($OrgAppConfig.SecurityRole)
                 {
-                    $IsAdministrator = $true
+                    # $IsAdministrator = $true
+                    $IsAdministrator = $false
                 }
                 else
                 {
                     $IsAdministrator = $false
                 }
                 # Create application object based on the role
-                return (New-TDUserApplication -SecurityRoleId $AppSecurityID -IsAdministrator $IsAdministrator -AuthenticationToken $TDAuthentication -Environment $WorkingEnvironment)
+                Write-Output (New-TDUserApplication -SecurityRoleId $AppSecurityID -IsAdministrator $IsAdministrator -AuthenticationToken $TDAuthentication -Environment $WorkingEnvironment)
             }
         }
     }
@@ -4596,5 +4626,33 @@ function Get-OrgAppsByRoleName {
     {
         Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
     }
+}
+
+<#
+.Synopsis
+    Get list of bad serial numbers for a connector.
+.DESCRIPTION
+    Internal function.
+    Return an array of the bad serial numbers for an asset connector.
+.PARAMETER Connector
+    The name of the asset connector.
+.EXAMPLE
+    C:\> Get-BadSerialNumber -Connector MECM
+
+   Returns the bad serial number list for the MECM connector.
+#>
+function Get-BadSerialNumber
+{
+    [CmdletBinding()]
+    Param
+    (
+        # Name of the connector
+        [Parameter(Mandatory=$true)]
+        [pscustomobject]
+        $Connector
+    )
+
+    $BadSerialNumbers = Invoke-Expression $Connector.Data.BadSerialNumbers
+    return $BadSerialNumbers
 }
 #endregion
