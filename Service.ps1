@@ -69,12 +69,12 @@ function Get-TDApplication
 
     Begin
     {
-        Write-ActivityHistory "-----`nIn $($MyInvocation.MyCommand.Name)"
+        Write-ActivityHistory "`n-----`nIn $($MyInvocation.MyCommand.Name)"
         $ContentType = 'application/json; charset=utf-8'
         $BaseURI = Get-URI -Environment $Environment
         if (-not $AuthenticationToken)
         {
-                Write-ActivityHistory -MessageChannel 'Error' -ThrowError -Message 'Authentication required. Specify -AuthenticationToken value. See Get-Help Set-TDAuthentication for more assistance.'
+            Write-ActivityHistory -MessageChannel 'Error' -ThrowError -Message 'Authentication required. Specify -AuthenticationToken value. See Get-Help Set-TDAuthentication for more assistance.'
         }
     }
     Process
@@ -111,6 +111,10 @@ function Get-TDApplication
                 return ($Return | Where-Object {$_.Active -eq $IsActive})
             }
         }
+    }
+    End
+    {
+        Write-ActivityHistory "`nLeaving $($MyInvocation.MyCommand.Name)`n-----"
     }
 }
 
@@ -335,6 +339,11 @@ function New-TDUserApplication
         [System.Nullable[Guid]]
         $SecurityRoleId,
 
+        # Application ID number
+        [Parameter(Mandatory=$true)]
+        [int]
+        $AppID,
+
         # Gets whether the user is marked as an administrator of the application.
         [Parameter(Mandatory=$false)]
         [Boolean]
@@ -352,7 +361,7 @@ function New-TDUserApplication
     )
     Begin
     {
-        Write-ActivityHistory "-----`nIn $($MyInvocation.MyCommand.Name)"
+        Write-ActivityHistory "`n-----`nIn $($MyInvocation.MyCommand.Name)"
         if (-not $AuthenticationToken)
         {
             Write-ActivityHistory -MessageChannel 'Error' -ThrowError -Message 'Authentication required. Specify -AuthenticationToken value. See Get-Help Set-TDAuthentication for more assistance.'
@@ -362,20 +371,24 @@ function New-TDUserApplication
     {
         $UserApplication = [TeamDynamix_Api_Apps_UserApplication]::new()
         # Verify the specified security role exists
-        $SecurityRole = Get-TDSecurityRole -ID $SecurityRoleId -AuthenticationToken $AuthenticationToken -Environment $WorkingEnvironment
+        $SecurityRole = $TDSecurityRoles.Get($SecurityRoleID,$AppID,$Environment)
         if ($SecurityRole)
         {
             $UserApplication.SecurityRoleId   = $SecurityRoleId
             $UserApplication.IsAdministrator  = $IsAdministrator
-            $UserApplication.ID               = $SecurityRole.AppID
+            $UserApplication.ID               = $AppID
             $UserApplication.SecurityRoleName = $SecurityRole.Name
-            $UserApplication.Name             = ($TDApplications.Get($Environment) | Where-Object {$_.AppID -eq (Get-TDSecurityRole -ID $SecurityRoleID -AuthenticationToken $AuthenticationToken -Environment $Environment).AppID}).Name
+            $UserApplication.Name             = ($TDApplications.GetAll($Environment) | Where-Object {$_.AppID -eq $SecurityRole.AppID}).Name
             return $UserApplication
         }
         else
         {
             Write-ActivityHistory -MessageChannel 'Error' -Message "Unable to find security role $SecurityRoleID"
         }
+    }
+    End
+    {
+        Write-ActivityHistory "`nLeaving $($MyInvocation.MyCommand.Name)`n-----"
     }
 }
 
@@ -616,6 +629,7 @@ function ConvertFrom-TDWebAPIToClass
     [void] AddCustomAttribute (
         [string]   `$AttributeName,
         [string]   `$AttributeValue,
+        [int]      `$AppID
         [hashtable]`$TDAuthentication,
         [EnvironmentChoices]`$Environment)
     {
@@ -624,7 +638,7 @@ function ConvertFrom-TDWebAPIToClass
         if (-not `$FoundAttribute)
         {
             # Add attribute
-            `$this.XXXCustomAttributesParameterNameXXX += [TeamDynamix_Api_CustomAttributes_CustomAttribute]::new(`$AttributeName,`$AttributeValue,`'$AttributeComponent`',`$TDAuthentication,`$Environment)
+            `$this.XXXCustomAttributesParameterNameXXX += [TeamDynamix_Api_CustomAttributes_CustomAttribute]::new(`$AttributeName,`$AttributeValue,`'$AttributeComponent`',`$AppID,`$TDAuthentication,`$Environment)
         }
         else
         {
@@ -636,6 +650,7 @@ function ConvertFrom-TDWebAPIToClass
         [string]   `$AttributeName,
         [string]   `$AttributeValue,
         [boolean]  `$Overwrite,
+        [int]      `$AppID,
         [hashtable]`$TDAuthentication,
         [EnvironmentChoices]`$Environment)
     {
@@ -649,7 +664,7 @@ function ConvertFrom-TDWebAPIToClass
         if ((-not `$FoundAttribute) -or `$Overwrite)
         {
             # Add attribute
-            `$this.XXXCustomAttributesParameterNameXXX += [TeamDynamix_Api_CustomAttributes_CustomAttribute]::new(`$AttributeName,`$AttributeValue,`'$AttributeComponent`',`$TDAuthentication,`$Environment)
+            `$this.XXXCustomAttributesParameterNameXXX += [TeamDynamix_Api_CustomAttributes_CustomAttribute]::new(`$AttributeName,`$AttributeValue,`'$AttributeComponent`',`$AppID,`$TDAuthentication,`$Environment)
         }
         else
         {
@@ -792,6 +807,10 @@ function ConvertFrom-TDWebAPIToClass
             Write-Output $ConstructorBlockTD_
             Write-Output '}'
         }
+    }
+    End
+    {
+        Write-ActivityHistory "`nLeaving $($MyInvocation.MyCommand.Name)`n-----"
     }
 }
 
@@ -965,7 +984,7 @@ function $FunctionName
     }
     End
     {
-        Write-ActivityHistory "-----``nLeaving `$(`$MyInvocation.MyCommand.Name)"
+        Write-ActivityHistory "Leaving `$(`$MyInvocation.MyCommand.Name)-----``n"
     }
 }
 "@
@@ -1073,7 +1092,7 @@ function Compare-TDAPIDefinitions
                 $APINames = $APINames | ForEach-Object {$_.Replace('_','.')}
                 Write-ActivityHistory ($APINames | Out-String)
                 # Call this function for each class and enum
-                $APINames | ForEach-Object { "$script:DefaultTDBaseURI/TDWebApi/Home/type/$_" } | Compare-TDAPIDefinitions
+                $APINames | ForEach-Object { "$($TDConfig.DefaultTDBaseURI)/TDWebApi/Home/type/$_" } | Compare-TDAPIDefinitions
             }
             'URL'
             {
@@ -1171,7 +1190,7 @@ function Get-TDOpenTicketActivity
         [ValidateScript({
             ($_ -lt (Get-Date))})]
         [datetime]
-        $ReportFrom,
+        $ReportFrom = (Get-Date '0:00'),
 
         # Ending date for tickets to include in the report
         [Parameter(Mandatory=$false,
@@ -1265,16 +1284,16 @@ function Get-TDOpenTicketActivity
                 # List commenters, from most frequent to least
                 $CommenterTable = $FeedSelection | Select-Object -ExpandProperty Group | Group-Object -Property CreatedFullName | Sort-Object -Property Count -Descending
                 if ($CommenterTable.Name -ne '') {
-                    Write-Output "<H3>`r`n`tTicket commenters`r`n</H3>`r`n"
+                    Write-Output "<H2>Ticket commenters</H2>`r`n"
                     Write-Output "<table>`r`n"
-                    Write-Output "<tr><th>Name</th><th>Comment Count</th></tr>`r`n"
+                    Write-Output "<tr>`r`n`t<th><P ALIGN=Left>Name</th>`r`n`t<th><P ALIGN=Left>Comment Count</th></tr>`r`n"
                     $CommenterTable | ForEach-Object {Write-Output "<tr>`r`n`t<td>`r`n`t`t<P ALIGN=Left>$($_.Name)`r`n`t</td>`r`n`t<td>`r`n`t`t<P ALIGN=Right>$($_.Count)`r`n`t</td>`r`n</tr>`r`n"}
                     Write-Output "</table>`r`n"
                 }
             }
             else {
                 # No comments
-                Write-Output "<H3>`r`n`tTicket commenters`r`n</H3>`r`n"
+                Write-Output "<H2>Ticket commenters</H2>`r`n"
                 Write-Output "No comments`r`n"
             }
         }
@@ -1290,16 +1309,16 @@ function Get-TDOpenTicketActivity
                 # List requestors, from most frequent to least
                 $RequestorTable = $TicketSelection | Group-Object -Property RequestorName | Sort-Object -Property Count -Descending
                 if ($CommenterTable.Name -ne '') {
-                    Write-Output "<H3>Ticket requestors</H3>"
-                    Write-Output "<table>"
-                    Write-Output "<tr><th>Name</th><th>Request Count</th></tr>`r`n"
+                    Write-Output "<H2>Ticket requestors</H2>`r`n"
+                    Write-Output "<table>`r`n"
+                    Write-Output "<tr>`r`n`t<th><P ALIGN=Left>Name</th>`r`n`t<th><P ALIGN=Left>Request Count</th></tr>`r`n"
                     $RequestorTable | ForEach-Object {Write-Output "<tr>`r`n`t<td>`r`n`t`t<P ALIGN=Left>$($_.Name)`r`n`t</td>`r`n`t<td>`r`n`t`t<P ALIGN=Right>$($_.Count)`r`n`t</td>`r`n</tr>`r`n"}
                     Write-Output "</table>`r`n"
                 }
             }
             else {
                 # No new requests
-                Write-Output "<H3>`r`n`tTicket requestors`r`n</H3>`r`n"
+                Write-Output "<H2>Ticket requestors</H2>`r`n"
                 Write-Output "No requests`r`n"
             }
         }
@@ -1311,12 +1330,27 @@ function Get-TDOpenTicketActivity
                 [Parameter(Mandatory=$true)]
                 $TicketSelection
             )
+
+            $OpenTicketSelection   = $TicketSelection | Where-Object StatusName -ne 'On Hold'
+            $OnHoldTicketSelection = $TicketSelection | Where-Object StatusName -eq 'On Hold'
             # Build table of clickable stale tickets
             $TicketAppURI = Get-URI -Environment $Environment -Portal
-            Write-Output "<table class=`"paddedTable`">`r`n"
-            Write-Output "<tr><th>ID</th><th>Last update</th><th>Title</th></tr>`r`n"
-            $TicketSelection | Sort-Object -Property ModifiedDate | ForEach-Object {Write-Output "<tr>`r`n`t<td>`r`n`t`t<P ALIGN=Left><a href=`"$TicketAppURI/Apps/$TicketingAppID/Tickets/TicketDet?TicketID=$($_.ID)`" target=`"_blank`">$($_.ID)</a></td><td><P ALIGN=Left>$(Get-Date -Date $_.ModifiedDate -Format "MM/dd/yyyy h:mm tt")`r`n</td>`r`n`t<td>`r`n`t`t<P ALIGN=Left>$($_.Title)`r`n`t</td>`r`n</tr>`r`n"}
-            Write-Output "</table>`r`n"
+            #  Open tickets
+            if ($OpenTicketSelection) {
+                Write-Output "<H2>Open tickets</H2>`r`n"
+                Write-Output "<table class=`"paddedTable`">`r`n"
+                Write-Output "<tr>`r`n`t<th><P ALIGN=Left>ID</th>`r`n`t<th><P ALIGN=Left>Last update</th>`r`n`t<th><P ALIGN=Left>Status</th>`r`n`t<th><P ALIGN=Left>Title</th></tr>`r`n"
+                $OpenTicketSelection   | Sort-Object -Property ModifiedDate | ForEach-Object {Write-Output "<tr>`r`n`t<td>`r`n`t`t<P ALIGN=Left><a href=`"$TicketAppURI/Apps/$TicketingAppID/Tickets/TicketDet?TicketID=$($_.ID)`" target=`"_blank`">$($_.ID)</a>`r`n`t</td>`r`n`t<td>`r`n`t`t<P ALIGN=Left>$(Get-Date -Date $_.ModifiedDate -Format "MM/dd/yyyy h:mm tt")`r`n`t</td>`r`n`t<td>`r`n`t`t<P ALIGN=Left>$($_.StatusName)`r`n`t</td>`r`n`t<td>`r`n`t`t<P ALIGN=Left>$($_.Title)`r`n`t</td>`r`n</tr>`r`n"}
+                Write-Output "</table>`r`n"
+            }
+            #  On-Hold tickets
+            if ($OnHoldTicketSelection) {
+                Write-Output "<H2>On-Hold tickets</H2>`r`n"
+                Write-Output "<table class=`"paddedTable`">`r`n"
+                Write-Output "<tr>`r`n`t<th><P ALIGN=Left>ID</th>`r`n`t<th><P ALIGN=Left>Last update</th>`r`n`t<th><P ALIGN=Left>Goes off hold</th>`r`n`t<th><P ALIGN=Left>Title</th></tr>`r`n"
+                $OnHoldTicketSelection | Sort-Object -Property ModifiedDate | ForEach-Object {Write-Output "<tr>`r`n`t<td>`r`n`t`t<P ALIGN=Left><a href=`"$TicketAppURI/Apps/$TicketingAppID/Tickets/TicketDet?TicketID=$($_.ID)`" target=`"_blank`">$($_.ID)</a>`r`n`t</td>`r`n`t<td>`r`n`t`t<P ALIGN=Left>$(Get-Date -Date $_.ModifiedDate -Format "MM/dd/yyyy h:mm tt")`r`n`t</td>`r`n`t<td>`r`n`t`t<P ALIGN=Left>$(Get-Date -Date $_.GoesOffHoldDate -Format "MM/dd/yyyy h:mm tt")`r`n`t</td>`r`n`t<td>`r`n`t`t<P ALIGN=Left>$($_.Title)`r`n`t</td>`r`n</tr>`r`n"}
+                Write-Output "</table>`r`n"
+            }
         }
     }
     Process
@@ -1759,7 +1793,7 @@ function Get-TDAssetConsistency
     )
     begin
     {
-        Write-ActivityHistory "-----`nIn $($MyInvocation.MyCommand.Name)"
+        Write-ActivityHistory "`n-----`nIn $($MyInvocation.MyCommand.Name)"
         $Assets = (Get-TDReport -ID $TDConfig.TDAllAssetReportID -WithData -AuthenticationToken $AuthenticationToken -Environment $Environment).DataRows
         $ValidEncryptionStrings = @(
                                   'All Partitions Encrypted'
@@ -1946,9 +1980,13 @@ function Get-TDAssetConsistency
         }
         $Return
     }
+    End
+    {
+        Write-ActivityHistory "`nLeaving $($MyInvocation.MyCommand.Name)`n-----"
+    }
 }
 
-function Restore-AssetErasedDataError
+function Restore-TDAssetErasedDataError
 {
     [CmdletBinding()]
     Param
@@ -1963,8 +2001,8 @@ function Restore-AssetErasedDataError
 
     Begin
     {
-        Write-ActivityHistory "-----`nIn $($MyInvocation.MyCommand.Name)"
-        $AllAssetAttributes = Get-TDCustomAttribute -ComponentID Asset -AuthenticationToken $AuthenticationToken -Environment $Environment
+        Write-ActivityHistory "`n-----`nIn $($MyInvocation.MyCommand.Name)"
+        $AllAssetAttributes = Get-TDCustomAttribute -ComponentID Asset
     }
     Process
     {
@@ -1972,14 +2010,14 @@ function Restore-AssetErasedDataError
         foreach ($Entry in $FeedEntry)
         {
             $AssetFound = $false
-            $AssetSearch = Get-TDAsset -SearchText $Entry.ItemTitle -AuthenticationToken $AuthenticationToken -Environment $Environment
+            $AssetSearch = Get-TDAsset -SearchText $Entry.ItemTitle
             foreach ($Asset in $AssetSearch)
             {
                 if ($Asset.Name -match $Entry.ItemTitle)
                 {
                     $AssetFound = $true
                     # Get asset with full detail
-                    $Asset = Get-TDAsset -ID $Asset.ID -AuthenticationToken $AuthenticationToken -Environment $Environment
+                    $Asset = Get-TDAsset -ID $Asset.ID
                     break
                 }
             }
@@ -2000,7 +2038,8 @@ function Restore-AssetErasedDataError
                         $Attribute     = $Matches[1]
                         $OriginalValue = $Matches[2]
                         # Current value is $Matches[3], in case that's interesting
-                        if ($Matches[3] -eq 'Nothing')
+                        # If current value is "Nothing" or blank, replace with original value
+                        if ($Matches[3] -eq 'Nothing' -or $Matches[3] -eq '')
                         {
                             Write-Host "`tFix $Attribute by replacing with $OriginalValue"
                             $Changes += @{$Attribute = $OriginalValue}
@@ -2014,6 +2053,11 @@ function Restore-AssetErasedDataError
                     if ($Change.Keys[0] -in $Asset.psobject.Properties.Name) # Property
                     {
                         $Asset.$($Change.Keys[0]) = $Change.Values[0]
+                    }
+                    # Check to see if the property name has extraneous spaces in it
+                    elseif ($Change.Keys[0] -replace ' ','' -in $Asset.psobject.Properties.Name)
+                    {
+                        $Asset.$($Change.Keys[0] -replace ' ','') = $Change.Values[0]
                     }
                     else # Attribute
                     {
@@ -2052,6 +2096,10 @@ function Restore-AssetErasedDataError
             }
             Write-Host ""
         }
+    }
+    End
+    {
+        Write-ActivityHistory "`nLeaving $($MyInvocation.MyCommand.Name)`n-----"
     }
 }
 
@@ -2103,6 +2151,273 @@ function Get-TDDataConnector
         }
         # Convert to an object on return - helps with formatting
         return $Connectors | ForEach-Object {[pscustomobject]$_}
+    }
+}
+function ConvertFrom-UserToTD
+{
+    [CmdletBinding()]
+    Param
+    (
+        # Active Directory username
+        [Parameter(Mandatory=$true,
+                   ValueFromPipeline=$true,
+                   Position=0)]
+        $Username,
+
+        # TeamDynamix authentication token
+        [Parameter(Mandatory=$false)]
+        [hashtable]
+        $AuthenticationToken = $TDAuthentication,
+
+        # TeamDynamix working environment
+        [Parameter(Mandatory=$false)]
+        [EnvironmentChoices]
+        $Environment = $WorkingEnvironment,
+
+        # Active Directory domain name
+        [Parameter(Mandatory=$false)]
+        [string]
+        $ADDomainName = (Invoke-Expression $script:DefaultADConnectorFinder).Data.ADDomainName
+    )
+    DynamicParam
+    {
+        $DynamicParameterList = @()
+        ForEach ($Name in ($TDConfig.DataConnectors | Where-Object {$_.Class -eq 'User' -and $_.IsActive -eq $true}).AuthRequired | Select-Object -Unique) {
+            $DynamicParameterList += @{
+                Name             = "$($Name)Credential"
+                Type             = 'pscredential'
+                HelpText         = 'Authentication credential'
+            }
+            $DynamicParameterList += @{
+                Name             = "$($Name)CredentialPath"
+                Type             = 'string'
+                HelpText         = 'Path to credential'
+            }
+            $DynamicParameterList += @{
+                Name             = "$($Name)Username"
+                Type             = 'string'
+                HelpText         = 'Username'
+            }
+            $DynamicParameterList += @{
+                Name             = "$($Name)Password"
+                Type             = 'securestring'
+                HelpText         = 'Password'
+            }
+        }
+        $DynamicParameterList += @{
+            Name             = "PrimaryConnector"
+            Mandatory        = $true
+            ValidateSet      = ($TDConfig.DataConnectors | Where-Object {$_.Class -eq 'User' -and $_.IsActive -eq $true -and $_.Type -eq 'Primary'}).Name
+            Type             = 'string'
+            HelpText         = 'Primary data connector to use to find user information.'
+        }
+        $DynamicParameterList += @{
+            Name             = "SupplementalConnector"
+            Mandatory        = $false
+            ValidateSet      = ($TDConfig.DataConnectors | Where-Object {$_.Class -eq 'User' -and $_.IsActive -eq $true -and $_.Type -eq 'Supplemental'}).Name
+            Type             = 'string'
+            HelpText         = 'Supplemental data connector to use to find user information. Adds information to the primary data.'
+        }
+        $DynamicParameterList += @{
+            Name        = 'UserRoleName'
+            ValidateSet = $TDConfig.UserRoles.Name
+            HelpText    = 'User role name'
+        }
+        $DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
+        return $DynamicParameterDictionary
+    }
+
+    Begin
+    {
+        Write-ActivityHistory "`n-----`nIn $($MyInvocation.MyCommand.Name)"
+        $SpecialUserProperties = @('BuildingNumber','RoomNumber','LocationSearch')
+        #  Set ID parameters from their corresponding Name (dynamic) parameters (in begin block if none are gathered from the pipeline, otherwise in process block)
+        if ($DynamicParameterDictionary)
+        {
+            $IDsFromNamesUpdates = Get-IDsFromNames -DynamicParameterDictionary $DynamicParameterDictionary -DynamicParameterList $DynamicParameterList
+            $IDsFromNamesUpdates | ForEach-Object {Set-Variable -Name $_.Name -Value $_.Value}
+        }
+        # Extract a list of credential families from the dynamic parameter set name, then process each in turn
+        #  Regex extracts the CredentialName and CredentialType, using named capture groups, while identifying which set was used
+        #  Used to build working variables, named with CredentialName and CredentialType
+        $CredentialsRegex = [regex]'(?<CredentialName>.+)(?<CredentialType>CredentialPath|Credential(?!Path)|Username)'
+        foreach ($CredentialSet in ($MyInvocation.BoundParameters.Keys | ForEach-Object {if ($_ -in $DynamicParameterDictionary.Keys){$_}}))
+        {
+            # Extract credential name for convenience and readability
+            $CredentialName = ($CredentialsRegex.Matches($CredentialSet).Groups | Where-Object Name -eq 'CredentialName').Value
+            if ($CredentialName -eq '')
+            {
+                Write-ActivityHistory -MessageChannel 'Error' -ThrowError -Message 'Unable to determine connector name for credentials'
+            }
+            # Switch based on the CredentialType named capture group
+            #  Create <CredentialName>Username and <CredentialName>ClearPassword variables for use in retrieving data
+            switch (($CredentialsRegex.Matches($CredentialSet).Groups | Where-Object Name -eq 'CredentialType').Value)
+            {
+                'CredentialPath'
+                {
+                    # To create a file with credentials, do the following:
+                    #    $Credential = Get-Credential
+                    #    $CredentialObject = @{'Username' = $Credential.UserName;'Password' = (ConvertFrom-SecureString $Credential.Password)}
+                    #    $CredentialObject | Export-Clixml path\filename
+                    try
+                    {
+                        $CredentialObject = Import-Clixml (Get-Variable -Name "$($CredentialName)CredentialPath").Value
+                    }
+                    catch
+                    {
+                        Write-ActivityHistory -MessageChannel 'Error' -ThrowError -Message 'XML file failed to load: invalid credential format.'
+                    }
+                    if ($CredentialObject.Username -and $CredentialObject.Password)
+                    {
+                        try
+                        {
+                            Set-Variable -Name "$($CredentialName)Credential" -Value (New-Object System.Management.Automation.PsCredential ($CredentialObject.Username, (ConvertTo-SecureString $CredentialObject.Password)))
+                        }
+                        catch
+                        {
+                            Write-ActivityHistory -MessageChannel 'Error' -ThrowError -Message 'Unable to create a credential object: invalid credential format.'
+                        }
+                    }
+                    else
+                    {
+                        Write-ActivityHistory -MessageChannel 'Error' -ThrowError -Message 'XML file did not contain a username and password: invalid credential format.'
+                    }
+                    Set-Variable -Name "$($CredentialName)Username"      -Value $CredentialObject.Username
+                    Set-Variable -Name "$($CredentialName)ClearPassword" -Value ( Get-Variable -Name "$($CredentialName)Credential").Value.GetNetworkCredential().Password
+                }
+                'Credential'
+                {
+                    Set-Variable -Name "$($CredentialName)Username"      -Value ((Get-Variable -Name "$($CredentialName)Credential").Value).UserName
+                    Set-Variable -Name "$($CredentialName)ClearPassword" -Value ( Get-Variable -Name "$($CredentialName)Credential").Value.GetNetworkCredential().Password
+                }
+                'Username'
+                {
+                    if ((-not (Get-Variable -Name "$($CredentialName)Username").Value) -or (-not (Get-Variable -Name "$($CredentialName)Password").Value))
+                    {
+                        Set-Variable -Name "$($CredentialName)Credential"      -Value (Get-Credential -Message "Enter console credentials for $CredentialName")
+                        Set-Variable -Name "$($CredentialName)ConsoleUsername" -Value ((Get-Variable -Name "$($CredentialName)Credential").Value).UserName
+                    }
+                    else
+                    {
+                        Set-Variable -Name "$($CredentialName)Credential" -Value (New-Object System.Management.Automation.PsCredential ((Get-Variable -Name "$($CredentialName)Username").Value, (ConvertTo-SecureString (Get-Variable -Name "$($CredentialName)Password").Value -AsPlainText -Force)))
+                    }
+                    Set-Variable -Name "$($CredentialName)ClearPassword" -Value (Get-Variable -Name "$($CredentialName)Credential").Value.GetNetworkCredential().Password
+                }
+            }
+        }
+        # Retrieve default user role
+        $DefaultUserRole = ($TDConfig.UserRoles | Where-Object Default -eq $true).Name
+    }
+    Process
+    {
+        # Create object to hold user data
+        $UserData = [TD_UserInfo]::new()
+
+        # Try primary and supplemental connectors
+        foreach ($ConnectorName in ('PrimaryConnector','SupplementalConnector'))
+        {
+            # Check to see if the named connector was specified
+            if ($ConnectorName -in $MyInvocation.BoundParameters.Keys)
+            {
+                # Retrieve connector data
+                $Connector = $TDConfig.DataConnectors | Where-Object {$_.Name -eq (Get-Variable -Name $ConnectorName).Value -and $_.IsActive -eq $true -and $_.Type -eq $ConnectorName.Replace('Connector','') -and $_.Class -eq 'User'}
+                if ($Connector.AuthRequired)
+                {
+                    $ConnectorCredential = (Get-Variable -Name "$($Connector.AuthRequired)Credential").Value
+                }
+                # Get source data
+                $User = Invoke-Expression $Connector.Function
+
+                # Check to see that the user was found
+                if (-not $User)
+                {
+                    Write-ActivityHistory -MessageChannel Error -Message "$Username not found in $Connector.Name"
+                }
+                else
+                {
+                    # Fill in data on TD user object
+                    foreach ($Key in $Connector.Data.FieldMappings.AttributesMap.Keys)
+                    {
+                        $Value = Invoke-Expression $Connector.Data.FieldMappings.AttributesMap.$Key
+                        if ($Key -in $UserData.PSObject.Properties.Name)
+                        {
+                            # Supplemental connectors don't overwrite primary connector data with null (but will overwrite with blank)
+                            if (-not ($null -eq $Value))
+                            {
+                                $UserData.$Key = $Value
+                            }
+                        }
+                        else
+                        {
+                            # Handle special properties
+                            if ($Key -in ($SpecialUserProperties))
+                            {
+                                Set-Variable -Name $Key -Value $Value
+                            }
+                            else
+                            {
+                                Write-ActivityHistory -MessageChannel 'Error' -Message "Unknown connector FieldMappings AttributesMap entry, $Key."
+                            }
+                        }
+                    }
+                    #  Lookup location, if one is specified
+                    $UserLocation = $null
+                    if ($LocationSearch)
+                    {
+                        $UserLocation = Find-TDLocation -Search $LocationSearch -Environment $Environment
+                    }
+                    elseif ($BuildingNumber)
+                    {
+                        if (-not $RoomNumber)
+                        {
+                            $RoomNumber = ''
+                        }
+                        $UserLocation = Find-TDLocation -ExternalID $BuildingNumber.Split(' ')[0] -RoomNumber $RoomNumber.Split(' ')[0] -Environment $Environment
+                    }
+                    if ($UserLocation.LocationID -ne 0)
+                    {
+                        $UserData.LocationID       = $UserLocation.LocationID
+                        $UserData.LocationName     = $UserLocation.LocationName
+                        $UserData.LocationRoomID   = $UserLocation.LocationRoomID
+                        $UserData.LocationRoomName = $UserLocation.LocationRoomName
+                    }
+                    # Set user role if connector requests it
+                    if ($Connector.Data.SetUserRole)
+                    {
+                        # Use UserRoleName specified on the command line - look it up otherwise
+                        if (-not $UserRoleName)
+                        {
+                            # Execute the user role function - first one to evaluate as true is selected
+                            foreach ($UserRole in $TDConfig.UserRoles)
+                            {
+                                if (Invoke-Expression $UserRole.Function)
+                                {
+                                    $UserRoleName = $UserRole.Name
+                                    break
+                                }
+                            }
+                            # If no user role has been selected, use the default
+                            if ($null -eq $UserRole.Name)
+                            {
+                                $UserRoleName = $DefaultUserRole.Name
+                            }
+                        }
+                        # Set user role
+                        $UserData.SetUserRole($UserRoleName,$AuthenticationToken,$Environment)
+                    }
+                    # Clear special user properties between connectors
+                    foreach ($SpecialUserProperty in $SpecialUserProperties)
+                    {
+                        Clear-Variable -Name $SpecialUserProperty -ErrorAction Ignore
+                    }
+                }
+            }
+        }
+        return $UserData
+    }
+    end
+    {
+        Write-ActivityHistory "`nLeaving $($MyInvocation.MyCommand.Name)`n-----"
     }
 }
 #endregion
@@ -2275,7 +2590,7 @@ function Invoke-RESTCall
 
     begin
     {
-        Write-ActivityHistory "-----`nIn $($MyInvocation.MyCommand.Name)"
+        Write-ActivityHistory "`n-----`nIn $($MyInvocation.MyCommand.Name)"
         # Force TLS 1.2
         [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
     }
@@ -2297,79 +2612,24 @@ function Invoke-RESTCall
             }
             catch
             {
-                if (($_.Exception.GetType().Fullname -eq 'Microsoft.PowerShell.Commands.HttpResponseException') -or ($_.Exception.GetType().Fullname -eq 'System.Net.WebException'))
+                $ErrorResponse = Get-HTTPErrorAction -ErrorObject $_
+                if ($ErrorResponse)
                 {
-                    # Too many requests
-                    if ($_.Exception.Response.StatusCode.Value__ -eq '429')
+                    if ($ErrorResponse.Retry)
                     {
-                        # Extract rate limit reset time and current time from exception and wait until that time (plus 2 seconds to allow for small mayhem)
-                        $RateLimitResetTime   = $_.Exception.Response.Headers.GetValues('X-RateLimit-Reset') | Get-Date
-                        $APIEndpointTime      = $_.Exception.Response.Headers.GetValues('Date')              | Get-Date
-                        $WaitTime = (New-TimeSpan -Start ($APIEndpointTime) -End ($RateLimitResetTime).AddSeconds(2)).TotalSeconds
-                        Write-ActivityHistory "Waiting $WaitTime seconds to make next TD request. Waiting until $RateLimitResetTime"
-                        # Wait time should never be more than 60 seconds - cap it at 60 seconds in case of unforseen date calculation error
-                        if ($WaitTime -gt 60)
-                        {
-                            $WaitTime = 60
-                            Write-ActivityHistory "Wait time adjusted to $WaitTime"
-                        }
-                        # Wait time should never be negative, and small numbers are dangerous - set to one second to avoid an error on Start-Sleep
-                        # Small, and even negative, values could occur when reset is very close to current time
-                        if ($WaitTime -lt 1)
-                        {
-                            $WaitTime = 1
-                            Write-ActivityHistory "Wait time adjusted to $WaitTime"
-                        }
-                        Start-Sleep -Seconds $WaitTime
                         $Retry = $true
                     }
-                    # Unauthorized
-                    elseif ($_.Exception.Response.StatusCode.Value__ -eq '401')
+                    if ($ErrorResponse.Message)
                     {
-                        Write-ActivityHistory -MessageChannel 'Error' -ThrowError -Message 'TeamDynamix authentication token is invalid or has expired. Tokens expire 24 hours.'
-                        $Retry = $false
-                    }
-                    # Not found
-                    elseif ($_.Exception.Response.StatusCode.Value__ -eq '404')
-                    {
-                        Write-ActivityHistory -MessageChannel 'Error' -Message 'Item not found in TeamDynamix.'
-                        $Retry = $false
-                    }
-                    # Bad request
-                    elseif ($_.Exception.Response.StatusCode.Value__ -eq '400')
-                    {
-                        Write-ActivityHistory -ErrorRecord $_ -ErrorMessage 'TeamDynamix has rejected the request.'
-                        $Retry = $false
-                    }
-                    # Fobidden
-                    elseif ($_.Exception.Response.StatusCode.Value__ -eq '403')
-                    {
-                        if ($_.Exception.Message -eq $script:TDLoginFailureText)
+                        if ($ErrorResponse.Fatal)
                         {
-                            Write-ActivityHistory -MessageChannel 'Error' -ThrowError -Message $script:TDLoginFailureText
+                            Write-ActivityHistory -ThrowError -ErrorRecord $_ -ErrorMessage "API call failed. - $URI Method: $Method - $($ErrorResponse.Message)"
                         }
                         else
                         {
-                            Write-ActivityHistory -MessageChannel 'Error' -ThrowError -Message $_.Exception.Message
+                            Write-ActivityHistory -MessageChannel Error -Message "API call failed. - $URI Method: $Method - $($ErrorResponse.Message)"
                         }
-                        $Retry = $false
                     }
-                    # Other error
-                    else
-                    {
-                        Write-ActivityHistory -ErrorRecord $_ -ErrorMessage "Fatal $($_.Exception.GetType().Fullname) calling URI, $URI, with method $Method. - $_.Exception.Message"
-                        $Retry = $false
-                    }
-                }
-                elseif ($_.Exception.GetType().Fullname -eq 'System.Net.Http.HttpRequestException')
-                {
-                    Write-ActivityHistory -MessageChannel 'Verbose' -Message $_.Exception.InnerException.Message
-                    $Retry = $true
-                }
-                else
-                {
-                    $Retry = $false
-                    Write-ActivityHistory -ErrorRecord $_ -ThrowError -ErrorMessage "Fatal unknown error calling URI, $URI, with method $Method."
                 }
             }
             $Retries++
@@ -2400,7 +2660,7 @@ function Invoke-RESTCall
     }
     end
     {
-        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
+        Write-ActivityHistory "`nLeaving $($MyInvocation.MyCommand.Name)`n-----"
     }
 }
 function New-SimplePassword
@@ -2486,8 +2746,7 @@ function Update-Object
         $Environment = $WorkingEnvironment
     )
 
-    Write-ActivityHistory "-----"
-    Write-ActivityHistory "In $($MyInvocation.MyCommand.Name)"
+    Write-ActivityHistory "`n-----`nIn $($MyInvocation.MyCommand.Name)"
     Write-ActivityHistory (Get-PSCallStack | Out-String)
     $IgnoreList += @('Attributes','CustomAttributes','OrgApplications')
     foreach ($Parameter in $ParameterList)
@@ -2612,6 +2871,7 @@ function Update-Object
             }
         }
     }
+    Write-ActivityHistory "`nLeaving $($MyInvocation.MyCommand.Name)`n-----"
 }
 
 <#
@@ -3612,9 +3872,8 @@ function Get-IDsFromNames
 
     begin
     {
-        Write-ActivityHistory "-----`nIn $($MyInvocation.MyCommand.Name)"
+        Write-ActivityHistory "`n-----`nIn $($MyInvocation.MyCommand.Name)"
     }
-
     process
     {
         $Return = @()
@@ -3687,7 +3946,7 @@ function Get-IDsFromNames
     }
     end
     {
-        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
+        Write-ActivityHistory "`nLeaving $($MyInvocation.MyCommand.Name)`n-----"
     }
 }
 
@@ -3727,7 +3986,7 @@ function Get-Params
 
     begin
     {
-        Write-ActivityHistory "-----`nIn $($MyInvocation.MyCommand.Name)"
+        Write-ActivityHistory "`n-----`nIn $($MyInvocation.MyCommand.Name)"
     }
 
     process
@@ -3761,7 +4020,7 @@ function Get-Params
     }
     end
     {
-        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
+        Write-ActivityHistory "`nLeaving $($MyInvocation.MyCommand.Name)`n-----"
     }
 }
 
@@ -3985,7 +4244,7 @@ function Invoke-Get {
             else
             {
                 $Search = Invoke-Expression "[$SearchType]::new()"
-                Update-Object -InputObject $Search -ParameterList $Params.Command -BoundParameterList $BoundParameters -IgnoreList $Params.Ignore -AuthenticationToken $AuthenticationToken -Environment $WorkingEnvironment
+                Update-Object -InputObject $Search -ParameterList $Params.Command -BoundParameterList $BoundParameters -IgnoreList $Params.Ignore -AuthenticationToken $AuthenticationToken -Environment $Environment
                 # Reformat object for upload to TD if needed, include proper date format
                 #  Check to see if there is a type that starts with "TD" defined, if so, use that because it uses the correct date format
                 if (([System.AppDomain]::CurrentDomain.GetAssemblies()| Where-Object Location -eq $null).GetTypes().Name | Where-Object {$_ -eq "TD_$SearchType"})
@@ -4149,7 +4408,7 @@ function Invoke-New {
         }
         catch
         {
-            Write-ActivityHistory -MessageChannel 'Error' -ThrowError -Message "Unable to find source object on TeamDynamix to modify."
+            Write-ActivityHistory -ThrowError -ErrorRecord $_ -ErrorMessage "Unable to find source object on TeamDynamix to modify."
         }
         $ShouldProcessText1 = "$Endpoint - $($Object | Out-String)"
         $ShouldProcessText2 = 'Update TeamDynamix item'
@@ -4166,7 +4425,7 @@ function Invoke-New {
             $ShouldProcessText2 = 'Add new TeamDynamix item'
     }
     Write-ActivityHistory 'Preparing object for update/creation.'
-    Update-Object -InputObject $Object -ParameterList $Params.Command -BoundParameterList $BoundParameters -IgnoreList $Params.Ignore -AuthenticationToken $AuthenticationToken -Environment $WorkingEnvironment
+    Update-Object -InputObject $Object -ParameterList $Params.Command -BoundParameterList $BoundParameters -IgnoreList $Params.Ignore -AuthenticationToken $AuthenticationToken -Environment $Environment
     # Special cases for Set
     if ($RetrievalCommand)
     {
@@ -4308,7 +4567,7 @@ function New-Logfile ([string]$FullPath)
             catch
             {
                 $Return = $false
-                Write-ActivityHistory -MessageChannel 'Error' -ThrowError -Message "Unable to create log file path, $Path."
+                Write-ActivityHistory -ThrowError -ErrorRecord $_ -ErrorMessage "Unable to create log file path, $Path."
             }
         }
         # Create log file
@@ -4319,7 +4578,7 @@ function New-Logfile ([string]$FullPath)
         catch
         {
             $Return = $false
-            Write-ActivityHistory -MessageChannel 'Error' -ThrowError -Message "Unable to create log file, $FullPath."
+            Write-ActivityHistory -ThrowError -ErrorRecord $_ -ErrorMessage "Unable to create log file, $FullPath."
         }
     }
     return $Return
@@ -4334,13 +4593,15 @@ function New-Logfile ([string]$FullPath)
     consoles.
 .PARAMETER Asset
     The asset from the management console.
-.PARAMETER InputType
-    The managment console the asset was imported from.
+.PARAMETER SNLocation
+    The location in the asset data to find the serial number.
+.PARAMETER BadSerialNumbers
+    List of bad serial numbers which will be ignored.
 .EXAMPLE
-    C:\> Get-AssetSerialNumber -Asset $Asset -InputType $InputType
+    C:\> Get-AssetSerialNumber -Asset $Asset SNLocation $Location -BadSerialNumbers $BadSerialNumbers
 
-   Returns the serial number of the asset $Asset from the management console
-   $InputType.
+   Returns the serial number of the asset $Asset from the asset data, ignoring
+   bad serial numbers.
 #>
 function Get-AssetSerialNumber
 {
@@ -4594,37 +4855,50 @@ function Get-OrgAppsByRoleName {
 
     begin
     {
-        Write-ActivityHistory "-----`nIn $($MyInvocation.MyCommand.Name)"
+        Write-ActivityHistory "`n-----`nIn $($MyInvocation.MyCommand.Name)"
     }
     process
     {
         foreach ($OrgAppConfig in ($TDConfig.UserRoles | Where-Object Name -eq $UserRoleName).OrgApplications)
         {
-            # Pull security role name from configuration by user role name
-            $AppSecurityRoleName = $OrgAppConfig.SecurityRole
-            if ($AppSecurityRoleName)
+            # Get AppID from OrgApp name
+            $AppID = ($TDApplications.Get($OrgAppConfig.Name,$Environment)).ID
+            if ($AppID)
             {
-                # Get security role ID
-                $AppSecurityID = (Get-TDSecurityRole -AppName $OrgAppConfig.Name -AuthenticationToken $TDAuthentication -Environment $WorkingEnvironment | Where-Object Name -eq $AppSecurityRoleName).ID
-                # Determine if role is an app administrator !!! needs fixed (not everyone should be an app admin)
-                if ($OrgAppConfig.SecurityRole)
+                # Pull security role name from configuration by user role name
+                $AppSecurityRoleName = $OrgAppConfig.SecurityRole
+                if ($AppSecurityRoleName)
                 {
-                    # $IsAdministrator = $true
-                    $IsAdministrator = $false
+
+                    # Get security role ID
+                    $AppSecurityID = ($TDSecurityRoles.Get($AppSecurityRoleName,$AppID,$Environment)).ID
+                    # Determine if role is an app administrator !!! needs fixed (not everyone should be an app admin)
+                    if ($OrgAppConfig.SecurityRole)
+                    {
+                        # $IsAdministrator = $true
+                        $IsAdministrator = $false
+                    }
+                    else
+                    {
+                        $IsAdministrator = $false
+                    }
+                    # Create application object based on the role
+                    Write-Output (New-TDUserApplication -SecurityRoleId $AppSecurityID -AppID $AppID -IsAdministrator $IsAdministrator -AuthenticationToken $TDAuthentication -Environment $Environment)
                 }
                 else
                 {
-                    $IsAdministrator = $false
+                    Write-ActivityHistory -MessageChannel 'Error' -Message 'No OrgApp name found. Check Configuration.psd1 file.'
                 }
-                # Create application object based on the role
-                Write-Output (New-TDUserApplication -SecurityRoleId $AppSecurityID -IsAdministrator $IsAdministrator -AuthenticationToken $TDAuthentication -Environment $WorkingEnvironment)
+            }
+            else
+            {
+                Write-ActivityHistory -MessageChannel 'Error' -Message 'Invalid OrgApp name found. Check Configuration.psd1 file.'
             }
         }
     }
-
     end
     {
-        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
+        Write-ActivityHistory "`nLeaving $($MyInvocation.MyCommand.Name)`n-----"
     }
 }
 
@@ -4655,4 +4929,416 @@ function Get-BadSerialNumber
     $BadSerialNumbers = Invoke-Expression $Connector.Data.BadSerialNumbers
     return $BadSerialNumbers
 }
+
+<#
+.Synopsis
+    Parse HTTP error and returns actions to take.
+.DESCRIPTION
+    Internal function.
+    Parse HTTP error and return actions to take.
+.PARAMETER ErrorObject
+    The HTTP error object.
+.EXAMPLE
+    C:\> Get-HTTPErrorAction -ErrorObject $Error[0]
+
+   Returns a custom object with three properties:
+   Message - [string]  The HTTP error message.
+   Retry   - [boolean] Should the HTTP call be retried.
+   Fatal   - [boolean] Should an error be thrown ($true), stopping execution,
+       or an error message ($false), allowing execution to continue.
+#>
+function Get-HTTPErrorAction
+{
+    [CmdletBinding()]
+    Param
+    (
+        # Error
+        [Parameter(Mandatory=$true)]
+        [System.Management.Automation.ErrorRecord]
+        $ErrorObject
+    )
+
+    $Return = $null
+    if (($ErrorObject.Exception.GetType().Fullname -eq 'Microsoft.PowerShell.Commands.HttpResponseException') -or ($ErrorObject.Exception.GetType().Fullname -eq 'System.Net.WebException'))
+    {
+        # Too many requests
+        if ($ErrorObject.Exception.Response.StatusCode.Value__ -eq '429')
+        {
+            # Extract rate limit reset time and current time from exception and wait until that time (plus 2 seconds to allow for small mayhem)
+            $RateLimitResetTime   = $ErrorObject.Exception.Response.Headers.GetValues('X-RateLimit-Reset') | Get-Date
+            $APIEndpointTime      = $ErrorObject.Exception.Response.Headers.GetValues('Date')              | Get-Date
+            $WaitTime = (New-TimeSpan -Start ($APIEndpointTime) -End ($RateLimitResetTime).AddSeconds(2)).TotalSeconds
+            Write-ActivityHistory "Waiting $WaitTime seconds to make next request. Waiting until $RateLimitResetTime"
+            # Wait time should never be more than 60 seconds - cap it at 60 seconds in case of unforseen date calculation error
+            if ($WaitTime -gt 60)
+            {
+                $WaitTime = 60
+                Write-ActivityHistory "Wait time adjusted to $WaitTime"
+            }
+            # Wait time should never be negative, and small numbers are dangerous - set to one second to avoid an error on Start-Sleep
+            # Small, and even negative, values could occur when reset is very close to current time
+            if ($WaitTime -lt 1)
+            {
+                $WaitTime = 1
+                Write-ActivityHistory "Wait time adjusted to $WaitTime"
+            }
+            Start-Sleep -Seconds $WaitTime
+            $Return = [psobject]@{
+                Message = $null
+                Retry   = $true
+                Fatal   = $false
+            }
+        }
+        # Bad request
+        elseif ($ErrorObject.Exception.Response.StatusCode.Value__ -eq '400')
+        {
+            $Return = [psobject]@{
+                Message = "Request rejected."
+                Retry   = $false
+                Fatal   = $false
+            }
+        }
+        # Unauthorized
+        elseif ($ErrorObject.Exception.Response.StatusCode.Value__ -eq '401')
+        {
+            $Return = [psobject]@{
+                Message = 'Authentication token is invalid or has expired.'
+                Retry   = $false
+                Fatal   = $true
+            }
+        }
+        # Fobidden
+        elseif ($ErrorObject.Exception.Response.StatusCode.Value__ -eq '403')
+        {
+            $Return = [psobject]@{
+                Message = "$ErrorObject.Exception.Message"
+                Retry   = $false
+                Fatal   = $true
+            }
+        }
+        # Not found
+        elseif ($ErrorObject.Exception.Response.StatusCode.Value__ -eq '404')
+        {
+            $Return = [psobject]@{
+                Message = "Item not found."
+                Retry   = $false
+                Fatal   = $false
+            }
+        }
+        # Service unavailable
+        elseif ($ErrorObject.Exception.Response.StatusCode.Value__ -eq '503')
+        {
+            $Return = [psobject]@{
+                Message = 'Service is unavailable.'
+                Retry   = $false
+                Fatal   = $true
+            }
+        }
+        # Other error
+        else
+        {
+            $Return = [psobject]@{
+                Message = "Fatal $($ErrorObject.Exception.GetType().Fullname) calling URI/method.- $ErrorObject.Exception.Message"
+                Retry   = $false
+                Fatal   = $false
+            }
+        }
+    }
+    elseif ($ErrorObject.Exception.GetType().Fullname -eq 'System.Net.Http.HttpRequestException')
+    {
+        $Return = [psobject]@{
+            Message = "$ErrorObject.Exception.InnerException.Message"
+            Retry   = $true
+            Fatal   = $false
+        }
+    }
+    else
+    {
+        $Return = [psobject]@{
+            Message = 'Fatal unknown error calling URI/method.'
+            Retry   = $false
+            Fatal   = $true
+        }
+    }
+
+    return $Return
+}
+
+<#
+.Synopsis
+    Find location (building and room) in TeamDynamix.
+.DESCRIPTION
+    Internal function.
+    Use building external ID and room number or a text string with building
+    name and, possibly, room number to find a location in TeamDynamix.
+.PARAMETER Search
+    Location search text. Should be "### Building Name" or "Building Name ###".
+.PARAMETER ExternalID
+    The building's external ID in TeamDynamix.
+.PARAMETER RoomNumber
+    The room number.
+.PARAMETER AuthenticationToken
+    Hashtable with one key: "Authorization" and value of "Bearer" followed
+    by the JSON bearer web token. See Set-TDAuthentication.
+.PARAMETER Environment
+    Execute the commands on the specified TeamDynamix site. Valid options are
+    "Production", "Sandbox", and "Preview". Default is the site selected when
+    the module was loaded.
+.EXAMPLE
+    C:\> Find-TDLocation -Search "404 Mendenhall Laboratory"
+
+   Returns a custom object with four properties:
+   LocationID       - TeamDynamix location ID.
+   LocationName     - TeamDynamix location name.
+   LocationRoomID   - TeamDynamix location room ID.
+   LocationRoomName - TeamDynamix location room name.
+#>
+function Find-TDLocation
+{
+    [CmdletBinding()]
+    Param
+    (
+        # Location search text
+        [Parameter(Mandatory=$false,
+                   Position=0)]
+        [string]
+        $Search,
+
+        # External ID for location
+        [Parameter(Mandatory=$false)]
+        [string]
+        $ExternalID,
+
+        # Room number for location
+        [Parameter(Mandatory=$false)]
+        [string]
+        $RoomNumber,
+
+        # TeamDynamix authentication token
+        [Parameter(Mandatory=$false)]
+        [hashtable]
+        $AuthenticationToken = $TDAuthentication,
+
+        # TeamDynamix working environment
+        [Parameter(Mandatory=$false)]
+        [EnvironmentChoices]
+        $Environment = $WorkingEnvironment
+    )
+
+    Begin
+    {
+        Write-ActivityHistory "`n-----`nIn $($MyInvocation.MyCommand.Name)"
+        $BuildingNames = $TDBuildingsRooms.GetAll($Environment).Name
+    }
+    Process
+    {
+        $Return = [PSCustomObject]@{
+            LocationID       = 0 ;
+            LocationName     = '';
+            LocationRoomID   = 0 ;
+            LocationRoomName = ''
+        }
+        # Determine building/location
+        #  Search first
+        if ($Search)
+        {
+            # Try the search in case it's just the building name
+            $Building = $TDBuildingsRooms.Get($Search,$Environment)
+            if ($Building)
+            {
+                $SkipMatch = $true
+            }
+            else
+            {
+                # Building not found directly, match list of buildings names against search (there's more text in the search than just the building name)
+                $SkipMatch = $false
+                $BuildingMatch = $null
+                # Try to match known buildings against $Search
+                foreach ($BuildingName in $BuildingNames)
+                {
+                    Clear-Variable Matches -ErrorAction Ignore -Confirm:$false
+                    $EscapedSearch = [regex]::Escape($BuildingName)
+                    if ($Search -match "(?<Pre>.*?)(?<BuildingName>$EscapedSearch)(?<Post>.*)")
+                    {
+                        # Match found - check to see if the current match is longest
+                        if ($Matches.BuildingName.Length -gt $BuildingMatch.BuildingName.Length)
+                        {
+                            $BuildingMatch = $Matches
+                        }
+                    }
+                }
+                if ($BuildingMatch)
+                {
+                    $Building = $TDBuildingsRooms.Get($BuildingMatch.BuildingName,$Environment)
+                }
+            }
+            if ($Building)
+            {
+                $Return.LocationID   = $Building.ID
+                $Return.LocationName = $Building.Name
+            }
+        }
+        #  If both Search and ExternalID are specified, overwrite result of Search
+        if ($ExternalID)
+        {
+            $Building = $TDBuildingsRooms.GetByExternalID($ExternalID,$Environment)
+            if ($Building)
+            {
+                $Return.LocationID   = $Building.ID
+                $Return.LocationName = $Building.Name
+            }
+            else
+            {
+                # No building found, invalid building external ID
+            }
+        }
+
+        # Determine room
+        #  Don't look for a room if there's no valid building
+        if ($Building)
+        {
+            $Room = $null
+            # Try Search first
+            if ($Search)
+            {
+                # Only check Pre and Post if there was more text in the search than just the building name
+                if (-not $SkipMatch)
+                {
+                    # Do Pre or Post have any text?
+                    #  Try to match Post
+                    if (-not [string]::IsNullOrEmpty($BuildingMatch.Post.Trim()))
+                    {
+                        #  Rooms left-pad numbers with zero, with varying amounts of padding; start with no padding and add zeros until match is found
+                        for ($i = 1; $i -le ($Building.Rooms.Name | Measure-Object -Property Length -Maximum).Maximum ; $i++)
+                        {
+                            $Room = $Building.Rooms | Where-Object Name -eq $BuildingMatch.Post.Trim().TrimStart('0').PadLeft($i,'0')
+                            if ($Room)
+                            {
+                                break
+                            }
+                        }
+                    }
+                    #  Try to match Pre
+                    if (-not [string]::IsNullOrEmpty($BuildingMatch.Pre.Trim()))
+                    {
+                        #  Rooms left-pad numbers with zero, with varying amounts of padding; start with no padding and add zeros until match is found
+                        for ($i = 1; $i -le ($Building.Rooms.Name | Measure-Object -Property Length -Maximum).Maximum ; $i++)
+                        {
+                            $Room = $Building.Rooms | Where-Object Name -eq $BuildingMatch.Pre.Trim().TrimStart('0').PadLeft($i,'0')
+                            if ($Room)
+                            {
+                                break
+                            }
+                        }
+                    }
+                }
+            }
+            # If both Search and RoomNumber are specified, overwrite result of Search
+            if ($RoomNumber)
+            {
+                # Rooms left-pad numbers with zero, with varying amounts of padding; start with no padding and add zeros until match is found
+                # Some rooms are specified with unnecessary leading zeros, so they must be trimmed off to start
+                for ($i = 1; $i -le ($Building.Rooms.Name | Measure-Object -Property Length -Maximum).Maximum ; $i++)
+                {
+                    $Room = $Building.Rooms | Where-Object Name -eq $RoomNumber.TrimStart('0').PadLeft($i,'0')
+                    if ($Room)
+                    {
+                        break
+                    }
+                }
+            }
+            if ($Room)
+            {
+                $Return.LocationRoomID   = $Room.ID
+                $Return.LocationRoomName = $Room.Name
+            }
+        }
+        return $Return
+    }
+    End
+    {
+        Write-ActivityHistory "`nLeaving $($MyInvocation.MyCommand.Name)`n-----"
+    }
+}
 #endregion
+# SIG # Begin signature block
+# MIIOsQYJKoZIhvcNAQcCoIIOojCCDp4CAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
+# gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUL9IpRD7BEb0p7yz0y3J1zb6P
+# V1ugggsLMIIEnTCCA4WgAwIBAgITXAAAAASry1piY/gB3QAAAAAABDANBgkqhkiG
+# 9w0BAQsFADAaMRgwFgYDVQQDEw9BU0MgUEtJIE9mZmxpbmUwHhcNMTcwNTA4MTcx
+# NDA5WhcNMjcwNTA4MTcyNDA5WjBYMRMwEQYKCZImiZPyLGQBGRYDZWR1MRowGAYK
+# CZImiZPyLGQBGRYKb2hpby1zdGF0ZTETMBEGCgmSJomT8ixkARkWA2FzYzEQMA4G
+# A1UEAxMHQVNDLVBLSTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAOF4
+# 1t2KTcMPjn/gtqYCaWsRjqTvsL0AjDvZDeTUqc4rABZw5rbZFLMRKeuFMmCKeCEb
+# wtNDSv2GVCvZnRJuUPVowSyT1+0rHNYnzyTrJDiZTm/WzurPOSlaqGuJovb2mJLk
+# 4351McVNwN7T9io8Tpi4pov1kFfJqHH7MY6H4Sa/6xuy2Al0/8+c3QubJc1Fl4Ew
+# XJGMLIvmYIkik1pRr3eT52JP2uu7yyyU+JMRwhvbMEnhuhVGwi5aKTg1G3z6AoOn
+# bdWl+AMfxwaNtl0Hhz4NWQIgo/ieiXUqC1DZqKj4vauBlSLxE66CSJnLDD3IMmss
+# NJlFi2Q0NAw4HulTpLsCAwEAAaOCAZwwggGYMBAGCSsGAQQBgjcVAQQDAgEBMCMG
+# CSsGAQQBgjcVAgQWBBTeaCQAfNtGUFhb0QBZ02IBaUIJzTAdBgNVHQ4EFgQULgSe
+# hPTwfxn4sIe7oPMkGIyw97YwgZIGA1UdIASBijCBhzCBhAYGKwYBBAFkMHowOgYI
+# KwYBBQUHAgIwLh4sAEwAZQBnAGEAbAAgAFAAbwBsAGkAYwB5ACAAUwB0AGEAdABl
+# AG0AZQBuAHQwPAYIKwYBBQUHAgEWMGh0dHA6Ly9jZXJ0ZW5yb2xsLmFzYy5vaGlv
+# LXN0YXRlLmVkdS9wa2kvY3BzLnR4dDAZBgkrBgEEAYI3FAIEDB4KAFMAdQBiAEMA
+# QTALBgNVHQ8EBAMCAYYwDwYDVR0TAQH/BAUwAwEB/zAfBgNVHSMEGDAWgBSmmXUH
+# 2YrKB5bSFEUMk0oNSezdUTBRBgNVHR8ESjBIMEagRKBChkBodHRwOi8vY2VydGVu
+# cm9sbC5hc2Mub2hpby1zdGF0ZS5lZHUvcGtpL0FTQyUyMFBLSSUyME9mZmxpbmUu
+# Y3JsMA0GCSqGSIb3DQEBCwUAA4IBAQAifGwk/QoUSRvJ/ecvyk6MymoQgZByKSsn
+# 1BNkJ3R7RjUE75/1cFVhRylPH3ADe8wRzjwJF1BgJsa1p2TCVHpIoxOWV4EwWwqU
+# k3ufAGfxhMd7D5AAxOon0UKUIgcW9LCq+R7GfcbBsFxc9IL6GQVRTISTOkfzsqqP
+# 4tUe5joCIGfO2qcx2uhnavVF+4nq2OrQEMqM/gOWD+YhmMh/QrlpMOOSBdhpKBk4
+# lF2/3+dqD0dVuX7/s6xnUoYwDyp1rw/ExOy6kT8dNSVIjXVXEd2/bhqD6UqYYly4
+# KrwQTTbeHQif7Q8E0ecf+FOhrBmZCwYhXeSmnTPT7vMmfvU4aOEyMIIGZjCCBU6g
+# AwIBAgITegAA4Q+dSse+55kspAABAADhDzANBgkqhkiG9w0BAQsFADBYMRMwEQYK
+# CZImiZPyLGQBGRYDZWR1MRowGAYKCZImiZPyLGQBGRYKb2hpby1zdGF0ZTETMBEG
+# CgmSJomT8ixkARkWA2FzYzEQMA4GA1UEAxMHQVNDLVBLSTAeFw0yMjA0MTcxNDI5
+# MjFaFw0yMzA0MTcxNDI5MjFaMIGUMRMwEQYKCZImiZPyLGQBGRYDZWR1MRowGAYK
+# CZImiZPyLGQBGRYKb2hpby1zdGF0ZTETMBEGCgmSJomT8ixkARkWA2FzYzEXMBUG
+# A1UECxMOQWRtaW5pc3RyYXRvcnMxEjAQBgNVBAMTCWtlbGxlci40YTEfMB0GCSqG
+# SIb3DQEJARYQa2VsbGVyLjRAb3N1LmVkdTCCAiIwDQYJKoZIhvcNAQEBBQADggIP
+# ADCCAgoCggIBANJyDgYNySplxbw/CyHHvLSAa0IGnMKoelKIqh2uBz7eA8osQRiZ
+# 5+H9IZGSjjUz6o6xFdqLSL+zgzjVrqs/wXZDcHJyOvUSYLJXQ9/FipmOM0TNHMts
+# vUNrSqIu2kyEQnvkNX9bTcfziDpuzQW1KiK9M54EoERX61BIUgCrn3fUB5R/v12n
+# t+/aXI6cIm6fJDOCD/k5XQKyXC6BWcAmOZCCr2YRmFVyW/bHez9HXhBZ44WQBgJ8
+# jS53rBFxlSNmDiB1qn5O5xJMX/aoEf0GRgI89q99jmLrcDEk/YMfqq7Pr1atRh0P
+# Atk7C0f38aj9LNqJpZ9dH+gHqd2TMuXW2zu45RjX+sZ2J96xCl6SVrdSqVuDSCnq
+# AMtAIOzgoDjH+263xmuRiyi5iWVkYh5sIQJ0M/nVJWWfa4Fi9+qGRpUCaI4GtHy3
+# 23jlU8EFi+ebnPqNY1EdXzvhtF5FXnoguMH/oGnWsCm51JTB7WePShEJloL7i2OZ
+# 65QE8U8zuXCxDo3CJpl6fbpd+ntCSxBZnrRhnsxLoD5CMCOEfbvJEM6+hsYwgxEI
+# 5SBbM+AUbslp4HPWR6BNZIiLSHH3GoTpxs1DC3PajdeWlgigwb+2vsxjw55xQFvL
+# oMGRY8haLpzetIbj5XDkaPxuUCRRNuiTEPXOCYUMjh85yAU256c+e02FAgMBAAGj
+# ggHqMIIB5jA7BgkrBgEEAYI3FQcELjAsBiQrBgEEAYI3FQiHps4T49FzgumVIoT0
+# jhjIwUl6gofXTITr6w0CAWQCAQ0wEwYDVR0lBAwwCgYIKwYBBQUHAwMwCwYDVR0P
+# BAQDAgeAMBsGCSsGAQQBgjcVCgQOMAwwCgYIKwYBBQUHAwMwHQYDVR0OBBYEFIO5
+# hudGmrID2txhbFUlhuoo1tuaMB8GA1UdIwQYMBaAFC4EnoT08H8Z+LCHu6DzJBiM
+# sPe2MEUGA1UdHwQ+MDwwOqA4oDaGNGh0dHA6Ly9jZXJ0ZW5yb2xsLmFzYy5vaGlv
+# LXN0YXRlLmVkdS9wa2kvQVNDLVBLSS5jcmwwgacGCCsGAQUFBwEBBIGaMIGXMF0G
+# CCsGAQUFBzAChlFodHRwOi8vY2VydGVucm9sbC5hc2Mub2hpby1zdGF0ZS5lZHUv
+# cGtpL1BLSS1DQS5hc2Mub2hpby1zdGF0ZS5lZHVfQVNDLVBLSSgxKS5jcnQwNgYI
+# KwYBBQUHMAGGKmh0dHBzOi8vY2VydGVucm9sbC5hc2Mub2hpby1zdGF0ZS5lZHUv
+# b2NzcDA3BgNVHREEMDAuoCwGCisGAQQBgjcUAgOgHgwca2VsbGVyLjRhQGFzYy5v
+# aGlvLXN0YXRlLmVkdTANBgkqhkiG9w0BAQsFAAOCAQEAVbwyi6GWGTsBKQ4X51zF
+# AX6IOmtiBYxyklQa6GrZM1blyBbNVlTQKq09io6VJZrLFi161d0VgZlae1VWQYy9
+# EoGL2o5syNH/dyUyCTMSAAws5K3lNUwzqytD/LNXVqoR2o0kXpxa0ryCq6/3LQAm
+# h33AUNIdbfX6gJ96UKtv/GiwAt1yJPgdED45nf/c6iR/o5tQNRUVbrs/au4yLqQL
+# gfjhCzVnF36WnnLWQWCOGM96dq8evKMA/U5UuM8/8MQvV/CMUP0HCoTofmyrlPNb
+# 3xr2E175XhiKIwPuIL1otnNZB30+ZIYKxkZniS/sUbghzFAfNOytPowH0vni82FX
+# ZTGCAxAwggMMAgEBMG8wWDETMBEGCgmSJomT8ixkARkWA2VkdTEaMBgGCgmSJomT
+# 8ixkARkWCm9oaW8tc3RhdGUxEzARBgoJkiaJk/IsZAEZFgNhc2MxEDAOBgNVBAMT
+# B0FTQy1QS0kCE3oAAOEPnUrHvueZLKQAAQAA4Q8wCQYFKw4DAhoFAKB4MBgGCisG
+# AQQBgjcCAQwxCjAIoAKAAKECgAAwGQYJKoZIhvcNAQkDMQwGCisGAQQBgjcCAQQw
+# HAYKKwYBBAGCNwIBCzEOMAwGCisGAQQBgjcCARUwIwYJKoZIhvcNAQkEMRYEFPnh
+# 3h6hLfN8y8TRAjXWZqgA+7YHMA0GCSqGSIb3DQEBAQUABIICAEfGGZElkvtGDI+/
+# CxFsU0d1FRDogqoSCzkDbjxRZtLxhFS3W/cr3pK7tYutIFhOTx4sXHtCsmAdj1dR
+# kCd4UxeR1Nu6Z5B+JFmYoyKMKpnGJMGwxzRPVcGjBue8I6FkMF9mveibbe0/bNtv
+# J+lJt7ICkGo37aEaVg2Lv3ZHYstpaiqFDJCOxi2fOzO721rGguZn8uoEN9VZa10H
+# 9x1UfQrQH+S1qWkacwiLzbZ5W2mvQqhbYuF9dL2evtTDedlbOcjYb1WbrXm3CEAZ
+# 1fzeGo+NqdgR85BuJRbIDCzpJu3kWVukqZFhXttKz4jTGovE0s9s0Wzr2k+tvYO3
+# IgQ881WzF8oSrkq6s5vZSAc1DZYbEaqWIbCkroc3hkvjJM/gurNo7e+jKT6b//OY
+# FQFhctHItAZwMgWGsHUY/4LxhhYG4Tpapqfm/2xdaOo2SuGQycYAST6MwDQx6XXY
+# V+v5g+1m976/Lx67/GbmHqVEW1TRh52vKj6qG0TEFSXJGf9Sti2Bz/cgnXBV/Wyc
+# MGVpLU0wIr8VY6tGx/34WsXjlpVhZDjKvkciUJo5Cul+wx8Lu0My5L7wTyrs1fos
+# UTlXdLsYp8MhBIztpthjuxJEeW4Cbwx02uNFTx3i0BfjdQdMatX+AVUU+e/PUmbU
+# 5/th2ukdgPv6RAOaL56k4F/0kXUP
+# SIG # End signature block

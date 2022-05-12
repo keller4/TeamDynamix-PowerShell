@@ -534,7 +534,7 @@ function Get-TDTicket
 
     Begin
     {
-        Write-ActivityHistory "-----`nIn $($MyInvocation.MyCommand.Name)"
+        Write-ActivityHistory "`n-----`nIn $($MyInvocation.MyCommand.Name)"
     }
     Process
     {
@@ -649,7 +649,7 @@ function Get-TDTicket
     }
     end
     {
-        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
+        Write-ActivityHistory "`nLeaving $($MyInvocation.MyCommand.Name)`n-----"
     }
 }
 
@@ -738,7 +738,7 @@ function Get-TDTicketStatus
 
     Begin
     {
-        Write-ActivityHistory "-----`nIn $($MyInvocation.MyCommand.Name)"
+        Write-ActivityHistory "`n-----`nIn $($MyInvocation.MyCommand.Name)"
     }
     Process
     {
@@ -769,7 +769,7 @@ function Get-TDTicketStatus
     }
     end
     {
-        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
+        Write-ActivityHistory "`nLeaving $($MyInvocation.MyCommand.Name)`n-----"
     }
 }
 
@@ -809,6 +809,18 @@ function New-TDTicketStatus
         [TeamDynamix_Api_Statuses_StatusClass]
         $StatusClass,
 
+        # Ticket requires a "Goes Off Hold" value
+        [Parameter(Mandatory=$false,
+                   ValueFromPipelineByPropertyName=$true)]
+        [boolean]
+        $RequiresGoesOffHold,
+
+        # Ticket is exempt from automatically updating based on "Reopening Completed/Cancelled Ticket Options" or "Completed Ticket Options"
+        [Parameter(Mandatory=$false,
+                   ValueFromPipelineByPropertyName=$true)]
+        [boolean]
+        $DoNotReopen,
+
         # ID ticketing application
         [Parameter(Mandatory=$false,
                    ValueFromPipelineByPropertyName=$true)]
@@ -828,7 +840,7 @@ function New-TDTicketStatus
 
     Begin
     {
-        Write-ActivityHistory "-----`nIn $($MyInvocation.MyCommand.Name)"
+        Write-ActivityHistory "`n-----`nIn $($MyInvocation.MyCommand.Name)"
         $ContentType = 'application/json; charset=utf-8'
         $BaseURI = Get-URI -Environment $Environment
         if (-not $AuthenticationToken)
@@ -859,7 +871,7 @@ function New-TDTicketStatus
     }
     end
     {
-        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
+        Write-ActivityHistory "`nLeaving $($MyInvocation.MyCommand.Name)`n-----"
     }
 }
 
@@ -905,6 +917,18 @@ function Set-TDTicketStatus
         [TeamDynamix_Api_Statuses_StatusClass]
         $StatusClass,
 
+        # Ticket requires a "Goes Off Hold" value
+        [Parameter(Mandatory=$false,
+                   ValueFromPipelineByPropertyName=$true)]
+        [boolean]
+        $RequiresGoesOffHold,
+
+        # Ticket is exempt from automatically updating based on "Reopening Completed/Cancelled Ticket Options" or "Completed Ticket Options"
+        [Parameter(Mandatory=$false,
+                   ValueFromPipelineByPropertyName=$true)]
+        [boolean]
+        $DoNotReopen,
+
         # ID ticketing application
         [Parameter(Mandatory=$false,
                    ValueFromPipelineByPropertyName=$true)]
@@ -924,7 +948,7 @@ function Set-TDTicketStatus
 
     Begin
     {
-        Write-ActivityHistory "-----`nIn $($MyInvocation.MyCommand.Name)"
+        Write-ActivityHistory "`n-----`nIn $($MyInvocation.MyCommand.Name)"
         $ContentType = 'application/json; charset=utf-8'
         $BaseURI = Get-URI -Environment $Environment
         if (-not $AuthenticationToken)
@@ -968,7 +992,7 @@ function Set-TDTicketStatus
     }
     end
     {
-        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
+        Write-ActivityHistory "`nLeaving $($MyInvocation.MyCommand.Name)`n-----"
     }
 }
 function Add-TDTicketAttachment
@@ -1008,7 +1032,7 @@ function Add-TDTicketAttachment
 
     Begin
     {
-        Write-ActivityHistory "-----`nIn $($MyInvocation.MyCommand.Name)"
+        Write-ActivityHistory "`n-----`nIn $($MyInvocation.MyCommand.Name)"
         $BoundaryText = [System.Guid]::NewGuid().ToString()
         $ContentType = "multipart/formdata; boundary=$BoundaryText"
         $BaseURI = Get-URI -Environment $Environment
@@ -1050,7 +1074,7 @@ function Add-TDTicketAttachment
     }
     end
     {
-        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
+        Write-ActivityHistory "`nLeaving $($MyInvocation.MyCommand.Name)`n-----"
     }
 }
 
@@ -1335,7 +1359,7 @@ function Set-TDTicket
 
     Begin
     {
-        Write-ActivityHistory "-----`nIn $($MyInvocation.MyCommand.Name)"
+        Write-ActivityHistory "`n-----`nIn $($MyInvocation.MyCommand.Name)"
         $ContentType = 'application/json; charset=utf-8'
         $BaseURI = Get-URI -Environment $Environment
         if (-not $AuthenticationToken)
@@ -1452,7 +1476,7 @@ function Set-TDTicket
     }
     end
     {
-        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
+        Write-ActivityHistory "`nLeaving $($MyInvocation.MyCommand.Name)`n-----"
     }
 }
 
@@ -1749,7 +1773,7 @@ function New-TDTicket
 
     Begin
     {
-        Write-ActivityHistory "-----`nIn $($MyInvocation.MyCommand.Name)"
+        Write-ActivityHistory "`n-----`nIn $($MyInvocation.MyCommand.Name)"
         $ContentType = 'application/json; charset=utf-8'
         $BaseURI = Get-URI -Environment $Environment
         if (-not $AuthenticationToken)
@@ -1859,7 +1883,7 @@ function New-TDTicket
     }
     end
     {
-        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
+        Write-ActivityHistory "`nLeaving $($MyInvocation.MyCommand.Name)`n-----"
     }
 }
 
@@ -1891,7 +1915,7 @@ function Get-TDTicketType
 
     Begin
     {
-        Write-ActivityHistory "-----`nIn $($MyInvocation.MyCommand.Name)"
+        Write-ActivityHistory "`n-----`nIn $($MyInvocation.MyCommand.Name)"
         $ContentType = 'application/json; charset=utf-8'
         $BaseURI = Get-URI -Environment $Environment
         if (-not $AuthenticationToken)
@@ -1915,7 +1939,7 @@ function Get-TDTicketType
     }
     end
     {
-        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
+        Write-ActivityHistory "`nLeaving $($MyInvocation.MyCommand.Name)`n-----"
     }
 }
 
@@ -1947,7 +1971,7 @@ function Get-TDTicketSource
 
     Begin
     {
-        Write-ActivityHistory "-----`nIn $($MyInvocation.MyCommand.Name)"
+        Write-ActivityHistory "`n-----`nIn $($MyInvocation.MyCommand.Name)"
         $ContentType = 'application/json; charset=utf-8'
         $BaseURI = Get-URI -Environment $Environment
         if (-not $AuthenticationToken)
@@ -1971,7 +1995,7 @@ function Get-TDTicketSource
     }
     end
     {
-        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
+        Write-ActivityHistory "`nLeaving $($MyInvocation.MyCommand.Name)`n-----"
     }
 }
 
@@ -2003,7 +2027,7 @@ function Get-TDTicketImpact
 
     Begin
     {
-        Write-ActivityHistory "-----`nIn $($MyInvocation.MyCommand.Name)"
+        Write-ActivityHistory "`n-----`nIn $($MyInvocation.MyCommand.Name)"
         $ContentType = 'application/json; charset=utf-8'
         $BaseURI = Get-URI -Environment $Environment
         if (-not $AuthenticationToken)
@@ -2027,7 +2051,7 @@ function Get-TDTicketImpact
     }
     end
     {
-        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
+        Write-ActivityHistory "`nLeaving $($MyInvocation.MyCommand.Name)`n-----"
     }
 }
 
@@ -2059,7 +2083,7 @@ function Get-TDTicketPriority
 
     Begin
     {
-        Write-ActivityHistory "-----`nIn $($MyInvocation.MyCommand.Name)"
+        Write-ActivityHistory "`n-----`nIn $($MyInvocation.MyCommand.Name)"
         $ContentType = 'application/json; charset=utf-8'
         $BaseURI = Get-URI -Environment $Environment
         if (-not $AuthenticationToken)
@@ -2083,7 +2107,7 @@ function Get-TDTicketPriority
     }
     end
     {
-        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
+        Write-ActivityHistory "`nLeaving $($MyInvocation.MyCommand.Name)`n-----"
     }
 }
 
@@ -2115,7 +2139,7 @@ function Get-TDTicketUrgency
 
     Begin
     {
-        Write-ActivityHistory "-----`nIn $($MyInvocation.MyCommand.Name)"
+        Write-ActivityHistory "`n-----`nIn $($MyInvocation.MyCommand.Name)"
         $ContentType = 'application/json; charset=utf-8'
         $BaseURI = Get-URI -Environment $Environment
         if (-not $AuthenticationToken)
@@ -2139,7 +2163,7 @@ function Get-TDTicketUrgency
     }
     end
     {
-        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
+        Write-ActivityHistory "`nLeaving $($MyInvocation.MyCommand.Name)`n-----"
     }
 }
 
@@ -2178,7 +2202,7 @@ function Get-TDTicketContact
 
     Begin
     {
-        Write-ActivityHistory "-----`nIn $($MyInvocation.MyCommand.Name)"
+        Write-ActivityHistory "`n-----`nIn $($MyInvocation.MyCommand.Name)"
         $ContentType = 'application/json; charset=utf-8'
         $BaseURI = Get-URI -Environment $Environment
         if (-not $AuthenticationToken)
@@ -2206,7 +2230,7 @@ function Get-TDTicketContact
     }
     end
     {
-        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
+        Write-ActivityHistory "`nLeaving $($MyInvocation.MyCommand.Name)`n-----"
     }
 }
 
@@ -2248,7 +2272,7 @@ function Remove-TDTicketContact
 
     Begin
     {
-        Write-ActivityHistory "-----`nIn $($MyInvocation.MyCommand.Name)"
+        Write-ActivityHistory "`n-----`nIn $($MyInvocation.MyCommand.Name)"
         $ContentType = 'application/json; charset=utf-8'
         $BaseURI = Get-URI -Environment $Environment
         if (-not $AuthenticationToken)
@@ -2267,7 +2291,7 @@ function Remove-TDTicketContact
     }
     end
     {
-        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
+        Write-ActivityHistory "`nLeaving $($MyInvocation.MyCommand.Name)`n-----"
     }
 }
 
@@ -2309,7 +2333,7 @@ function Add-TDTicketContact
 
     Begin
     {
-        Write-ActivityHistory "-----`nIn $($MyInvocation.MyCommand.Name)"
+        Write-ActivityHistory "`n-----`nIn $($MyInvocation.MyCommand.Name)"
         $ContentType = 'application/json; charset=utf-8'
         $BaseURI = Get-URI -Environment $Environment
         if (-not $AuthenticationToken)
@@ -2328,7 +2352,7 @@ function Add-TDTicketContact
     }
     end
     {
-        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
+        Write-ActivityHistory "`nLeaving $($MyInvocation.MyCommand.Name)`n-----"
     }
 }
 
@@ -2415,7 +2439,7 @@ function Update-TDTicket
 
     Begin
     {
-        Write-ActivityHistory "-----`nIn $($MyInvocation.MyCommand.Name)"
+        Write-ActivityHistory "`n-----`nIn $($MyInvocation.MyCommand.Name)"
         $ContentType = 'application/json; charset=utf-8'
         $BaseURI = Get-URI -Environment $Environment
         if (-not $AuthenticationToken)
@@ -2461,7 +2485,7 @@ function Update-TDTicket
     }
     End
     {
-        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
+        Write-ActivityHistory "`nLeaving $($MyInvocation.MyCommand.Name)`n-----"
     }
 }
 
@@ -2515,7 +2539,7 @@ function Get-TDBlackoutWindow
 
     begin
     {
-        Write-ActivityHistory "-----`nIn $($MyInvocation.MyCommand.Name)"
+        Write-ActivityHistory "`n-----`nIn $($MyInvocation.MyCommand.Name)"
         $ContentType = 'application/json; charset=utf-8'
         $BaseURI = Get-URI -Environment $Environment
         if (-not $AuthenticationToken)
@@ -2564,7 +2588,7 @@ function Get-TDBlackoutWindow
     }
     end
     {
-        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
+        Write-ActivityHistory "`nLeaving $($MyInvocation.MyCommand.Name)`n-----"
     }
 }
 
@@ -2641,7 +2665,7 @@ function New-TDBlackoutWindow
 
     Begin
     {
-        Write-ActivityHistory "-----`nIn $($MyInvocation.MyCommand.Name)"
+        Write-ActivityHistory "`n-----`nIn $($MyInvocation.MyCommand.Name)"
         $ContentType = 'application/json; charset=utf-8'
         $BaseURI = Get-URI -Environment $Environment
         if (-not $AuthenticationToken)
@@ -2681,7 +2705,7 @@ function New-TDBlackoutWindow
     }
     end
     {
-        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
+        Write-ActivityHistory "`nLeaving $($MyInvocation.MyCommand.Name)`n-----"
     }
 }
 
@@ -2764,7 +2788,7 @@ function Set-TDBlackoutWindow
 
     Begin
     {
-        Write-ActivityHistory "-----`nIn $($MyInvocation.MyCommand.Name)"
+        Write-ActivityHistory "`n-----`nIn $($MyInvocation.MyCommand.Name)"
         $ContentType = 'application/json; charset=utf-8'
         $BaseURI = Get-URI -Environment $Environment
         if (-not $AuthenticationToken)
@@ -2810,7 +2834,7 @@ function Set-TDBlackoutWindow
     }
     end
     {
-        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
+        Write-ActivityHistory "`nLeaving $($MyInvocation.MyCommand.Name)`n-----"
     }
 }
 
@@ -2844,7 +2868,7 @@ function Get-TDTicketAsset
 
     Begin
     {
-        Write-ActivityHistory "-----`nIn $($MyInvocation.MyCommand.Name)"
+        Write-ActivityHistory "`n-----`nIn $($MyInvocation.MyCommand.Name)"
         $ContentType = 'application/json; charset=utf-8'
         $BaseURI = Get-URI -Environment $Environment
         if (-not $AuthenticationToken)
@@ -2864,7 +2888,7 @@ function Get-TDTicketAsset
     }
     end
     {
-        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
+        Write-ActivityHistory "`nLeaving $($MyInvocation.MyCommand.Name)`n-----"
     }
 }
 
@@ -2906,7 +2930,7 @@ function Remove-TDTicketAsset
 
     Begin
     {
-        Write-ActivityHistory "-----`nIn $($MyInvocation.MyCommand.Name)"
+        Write-ActivityHistory "`n-----`nIn $($MyInvocation.MyCommand.Name)"
         $ContentType = 'application/json; charset=utf-8'
         $BaseURI = Get-URI -Environment $Environment
         if (-not $AuthenticationToken)
@@ -2925,7 +2949,7 @@ function Remove-TDTicketAsset
     }
     end
     {
-        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
+        Write-ActivityHistory "`nLeaving $($MyInvocation.MyCommand.Name)`n-----"
     }
 }
 
@@ -2967,7 +2991,7 @@ function Add-TDTicketAsset
 
     Begin
     {
-        Write-ActivityHistory "-----`nIn $($MyInvocation.MyCommand.Name)"
+        Write-ActivityHistory "`n-----`nIn $($MyInvocation.MyCommand.Name)"
         $ContentType = 'application/json; charset=utf-8'
         $BaseURI = Get-URI -Environment $Environment
         if (-not $AuthenticationToken)
@@ -2986,7 +3010,7 @@ function Add-TDTicketAsset
     }
     end
     {
-        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
+        Write-ActivityHistory "`nLeaving $($MyInvocation.MyCommand.Name)`n-----"
     }
 }
 
@@ -3042,7 +3066,7 @@ function Get-TDTicketTask
 
     Begin
     {
-        Write-ActivityHistory "-----`nIn $($MyInvocation.MyCommand.Name)"
+        Write-ActivityHistory "`n-----`nIn $($MyInvocation.MyCommand.Name)"
         $ContentType = 'application/json; charset=utf-8'
         $BaseURI = Get-URI -Environment $Environment
         if (-not $AuthenticationToken)
@@ -3073,7 +3097,7 @@ function Get-TDTicketTask
     }
     end
     {
-        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
+        Write-ActivityHistory "`nLeaving $($MyInvocation.MyCommand.Name)`n-----"
     }
 }
 
@@ -3115,7 +3139,7 @@ function Get-TDTicketTaskFeed
 
     Begin
     {
-        Write-ActivityHistory "-----`nIn $($MyInvocation.MyCommand.Name)"
+        Write-ActivityHistory "`n-----`nIn $($MyInvocation.MyCommand.Name)"
         $ContentType = 'application/json; charset=utf-8'
         $BaseURI = Get-URI -Environment $Environment
         if (-not $AuthenticationToken)
@@ -3135,7 +3159,7 @@ function Get-TDTicketTaskFeed
     }
     end
     {
-        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
+        Write-ActivityHistory "`nLeaving $($MyInvocation.MyCommand.Name)`n-----"
     }
 }
 
@@ -3177,7 +3201,7 @@ function Remove-TDTicketTask
 
     Begin
     {
-        Write-ActivityHistory "-----`nIn $($MyInvocation.MyCommand.Name)"
+        Write-ActivityHistory "`n-----`nIn $($MyInvocation.MyCommand.Name)"
         $ContentType = 'application/json; charset=utf-8'
         $BaseURI = Get-URI -Environment $Environment
         if (-not $AuthenticationToken)
@@ -3196,7 +3220,7 @@ function Remove-TDTicketTask
     }
     end
     {
-        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
+        Write-ActivityHistory "`nLeaving $($MyInvocation.MyCommand.Name)`n-----"
     }
 }
 
@@ -3292,7 +3316,7 @@ function New-TDTicketTask
 
     Begin
     {
-        Write-ActivityHistory "-----`nIn $($MyInvocation.MyCommand.Name)"
+        Write-ActivityHistory "`n-----`nIn $($MyInvocation.MyCommand.Name)"
         $ContentType = 'application/json; charset=utf-8'
         $BaseURI = Get-URI -Environment $Environment
         if (-not $AuthenticationToken)
@@ -3328,7 +3352,7 @@ function New-TDTicketTask
     }
     end
     {
-        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
+        Write-ActivityHistory "`nLeaving $($MyInvocation.MyCommand.Name)`n-----"
     }
 }
 
@@ -3424,7 +3448,7 @@ function Set-TDTicketTask
 
     Begin
     {
-        Write-ActivityHistory "-----`nIn $($MyInvocation.MyCommand.Name)"
+        Write-ActivityHistory "`n-----`nIn $($MyInvocation.MyCommand.Name)"
         $ContentType = 'application/json; charset=utf-8'
         $BaseURI = Get-URI -Environment $Environment
         if (-not $AuthenticationToken)
@@ -3470,7 +3494,7 @@ function Set-TDTicketTask
     }
     end
     {
-        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
+        Write-ActivityHistory "`nLeaving $($MyInvocation.MyCommand.Name)`n-----"
     }
 }
 
@@ -3545,7 +3569,7 @@ function Update-TDTicketTask
 
     Begin
     {
-        Write-ActivityHistory "-----`nIn $($MyInvocation.MyCommand.Name)"
+        Write-ActivityHistory "`n-----`nIn $($MyInvocation.MyCommand.Name)"
         $ContentType = 'application/json; charset=utf-8'
         $BaseURI = Get-URI -Environment $Environment
         if (-not $AuthenticationToken)
@@ -3573,3 +3597,415 @@ function Update-TDTicketTask
         }
     }
 }
+
+function Get-TDTicketWorkflow
+{
+    [CmdletBinding()]
+    Param
+    (
+        # Ticket ID to retrieve workflow from TeamDynamix
+        [Parameter(Mandatory=$true,
+                   ValueFromPipelineByPropertyName=$true,
+                   Position=0)]
+        [int]
+        $ID,
+
+        # ID of application for ticketing app
+        [Parameter(Mandatory=$false,
+                   ValueFromPipelineByPropertyName=$true)]
+        [int]
+        $AppID = $TicketingAppID,
+
+        # TeamDynamix authentication token
+        [Parameter(Mandatory=$false)]
+        [hashtable]
+        $AuthenticationToken = $TDAuthentication,
+
+        # TeamDynamix working environment
+        [Parameter(Mandatory=$false)]
+        [EnvironmentChoices]
+        $Environment = $WorkingEnvironment
+    )
+
+    Begin
+    {
+        Write-ActivityHistory "`n-----`nIn $($MyInvocation.MyCommand.Name)"
+        $ContentType = 'application/json; charset=utf-8'
+        $BaseURI = Get-URI -Environment $Environment
+        if (-not $AuthenticationToken)
+        {
+            Write-ActivityHistory -MessageChannel 'Error' -ThrowError -Message 'Authentication required. Specify -AuthenticationToken value. See Get-Help Set-TDAuthentication for more assistance.'
+        }
+    }
+    Process
+    {
+        $Return = Invoke-RESTCall -Uri "$BaseURI/$AppID/tickets/$ID/workflow" -ContentType $ContentType -Method Get -Headers $AuthenticationToken
+        if ($Return)
+        {
+            $Return = [TeamDynamix_Api_Tickets_TicketWorkflow]::new($Return)
+        }
+        return $Return
+    }
+    end
+    {
+        Write-ActivityHistory "`nLeaving $($MyInvocation.MyCommand.Name)`n-----"
+    }
+}
+
+function Get-TDTicketWorkflowActions
+{
+    [CmdletBinding()]
+    Param
+    (
+        # Ticket ID to retrieve workflow from TeamDynamix
+        [Parameter(Mandatory=$true,
+                   ValueFromPipelineByPropertyName=$true,
+                   Position=0)]
+        [int]
+        $ID,
+
+        # Workflow step ID to retrieve actions from TeamDynamix
+        [Parameter(Mandatory=$true,
+                   ValueFromPipelineByPropertyName=$true,
+                   Position=1)]
+        [guid]
+        $StepID,
+
+        # ID of application for ticketing app
+        [Parameter(Mandatory=$false,
+                   ValueFromPipelineByPropertyName=$true)]
+        [int]
+        $AppID = $TicketingAppID,
+
+        # TeamDynamix authentication token
+        [Parameter(Mandatory=$false)]
+        [hashtable]
+        $AuthenticationToken = $TDAuthentication,
+
+        # TeamDynamix working environment
+        [Parameter(Mandatory=$false)]
+        [EnvironmentChoices]
+        $Environment = $WorkingEnvironment
+    )
+
+    Begin
+    {
+        Write-ActivityHistory "`n-----`nIn $($MyInvocation.MyCommand.Name)"
+        $ContentType = 'application/json; charset=utf-8'
+        $BaseURI = Get-URI -Environment $Environment
+        if (-not $AuthenticationToken)
+        {
+            Write-ActivityHistory -MessageChannel 'Error' -ThrowError -Message 'Authentication required. Specify -AuthenticationToken value. See Get-Help Set-TDAuthentication for more assistance.'
+        }
+    }
+    Process
+    {
+        $Return = Invoke-RESTCall -Uri "$BaseURI/$AppID/tickets/$ID/workflow/actions?stepId=$StepID" -ContentType $ContentType -Method Get -Headers $AuthenticationToken
+        if ($Return)
+        {
+            $Return = ($Return | ForEach-Object {[TeamDynamix_Api_Tickets_WorkflowSteps_TicketWorkflowStepAction]::new($_)})
+        }
+        return $Return
+    }
+    end
+    {
+        Write-ActivityHistory "`nLeaving $($MyInvocation.MyCommand.Name)`n-----"
+    }
+}
+
+function Approve-TDTicketWorkflowStep
+{
+    [CmdletBinding(SupportsShouldProcess=$true)]
+    Param
+    (
+        # Ticket ID
+        [Parameter(Mandatory=$true,
+                   ValueFromPipelineByPropertyName=$true)]
+        [int]
+        $ID,
+
+        # Step ID
+        [Parameter(Mandatory=$true,
+                   ValueFromPipelineByPropertyName=$true)]
+        [guid]
+        $StepID,
+
+        # Approval action
+        [Parameter(Mandatory=$true,
+                   ValueFromPipelineByPropertyName=$true)]
+        [string]
+        $ActionID,
+
+        # Comments
+        [Parameter(Mandatory=$false,
+                   ValueFromPipelineByPropertyName=$true)]
+        [string]
+        $Comments,
+
+        # ID of application for ticketing app
+        [Parameter(Mandatory=$false,
+                   ValueFromPipelineByPropertyName=$true)]
+        [int]
+        $AppID = $TicketingAppID,
+
+        # TeamDynamix authentication token
+        [Parameter(Mandatory=$false)]
+        [hashtable]
+        $AuthenticationToken = $TDAuthentication,
+
+        # TeamDynamix working environment
+        [Parameter(Mandatory=$false)]
+        [EnvironmentChoices]
+        $Environment = $WorkingEnvironment
+    )
+
+    Begin
+    {
+        Write-ActivityHistory "`n-----`nIn $($MyInvocation.MyCommand.Name)"
+        $ContentType = 'application/json; charset=utf-8'
+        $BaseURI = Get-URI -Environment $Environment
+        if (-not $AuthenticationToken)
+        {
+            Write-ActivityHistory -MessageChannel 'Error' -ThrowError -Message 'Authentication required. Specify -AuthenticationToken value. See Get-Help Set-TDAuthentication for more assistance.'
+        }
+    }
+    Process
+    {
+        $TicketWorkflowStepApproveRequest = [TeamDynamix_Api_Tickets_WorkflowSteps_TicketWorkflowStepApproveRequest]::new($StepID, $ActionID, $Comments)
+        if ($pscmdlet.ShouldProcess("Ticket ID $ID, workflow step ID $StepID, approval $ActionID", "Perform selected action on workflow step on ticket"))
+        {
+            Write-ActivityHistory "Performing action $ActionID for workflow step ID $StepID on ticket ID $ID."
+            $Return = Invoke-RESTCall -Uri "$BaseURI/$AppID/tickets/$ID/workflow/approve" -ContentType $ContentType -Method Post -Headers $AuthenticationToken -Body (ConvertTo-Json $TicketWorkflowStepApproveRequest -Depth 10)
+            if ($Return)
+            {
+                $Return = [TeamDynamix_Api_Tickets_WorkflowSteps_TicketWorkflowStepActionResult]::new($Return)
+            }
+            return $Return
+        }
+    }
+    end
+    {
+        Write-ActivityHistory "`nLeaving $($MyInvocation.MyCommand.Name)`n-----"
+    }
+}
+
+function Set-TDTicketWorkflowStepAssignment
+{
+    [CmdletBinding(SupportsShouldProcess=$true)]
+    Param
+    (
+        # Ticket ID
+        [Parameter(Mandatory=$true,
+                   ValueFromPipelineByPropertyName=$true)]
+        [int]
+        $ID,
+
+        # Step ID
+        [Parameter(Mandatory=$true,
+                   ValueFromPipelineByPropertyName=$true)]
+        [guid]
+        $StepID,
+
+        # User ID to be assigned to the workflow step
+        [Parameter(Mandatory=$false,
+                   ValueFromPipelineByPropertyName=$true)]
+        [System.Nullable[guid]]
+        $UserID = [guid]::Empty,
+
+        # Group ID to be assigned to the workflow step
+        [Parameter(Mandatory=$false,
+                   ValueFromPipelineByPropertyName=$true)]
+        [System.Nullable[int]]
+        $GroupID = $null,
+
+        # ID of application for ticketing app
+        [Parameter(Mandatory=$false,
+                   ValueFromPipelineByPropertyName=$true)]
+        [int]
+        $AppID = $TicketingAppID,
+
+        # TeamDynamix authentication token
+        [Parameter(Mandatory=$false)]
+        [hashtable]
+        $AuthenticationToken = $TDAuthentication,
+
+        # TeamDynamix working environment
+        [Parameter(Mandatory=$false)]
+        [EnvironmentChoices]
+        $Environment = $WorkingEnvironment
+    )
+
+    Begin
+    {
+        Write-ActivityHistory "`n-----`nIn $($MyInvocation.MyCommand.Name)"
+        $ContentType = 'application/json; charset=utf-8'
+        $BaseURI = Get-URI -Environment $Environment
+        if (-not $AuthenticationToken)
+        {
+            Write-ActivityHistory -MessageChannel 'Error' -ThrowError -Message 'Authentication required. Specify -AuthenticationToken value. See Get-Help Set-TDAuthentication for more assistance.'
+        }
+    }
+    Process
+    {
+        $TicketWorkflowStepReassignRequest = [TeamDynamix_Api_Tickets_WorkflowSteps_TicketWorkflowStepReassignRequest]::new($StepID, $UserID, $GroupID)
+        if ($pscmdlet.ShouldProcess("Ticket ID $ID, step ID, $StepID, user ID $UserID, group $GroupID", "Assign ticket workflow to user/group"))
+        {
+            Write-ActivityHistory "Assigning ticket $ID, workflow step ID $StepID, to user $UserID or group $GroupID."
+            Invoke-RESTCall -Uri "$BaseURI/$AppID/tickets/$ID/workflow/reassign" -ContentType $ContentType -Method Post -Headers $AuthenticationToken -Body (ConvertTo-Json $TicketWorkflowStepReassignRequest -Depth 10) | Out-Null
+        }
+    }
+    end
+    {
+        Write-ActivityHistory "`nLeaving $($MyInvocation.MyCommand.Name)`n-----"
+    }
+}
+
+function Set-TDTicketWorkflow
+{
+    [CmdletBinding(SupportsShouldProcess=$true)]
+    Param
+    (
+        # Ticket ID
+        [Parameter(Mandatory=$true,
+                   ValueFromPipelineByPropertyName=$true)]
+        [int]
+        $ID,
+
+        # Workflow ID to assign
+        [Parameter(Mandatory=$true,
+                   ValueFromPipelineByPropertyName=$true)]
+        [int]
+        $NewWorkflowID,
+
+        # Remove existing workflow
+        [Parameter(Mandatory=$false,
+                   ValueFromPipelineByPropertyName=$true)]
+        [switch]
+        $AllowRemoveExisting,
+
+        # ID of application for ticketing app
+        [Parameter(Mandatory=$false,
+                   ValueFromPipelineByPropertyName=$true)]
+        [int]
+        $AppID = $TicketingAppID,
+
+        # TeamDynamix authentication token
+        [Parameter(Mandatory=$false)]
+        [hashtable]
+        $AuthenticationToken = $TDAuthentication,
+
+        # TeamDynamix working environment
+        [Parameter(Mandatory=$false)]
+        [EnvironmentChoices]
+        $Environment = $WorkingEnvironment
+    )
+
+    Begin
+    {
+        Write-ActivityHistory "`n-----`nIn $($MyInvocation.MyCommand.Name)"
+        $ContentType = 'application/json; charset=utf-8'
+        $BaseURI = Get-URI -Environment $Environment
+        if (-not $AuthenticationToken)
+        {
+            Write-ActivityHistory -MessageChannel 'Error' -ThrowError -Message 'Authentication required. Specify -AuthenticationToken value. See Get-Help Set-TDAuthentication for more assistance.'
+        }
+    }
+    Process
+    {
+        if ($pscmdlet.ShouldProcess("Ticket ID $ID, workflow ID $NewWorkflowID, remove existing workflow $AllowRemoveExisting", "Assign workflow to ticket"))
+        {
+            Write-ActivityHistory "Assign workflow $NewWorkflowID to ticket ID $ID. Remove existing workflow, $AllowRemoveExisting"
+            $Return = Invoke-RESTCall -Uri "$BaseURI/$AppID/tickets/$ID/workflow?newWorkflowId=$NewWorkflowId&allowRemoveExisting=$($AllowRemoveExisting.IsPresent)" -ContentType $ContentType -Method Put -Headers $AuthenticationToken
+            if ($Return)
+            {
+                $Return = [TeamDynamix_Api_Tickets_Ticket]::new($Return)
+            }
+            return $Return
+        }
+    }
+    end
+    {
+        Write-ActivityHistory "`nLeaving $($MyInvocation.MyCommand.Name)`n-----"
+    }
+}
+# SIG # Begin signature block
+# MIIOsQYJKoZIhvcNAQcCoIIOojCCDp4CAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
+# gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQU/TzbHJUdQBs+aYHNaOERZTZT
+# n2mgggsLMIIEnTCCA4WgAwIBAgITXAAAAASry1piY/gB3QAAAAAABDANBgkqhkiG
+# 9w0BAQsFADAaMRgwFgYDVQQDEw9BU0MgUEtJIE9mZmxpbmUwHhcNMTcwNTA4MTcx
+# NDA5WhcNMjcwNTA4MTcyNDA5WjBYMRMwEQYKCZImiZPyLGQBGRYDZWR1MRowGAYK
+# CZImiZPyLGQBGRYKb2hpby1zdGF0ZTETMBEGCgmSJomT8ixkARkWA2FzYzEQMA4G
+# A1UEAxMHQVNDLVBLSTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAOF4
+# 1t2KTcMPjn/gtqYCaWsRjqTvsL0AjDvZDeTUqc4rABZw5rbZFLMRKeuFMmCKeCEb
+# wtNDSv2GVCvZnRJuUPVowSyT1+0rHNYnzyTrJDiZTm/WzurPOSlaqGuJovb2mJLk
+# 4351McVNwN7T9io8Tpi4pov1kFfJqHH7MY6H4Sa/6xuy2Al0/8+c3QubJc1Fl4Ew
+# XJGMLIvmYIkik1pRr3eT52JP2uu7yyyU+JMRwhvbMEnhuhVGwi5aKTg1G3z6AoOn
+# bdWl+AMfxwaNtl0Hhz4NWQIgo/ieiXUqC1DZqKj4vauBlSLxE66CSJnLDD3IMmss
+# NJlFi2Q0NAw4HulTpLsCAwEAAaOCAZwwggGYMBAGCSsGAQQBgjcVAQQDAgEBMCMG
+# CSsGAQQBgjcVAgQWBBTeaCQAfNtGUFhb0QBZ02IBaUIJzTAdBgNVHQ4EFgQULgSe
+# hPTwfxn4sIe7oPMkGIyw97YwgZIGA1UdIASBijCBhzCBhAYGKwYBBAFkMHowOgYI
+# KwYBBQUHAgIwLh4sAEwAZQBnAGEAbAAgAFAAbwBsAGkAYwB5ACAAUwB0AGEAdABl
+# AG0AZQBuAHQwPAYIKwYBBQUHAgEWMGh0dHA6Ly9jZXJ0ZW5yb2xsLmFzYy5vaGlv
+# LXN0YXRlLmVkdS9wa2kvY3BzLnR4dDAZBgkrBgEEAYI3FAIEDB4KAFMAdQBiAEMA
+# QTALBgNVHQ8EBAMCAYYwDwYDVR0TAQH/BAUwAwEB/zAfBgNVHSMEGDAWgBSmmXUH
+# 2YrKB5bSFEUMk0oNSezdUTBRBgNVHR8ESjBIMEagRKBChkBodHRwOi8vY2VydGVu
+# cm9sbC5hc2Mub2hpby1zdGF0ZS5lZHUvcGtpL0FTQyUyMFBLSSUyME9mZmxpbmUu
+# Y3JsMA0GCSqGSIb3DQEBCwUAA4IBAQAifGwk/QoUSRvJ/ecvyk6MymoQgZByKSsn
+# 1BNkJ3R7RjUE75/1cFVhRylPH3ADe8wRzjwJF1BgJsa1p2TCVHpIoxOWV4EwWwqU
+# k3ufAGfxhMd7D5AAxOon0UKUIgcW9LCq+R7GfcbBsFxc9IL6GQVRTISTOkfzsqqP
+# 4tUe5joCIGfO2qcx2uhnavVF+4nq2OrQEMqM/gOWD+YhmMh/QrlpMOOSBdhpKBk4
+# lF2/3+dqD0dVuX7/s6xnUoYwDyp1rw/ExOy6kT8dNSVIjXVXEd2/bhqD6UqYYly4
+# KrwQTTbeHQif7Q8E0ecf+FOhrBmZCwYhXeSmnTPT7vMmfvU4aOEyMIIGZjCCBU6g
+# AwIBAgITegAA4Q+dSse+55kspAABAADhDzANBgkqhkiG9w0BAQsFADBYMRMwEQYK
+# CZImiZPyLGQBGRYDZWR1MRowGAYKCZImiZPyLGQBGRYKb2hpby1zdGF0ZTETMBEG
+# CgmSJomT8ixkARkWA2FzYzEQMA4GA1UEAxMHQVNDLVBLSTAeFw0yMjA0MTcxNDI5
+# MjFaFw0yMzA0MTcxNDI5MjFaMIGUMRMwEQYKCZImiZPyLGQBGRYDZWR1MRowGAYK
+# CZImiZPyLGQBGRYKb2hpby1zdGF0ZTETMBEGCgmSJomT8ixkARkWA2FzYzEXMBUG
+# A1UECxMOQWRtaW5pc3RyYXRvcnMxEjAQBgNVBAMTCWtlbGxlci40YTEfMB0GCSqG
+# SIb3DQEJARYQa2VsbGVyLjRAb3N1LmVkdTCCAiIwDQYJKoZIhvcNAQEBBQADggIP
+# ADCCAgoCggIBANJyDgYNySplxbw/CyHHvLSAa0IGnMKoelKIqh2uBz7eA8osQRiZ
+# 5+H9IZGSjjUz6o6xFdqLSL+zgzjVrqs/wXZDcHJyOvUSYLJXQ9/FipmOM0TNHMts
+# vUNrSqIu2kyEQnvkNX9bTcfziDpuzQW1KiK9M54EoERX61BIUgCrn3fUB5R/v12n
+# t+/aXI6cIm6fJDOCD/k5XQKyXC6BWcAmOZCCr2YRmFVyW/bHez9HXhBZ44WQBgJ8
+# jS53rBFxlSNmDiB1qn5O5xJMX/aoEf0GRgI89q99jmLrcDEk/YMfqq7Pr1atRh0P
+# Atk7C0f38aj9LNqJpZ9dH+gHqd2TMuXW2zu45RjX+sZ2J96xCl6SVrdSqVuDSCnq
+# AMtAIOzgoDjH+263xmuRiyi5iWVkYh5sIQJ0M/nVJWWfa4Fi9+qGRpUCaI4GtHy3
+# 23jlU8EFi+ebnPqNY1EdXzvhtF5FXnoguMH/oGnWsCm51JTB7WePShEJloL7i2OZ
+# 65QE8U8zuXCxDo3CJpl6fbpd+ntCSxBZnrRhnsxLoD5CMCOEfbvJEM6+hsYwgxEI
+# 5SBbM+AUbslp4HPWR6BNZIiLSHH3GoTpxs1DC3PajdeWlgigwb+2vsxjw55xQFvL
+# oMGRY8haLpzetIbj5XDkaPxuUCRRNuiTEPXOCYUMjh85yAU256c+e02FAgMBAAGj
+# ggHqMIIB5jA7BgkrBgEEAYI3FQcELjAsBiQrBgEEAYI3FQiHps4T49FzgumVIoT0
+# jhjIwUl6gofXTITr6w0CAWQCAQ0wEwYDVR0lBAwwCgYIKwYBBQUHAwMwCwYDVR0P
+# BAQDAgeAMBsGCSsGAQQBgjcVCgQOMAwwCgYIKwYBBQUHAwMwHQYDVR0OBBYEFIO5
+# hudGmrID2txhbFUlhuoo1tuaMB8GA1UdIwQYMBaAFC4EnoT08H8Z+LCHu6DzJBiM
+# sPe2MEUGA1UdHwQ+MDwwOqA4oDaGNGh0dHA6Ly9jZXJ0ZW5yb2xsLmFzYy5vaGlv
+# LXN0YXRlLmVkdS9wa2kvQVNDLVBLSS5jcmwwgacGCCsGAQUFBwEBBIGaMIGXMF0G
+# CCsGAQUFBzAChlFodHRwOi8vY2VydGVucm9sbC5hc2Mub2hpby1zdGF0ZS5lZHUv
+# cGtpL1BLSS1DQS5hc2Mub2hpby1zdGF0ZS5lZHVfQVNDLVBLSSgxKS5jcnQwNgYI
+# KwYBBQUHMAGGKmh0dHBzOi8vY2VydGVucm9sbC5hc2Mub2hpby1zdGF0ZS5lZHUv
+# b2NzcDA3BgNVHREEMDAuoCwGCisGAQQBgjcUAgOgHgwca2VsbGVyLjRhQGFzYy5v
+# aGlvLXN0YXRlLmVkdTANBgkqhkiG9w0BAQsFAAOCAQEAVbwyi6GWGTsBKQ4X51zF
+# AX6IOmtiBYxyklQa6GrZM1blyBbNVlTQKq09io6VJZrLFi161d0VgZlae1VWQYy9
+# EoGL2o5syNH/dyUyCTMSAAws5K3lNUwzqytD/LNXVqoR2o0kXpxa0ryCq6/3LQAm
+# h33AUNIdbfX6gJ96UKtv/GiwAt1yJPgdED45nf/c6iR/o5tQNRUVbrs/au4yLqQL
+# gfjhCzVnF36WnnLWQWCOGM96dq8evKMA/U5UuM8/8MQvV/CMUP0HCoTofmyrlPNb
+# 3xr2E175XhiKIwPuIL1otnNZB30+ZIYKxkZniS/sUbghzFAfNOytPowH0vni82FX
+# ZTGCAxAwggMMAgEBMG8wWDETMBEGCgmSJomT8ixkARkWA2VkdTEaMBgGCgmSJomT
+# 8ixkARkWCm9oaW8tc3RhdGUxEzARBgoJkiaJk/IsZAEZFgNhc2MxEDAOBgNVBAMT
+# B0FTQy1QS0kCE3oAAOEPnUrHvueZLKQAAQAA4Q8wCQYFKw4DAhoFAKB4MBgGCisG
+# AQQBgjcCAQwxCjAIoAKAAKECgAAwGQYJKoZIhvcNAQkDMQwGCisGAQQBgjcCAQQw
+# HAYKKwYBBAGCNwIBCzEOMAwGCisGAQQBgjcCARUwIwYJKoZIhvcNAQkEMRYEFBjX
+# b+VzNRmcKomDhbvVY6FyyZQbMA0GCSqGSIb3DQEBAQUABIICAFlZbIqbdrjxi75l
+# edn1Bmc7cFkF8XLB4jXgiAGLkSrTZF6mVyotH7i1BRYSWe0fvpLFoZj2G7mE9wZC
+# +H/whRlWgI8Jb0yN+rEHnIXJENMpVBAnkHWG/pW2E9PVognKFqDjcCjlL0JFycA/
+# iOX1qKFkSPeIY0LUQY6kQPqNxWSfPkVdnyATSi+2z1YYYB6WR1RwsR/kZrMj3dkX
+# h5FNCmHVx1Cd0FL1NAOfDbLy6Cik4Tl+DAuszj3UBIw7dbAIWAMNH+2RVPd/IzBK
+# 58RTyHZhjiNf4c6YnMdgh1otKtqVzCOc3fKigIpaKpme7MheEhgipichtw5fZa4l
+# AK+jKV6mr8saw1inS9tfy8UOB5yDP97pl7e3MbpuP8g/d/yjs0y1e9LE68k+7ao8
+# WdGxeX9bg84jedO1vBZkRuLkoocGUSNeQfIp8d7zl91j5Ab3jrz2dXreGNOhSzQf
+# cJkiESBWn6LUsil+NIiHMFLN5hGMhl2FXqDq66R+G3nKMN6YIPuMuHz8w67io+Nq
+# SzCKRj5kUqJyyEUvRdmy3Nwr29FScdofBuGnY5AAWbheuUPWQHj7kkDud6oYeuK3
+# FgfUM3B72F8qWIaj017CubAnW81KBfXQZ41Exyy39LIConkq6qu0/7it/rssION0
+# W6917Pffr3ni0AnIEzfVPtv9PgpN
+# SIG # End signature block

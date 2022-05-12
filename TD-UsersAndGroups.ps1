@@ -76,7 +76,7 @@ function Set-TDAuthentication
         $Environment = $WorkingEnvironment
     )
 
-    Write-ActivityHistory "-----`nIn $($MyInvocation.MyCommand.Name)"
+    Write-ActivityHistory "`n-----`nIn $($MyInvocation.MyCommand.Name)"
     $ContentType = 'application/json; charset=utf-8'
     $BaseURI = Get-URI -Environment $Environment
 
@@ -339,7 +339,7 @@ function Get-TDCurrentUser
         $Environment = $WorkingEnvironment
     )
 
-    Write-ActivityHistory "-----`nIn $($MyInvocation.MyCommand.Name)"
+    Write-ActivityHistory "`n-----`nIn $($MyInvocation.MyCommand.Name)"
     $ContentType = 'application/json; charset=utf-8'
     $BaseURI = Get-URI -Environment $Environment
     if (-not $AuthenticationToken)
@@ -508,7 +508,7 @@ function Get-TDUser
 
     Begin
     {
-        Write-ActivityHistory "-----`nIn $($MyInvocation.MyCommand.Name)"
+        Write-ActivityHistory "`n-----`nIn $($MyInvocation.MyCommand.Name)"
         $ContentType = 'application/json; charset=utf-8'
         $BaseURI = Get-URI -Environment $Environment
     }
@@ -570,7 +570,7 @@ function Get-TDUser
     }
     end
     {
-        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
+        Write-ActivityHistory "`nLeaving $($MyInvocation.MyCommand.Name)`n-----"
     }
 }
 
@@ -660,7 +660,7 @@ function Get-TDDepartment
 
     Begin
     {
-        Write-ActivityHistory "-----`nIn $($MyInvocation.MyCommand.Name)"
+        Write-ActivityHistory "`n-----`nIn $($MyInvocation.MyCommand.Name)"
         $ContentType = 'application/json; charset=utf-8'
         $BaseURI = Get-URI -Environment $Environment
         if (-not $AuthenticationToken)
@@ -713,7 +713,7 @@ function Get-TDDepartment
     }
     end
     {
-        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
+        Write-ActivityHistory "`nLeaving $($MyInvocation.MyCommand.Name)`n-----"
     }
 }
 
@@ -856,7 +856,7 @@ function New-TDDepartment
 
     Begin
     {
-        Write-ActivityHistory "-----`nIn $($MyInvocation.MyCommand.Name)"
+        Write-ActivityHistory "`n-----`nIn $($MyInvocation.MyCommand.Name)"
         $ContentType = 'application/json; charset=utf-8'
         $BaseURI = Get-URI -Environment $Environment
         if (-not $AuthenticationToken)
@@ -883,7 +883,7 @@ function New-TDDepartment
     }
     end
     {
-        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
+        Write-ActivityHistory "`nLeaving $($MyInvocation.MyCommand.Name)`n-----"
     }
 }
 
@@ -1052,7 +1052,7 @@ function Set-TDDepartment
 
     Begin
     {
-        Write-ActivityHistory "-----`nIn $($MyInvocation.MyCommand.Name)"
+        Write-ActivityHistory "`n-----`nIn $($MyInvocation.MyCommand.Name)"
     }
     Process
     {
@@ -1076,7 +1076,7 @@ function Set-TDDepartment
     }
     end
     {
-        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
+        Write-ActivityHistory "`nLeaving $($MyInvocation.MyCommand.Name)`n-----"
     }
 }
 function Get-TDGroup
@@ -1150,7 +1150,7 @@ function Get-TDGroup
 
     Begin
     {
-        Write-ActivityHistory "-----`nIn $($MyInvocation.MyCommand.Name)"
+        Write-ActivityHistory "`n-----`nIn $($MyInvocation.MyCommand.Name)"
         $ContentType = 'application/json; charset=utf-8'
         $BaseURI = Get-URI -Environment $Environment
         if (-not $AuthenticationToken)
@@ -1197,7 +1197,7 @@ function Get-TDGroup
     }
     end
     {
-        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
+        Write-ActivityHistory "`nLeaving $($MyInvocation.MyCommand.Name)`n-----"
     }
 }
 
@@ -1250,7 +1250,7 @@ function New-TDGroup
 
     Begin
     {
-        Write-ActivityHistory "-----`nIn $($MyInvocation.MyCommand.Name)"
+        Write-ActivityHistory "`n-----`nIn $($MyInvocation.MyCommand.Name)"
         $ContentType = 'application/json; charset=utf-8'
         $BaseURI = Get-URI -Environment $Environment
         if (-not $AuthenticationToken)
@@ -1277,7 +1277,7 @@ function New-TDGroup
     }
     end
     {
-        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
+        Write-ActivityHistory "`nLeaving $($MyInvocation.MyCommand.Name)`n-----"
     }
 }
 function Set-TDGroup
@@ -1355,7 +1355,7 @@ function Set-TDGroup
 
     Begin
     {
-        Write-ActivityHistory "-----`nIn $($MyInvocation.MyCommand.Name)"
+        Write-ActivityHistory "`n-----`nIn $($MyInvocation.MyCommand.Name)"
     }
     Process
     {
@@ -1379,7 +1379,7 @@ function Set-TDGroup
     }
     end
     {
-        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
+        Write-ActivityHistory "`nLeaving $($MyInvocation.MyCommand.Name)`n-----"
     }
 }
 
@@ -1408,7 +1408,7 @@ function Get-TDUserGroupMember
 
     Begin
     {
-        Write-ActivityHistory "-----`nIn $($MyInvocation.MyCommand.Name)"
+        Write-ActivityHistory "`n-----`nIn $($MyInvocation.MyCommand.Name)"
         $ContentType = 'application/json; charset=utf-8'
         $BaseURI = Get-URI -Environment $Environment
         if (-not $AuthenticationToken)
@@ -1428,7 +1428,7 @@ function Get-TDUserGroupMember
     }
     end
     {
-        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
+        Write-ActivityHistory "`nLeaving $($MyInvocation.MyCommand.Name)`n-----"
     }
 }
 
@@ -1495,7 +1495,7 @@ function Remove-TDGroupMember
 
     Begin
     {
-        Write-ActivityHistory "-----`nIn $($MyInvocation.MyCommand.Name)"
+        Write-ActivityHistory "`n-----`nIn $($MyInvocation.MyCommand.Name)"
         $ContentType = 'application/json; charset=utf-8'
         $BaseURI = Get-URI -Environment $Environment
         if (-not $AuthenticationToken)
@@ -1528,7 +1528,7 @@ function Remove-TDGroupMember
     }
     end
     {
-        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
+        Write-ActivityHistory "`nLeaving $($MyInvocation.MyCommand.Name)`n-----"
     }
 }
 
@@ -1625,7 +1625,7 @@ function Add-TDGroupMember
 
     Begin
     {
-        Write-ActivityHistory "-----`nIn $($MyInvocation.MyCommand.Name)"
+        Write-ActivityHistory "`n-----`nIn $($MyInvocation.MyCommand.Name)"
         $ContentType = 'application/json; charset=utf-8'
         $BaseURI = Get-URI -Environment $Environment
         if (-not $AuthenticationToken)
@@ -1653,7 +1653,7 @@ function Add-TDGroupMember
     }
     end
     {
-        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
+        Write-ActivityHistory "`nLeaving $($MyInvocation.MyCommand.Name)`n-----"
     }
 }
 
@@ -1701,7 +1701,7 @@ function Get-TDGroupMember
 
     begin
     {
-        Write-ActivityHistory "-----`nIn $($MyInvocation.MyCommand.Name)"
+        Write-ActivityHistory "`n-----`nIn $($MyInvocation.MyCommand.Name)"
     }
     process
     {
@@ -1726,7 +1726,7 @@ function Get-TDGroupMember
     }
     end
     {
-        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
+        Write-ActivityHistory "`nLeaving $($MyInvocation.MyCommand.Name)`n-----"
     }
 }
 
@@ -2076,7 +2076,7 @@ function New-TDUser
         [Parameter(Mandatory=$false,
                    ValueFromPipelineByPropertyName=$true)]
         [int32]
-        $AuthenticationProviderID,
+        $AuthenticationProviderID = $TDConfig.DefaultAuthenticationProviderID,
 
         # The Instant Messenger (IM) provider associated with the user.
         [Parameter(Mandatory=$false,
@@ -2115,7 +2115,7 @@ function New-TDUser
 
     Begin
     {
-        Write-ActivityHistory "-----`nIn $($MyInvocation.MyCommand.Name)"
+        Write-ActivityHistory "`n-----`nIn $($MyInvocation.MyCommand.Name)"
         $ContentType = 'application/json; charset=utf-8'
         $BaseURI = Get-URI -Environment $Environment
         if (-not $AuthenticationToken)
@@ -2149,13 +2149,26 @@ function New-TDUser
                 $Return = Invoke-RESTCall -Uri "$BaseURI/people" -ContentType $ContentType -Method Post -Headers $AuthenticationToken -Body (ConvertTo-Json $NewTDUser -Depth 10)
                 if ($Return)
                 {
+                    $FixRequired = $false
                     $Return = [TeamDynamix_Api_Users_User]::new($Return)
+                    # Fix applications and org applications, since the new user call doesn't support org applications
+                    if ($OrgApplications)
+                    {
+                        $Return.Applications    = $NewTDUser.Applications
+                        $Return.OrgApplications = $NewTDUser.OrgApplications
+                        $FixRequired = $true
+                    }
+
                     # Fix room and building, since the new user call doesn't support it
                     if ($LocationID -or $LocationRoomID)
                     {
                         $Return.LocationID     = $LocationID
                         $Return.LocationRoomID = $LocationRoomID
-                        $Return = $Return | Set-TDUser -AuthenticationToken $AuthenticationToken -Environment $Environment -Passthru
+                        $FixRequired = $true
+                    }
+                    if ($FixRequired)
+                    {
+                        $Return = $Return | Set-TDUser -OverrideEnterpriseRole -AuthenticationToken $AuthenticationToken -Environment $Environment -Passthru
                     }
                 }
                 if ($Passthru)
@@ -2185,7 +2198,7 @@ function New-TDUser
     }
     end
     {
-        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
+        Write-ActivityHistory "`nLeaving $($MyInvocation.MyCommand.Name)`n-----"
     }
 }
 
@@ -2197,7 +2210,7 @@ function Set-TDUser
     Param
     (
         # UID of user
-        [Parameter(Mandatory=$true,
+        [Parameter(Mandatory=$false,
                    ValueFromPipelineByPropertyName=$true,
                    Position=0)]
         [guid]
@@ -2537,7 +2550,7 @@ function Set-TDUser
         [Parameter(Mandatory=$false,
                    ValueFromPipelineByPropertyName=$true)]
         [int32]
-        $AuthenticationProviderID,
+        $AuthenticationProviderID = $TDConfig.DefaultAuthenticationProviderID,
 
         # The Instant Messenger (IM) provider associated with the user.
         [Parameter(Mandatory=$false,
@@ -2619,10 +2632,10 @@ function Set-TDUser
                 Name             = 'SecurityRoleName'
                 Mandatory        = $false
                 Type             = 'string'
-                ValidateSet      = $TDApplications.GetAll($WorkingEnvironment,$true).Name
+                ValidateSet      = $TDSecurityRoles.GetAll($WorkingEnvironment,$true).Name
                 HelpText         = 'User security role name'
                 IDParameter      = 'SecurityRoleID'
-                IDsMethod        = '$TDApplications.GetAll($WorkingEnvironment,$true)'
+                IDsMethod        = '$TDSecurityRoles.GetAll($WorkingEnvironment,$true)'
             }
             @{
                 Name             = 'DefaultAccountName'
@@ -2666,7 +2679,7 @@ function Set-TDUser
 
     Begin
     {
-        Write-ActivityHistory "-----`nIn $($MyInvocation.MyCommand.Name)"
+        Write-ActivityHistory "`n-----`nIn $($MyInvocation.MyCommand.Name)"
         $ContentType = 'application/json; charset=utf-8'
         $BaseURI = Get-URI -Environment $Environment
         if (-not $AuthenticationToken)
@@ -2713,6 +2726,10 @@ function Set-TDUser
             {
                 Write-ActivityHistory -MessageChannel 'Error' -Message "No user found in TD with username, $Username."
             }
+        }
+        elseif (($Username -eq '') -and (($null -eq $UID) -or ($UID -eq '00000000-0000-0000-0000-000000000000')))
+        {
+            Write-ActivityHistory -MessageChannel 'Error' -Message "No username or UID specified."
         }
         # Only set the entry if there was a match for the username (or the UID was specified on the command line)
         if ($UID)
@@ -2826,7 +2843,7 @@ function Set-TDUser
     }
     end
     {
-        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
+        Write-ActivityHistory "`nLeaving $($MyInvocation.MyCommand.Name)`n-----"
     }
 }
 
@@ -2870,7 +2887,7 @@ function Disable-TDUser
 
     Begin
     {
-        Write-ActivityHistory "-----`nIn $($MyInvocation.MyCommand.Name)"
+        Write-ActivityHistory "`n-----`nIn $($MyInvocation.MyCommand.Name)"
         $ContentType = 'application/json; charset=utf-8'
         $BaseURI = Get-URI -Environment $Environment
         if (-not $AuthenticationToken)
@@ -2915,7 +2932,7 @@ function Disable-TDUser
     }
     end
     {
-        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
+        Write-ActivityHistory "`nLeaving $($MyInvocation.MyCommand.Name)`n-----"
     }
 }
 
@@ -2960,7 +2977,7 @@ function Enable-TDUser
 
     Begin
     {
-        Write-ActivityHistory "-----`nIn $($MyInvocation.MyCommand.Name)"
+        Write-ActivityHistory "`n-----`nIn $($MyInvocation.MyCommand.Name)"
         $ContentType = 'application/json; charset=utf-8'
         $BaseURI = Get-URI -Environment $Environment
         if (-not $AuthenticationToken)
@@ -3005,7 +3022,7 @@ function Enable-TDUser
     }
     end
     {
-        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
+        Write-ActivityHistory "`nLeaving $($MyInvocation.MyCommand.Name)`n-----"
     }
 }
 
@@ -3135,7 +3152,7 @@ function Set-TDBulkUser
     )
     Begin
     {
-        Write-ActivityHistory "-----`nIn $($MyInvocation.MyCommand.Name)"
+        Write-ActivityHistory "`n-----`nIn $($MyInvocation.MyCommand.Name)"
         $ContentType = 'application/json; charset=utf-8'
         if (-not $AuthenticationToken)
         {
@@ -3192,7 +3209,7 @@ function Set-TDBulkUser
     }
     end
     {
-        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
+        Write-ActivityHistory "`nLeaving $($MyInvocation.MyCommand.Name)`n-----"
     }
 }
 
@@ -3253,7 +3270,7 @@ function Add-TDGroupApplication
 
     Begin
     {
-        Write-ActivityHistory "-----`nIn $($MyInvocation.MyCommand.Name)"
+        Write-ActivityHistory "`n-----`nIn $($MyInvocation.MyCommand.Name)"
         $ContentType = 'application/json; charset=utf-8'
         $BaseURI = Get-URI -Environment $Environment
         if (-not $AuthenticationToken)
@@ -3281,7 +3298,7 @@ function Add-TDGroupApplication
     }
     end
     {
-        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
+        Write-ActivityHistory "`nLeaving $($MyInvocation.MyCommand.Name)`n-----"
     }
 }
 
@@ -3329,7 +3346,7 @@ function Get-TDGroupApplication
 
     Begin
     {
-        Write-ActivityHistory "-----`nIn $($MyInvocation.MyCommand.Name)"
+        Write-ActivityHistory "`n-----`nIn $($MyInvocation.MyCommand.Name)"
         $ContentType = 'application/json; charset=utf-8'
         $BaseURI = Get-URI -Environment $Environment
         if (-not $AuthenticationToken)
@@ -3355,7 +3372,7 @@ function Get-TDGroupApplication
     }
     end
     {
-        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
+        Write-ActivityHistory "`nLeaving $($MyInvocation.MyCommand.Name)`n-----"
     }
 }
 
@@ -3417,7 +3434,7 @@ function Remove-TDGroupApplication
 
     Begin
     {
-        Write-ActivityHistory "-----`nIn $($MyInvocation.MyCommand.Name)"
+        Write-ActivityHistory "`n-----`nIn $($MyInvocation.MyCommand.Name)"
         $ContentType = 'application/json; charset=utf-8'
         $BaseURI = Get-URI -Environment $Environment
         if (-not $AuthenticationToken)
@@ -3448,7 +3465,7 @@ function Remove-TDGroupApplication
     }
     end
     {
-        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
+        Write-ActivityHistory "`nLeaving $($MyInvocation.MyCommand.Name)`n-----"
     }
 }
 
@@ -3464,7 +3481,7 @@ function New-TDGroupApplication
     )
     Begin
     {
-        Write-ActivityHistory "-----`nIn $($MyInvocation.MyCommand.Name)"
+        Write-ActivityHistory "`n-----`nIn $($MyInvocation.MyCommand.Name)"
     }
     Process
     {
@@ -3474,6 +3491,87 @@ function New-TDGroupApplication
     }
     end
     {
-        Write-ActivityHistory "-----`nLeaving $($MyInvocation.MyCommand.Name)"
+        Write-ActivityHistory "`nLeaving $($MyInvocation.MyCommand.Name)`n-----"
     }
 }
+# SIG # Begin signature block
+# MIIOsQYJKoZIhvcNAQcCoIIOojCCDp4CAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
+# gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUIkim2qLz+P9D7bJWc3zWhqfP
+# CRigggsLMIIEnTCCA4WgAwIBAgITXAAAAASry1piY/gB3QAAAAAABDANBgkqhkiG
+# 9w0BAQsFADAaMRgwFgYDVQQDEw9BU0MgUEtJIE9mZmxpbmUwHhcNMTcwNTA4MTcx
+# NDA5WhcNMjcwNTA4MTcyNDA5WjBYMRMwEQYKCZImiZPyLGQBGRYDZWR1MRowGAYK
+# CZImiZPyLGQBGRYKb2hpby1zdGF0ZTETMBEGCgmSJomT8ixkARkWA2FzYzEQMA4G
+# A1UEAxMHQVNDLVBLSTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAOF4
+# 1t2KTcMPjn/gtqYCaWsRjqTvsL0AjDvZDeTUqc4rABZw5rbZFLMRKeuFMmCKeCEb
+# wtNDSv2GVCvZnRJuUPVowSyT1+0rHNYnzyTrJDiZTm/WzurPOSlaqGuJovb2mJLk
+# 4351McVNwN7T9io8Tpi4pov1kFfJqHH7MY6H4Sa/6xuy2Al0/8+c3QubJc1Fl4Ew
+# XJGMLIvmYIkik1pRr3eT52JP2uu7yyyU+JMRwhvbMEnhuhVGwi5aKTg1G3z6AoOn
+# bdWl+AMfxwaNtl0Hhz4NWQIgo/ieiXUqC1DZqKj4vauBlSLxE66CSJnLDD3IMmss
+# NJlFi2Q0NAw4HulTpLsCAwEAAaOCAZwwggGYMBAGCSsGAQQBgjcVAQQDAgEBMCMG
+# CSsGAQQBgjcVAgQWBBTeaCQAfNtGUFhb0QBZ02IBaUIJzTAdBgNVHQ4EFgQULgSe
+# hPTwfxn4sIe7oPMkGIyw97YwgZIGA1UdIASBijCBhzCBhAYGKwYBBAFkMHowOgYI
+# KwYBBQUHAgIwLh4sAEwAZQBnAGEAbAAgAFAAbwBsAGkAYwB5ACAAUwB0AGEAdABl
+# AG0AZQBuAHQwPAYIKwYBBQUHAgEWMGh0dHA6Ly9jZXJ0ZW5yb2xsLmFzYy5vaGlv
+# LXN0YXRlLmVkdS9wa2kvY3BzLnR4dDAZBgkrBgEEAYI3FAIEDB4KAFMAdQBiAEMA
+# QTALBgNVHQ8EBAMCAYYwDwYDVR0TAQH/BAUwAwEB/zAfBgNVHSMEGDAWgBSmmXUH
+# 2YrKB5bSFEUMk0oNSezdUTBRBgNVHR8ESjBIMEagRKBChkBodHRwOi8vY2VydGVu
+# cm9sbC5hc2Mub2hpby1zdGF0ZS5lZHUvcGtpL0FTQyUyMFBLSSUyME9mZmxpbmUu
+# Y3JsMA0GCSqGSIb3DQEBCwUAA4IBAQAifGwk/QoUSRvJ/ecvyk6MymoQgZByKSsn
+# 1BNkJ3R7RjUE75/1cFVhRylPH3ADe8wRzjwJF1BgJsa1p2TCVHpIoxOWV4EwWwqU
+# k3ufAGfxhMd7D5AAxOon0UKUIgcW9LCq+R7GfcbBsFxc9IL6GQVRTISTOkfzsqqP
+# 4tUe5joCIGfO2qcx2uhnavVF+4nq2OrQEMqM/gOWD+YhmMh/QrlpMOOSBdhpKBk4
+# lF2/3+dqD0dVuX7/s6xnUoYwDyp1rw/ExOy6kT8dNSVIjXVXEd2/bhqD6UqYYly4
+# KrwQTTbeHQif7Q8E0ecf+FOhrBmZCwYhXeSmnTPT7vMmfvU4aOEyMIIGZjCCBU6g
+# AwIBAgITegAA4Q+dSse+55kspAABAADhDzANBgkqhkiG9w0BAQsFADBYMRMwEQYK
+# CZImiZPyLGQBGRYDZWR1MRowGAYKCZImiZPyLGQBGRYKb2hpby1zdGF0ZTETMBEG
+# CgmSJomT8ixkARkWA2FzYzEQMA4GA1UEAxMHQVNDLVBLSTAeFw0yMjA0MTcxNDI5
+# MjFaFw0yMzA0MTcxNDI5MjFaMIGUMRMwEQYKCZImiZPyLGQBGRYDZWR1MRowGAYK
+# CZImiZPyLGQBGRYKb2hpby1zdGF0ZTETMBEGCgmSJomT8ixkARkWA2FzYzEXMBUG
+# A1UECxMOQWRtaW5pc3RyYXRvcnMxEjAQBgNVBAMTCWtlbGxlci40YTEfMB0GCSqG
+# SIb3DQEJARYQa2VsbGVyLjRAb3N1LmVkdTCCAiIwDQYJKoZIhvcNAQEBBQADggIP
+# ADCCAgoCggIBANJyDgYNySplxbw/CyHHvLSAa0IGnMKoelKIqh2uBz7eA8osQRiZ
+# 5+H9IZGSjjUz6o6xFdqLSL+zgzjVrqs/wXZDcHJyOvUSYLJXQ9/FipmOM0TNHMts
+# vUNrSqIu2kyEQnvkNX9bTcfziDpuzQW1KiK9M54EoERX61BIUgCrn3fUB5R/v12n
+# t+/aXI6cIm6fJDOCD/k5XQKyXC6BWcAmOZCCr2YRmFVyW/bHez9HXhBZ44WQBgJ8
+# jS53rBFxlSNmDiB1qn5O5xJMX/aoEf0GRgI89q99jmLrcDEk/YMfqq7Pr1atRh0P
+# Atk7C0f38aj9LNqJpZ9dH+gHqd2TMuXW2zu45RjX+sZ2J96xCl6SVrdSqVuDSCnq
+# AMtAIOzgoDjH+263xmuRiyi5iWVkYh5sIQJ0M/nVJWWfa4Fi9+qGRpUCaI4GtHy3
+# 23jlU8EFi+ebnPqNY1EdXzvhtF5FXnoguMH/oGnWsCm51JTB7WePShEJloL7i2OZ
+# 65QE8U8zuXCxDo3CJpl6fbpd+ntCSxBZnrRhnsxLoD5CMCOEfbvJEM6+hsYwgxEI
+# 5SBbM+AUbslp4HPWR6BNZIiLSHH3GoTpxs1DC3PajdeWlgigwb+2vsxjw55xQFvL
+# oMGRY8haLpzetIbj5XDkaPxuUCRRNuiTEPXOCYUMjh85yAU256c+e02FAgMBAAGj
+# ggHqMIIB5jA7BgkrBgEEAYI3FQcELjAsBiQrBgEEAYI3FQiHps4T49FzgumVIoT0
+# jhjIwUl6gofXTITr6w0CAWQCAQ0wEwYDVR0lBAwwCgYIKwYBBQUHAwMwCwYDVR0P
+# BAQDAgeAMBsGCSsGAQQBgjcVCgQOMAwwCgYIKwYBBQUHAwMwHQYDVR0OBBYEFIO5
+# hudGmrID2txhbFUlhuoo1tuaMB8GA1UdIwQYMBaAFC4EnoT08H8Z+LCHu6DzJBiM
+# sPe2MEUGA1UdHwQ+MDwwOqA4oDaGNGh0dHA6Ly9jZXJ0ZW5yb2xsLmFzYy5vaGlv
+# LXN0YXRlLmVkdS9wa2kvQVNDLVBLSS5jcmwwgacGCCsGAQUFBwEBBIGaMIGXMF0G
+# CCsGAQUFBzAChlFodHRwOi8vY2VydGVucm9sbC5hc2Mub2hpby1zdGF0ZS5lZHUv
+# cGtpL1BLSS1DQS5hc2Mub2hpby1zdGF0ZS5lZHVfQVNDLVBLSSgxKS5jcnQwNgYI
+# KwYBBQUHMAGGKmh0dHBzOi8vY2VydGVucm9sbC5hc2Mub2hpby1zdGF0ZS5lZHUv
+# b2NzcDA3BgNVHREEMDAuoCwGCisGAQQBgjcUAgOgHgwca2VsbGVyLjRhQGFzYy5v
+# aGlvLXN0YXRlLmVkdTANBgkqhkiG9w0BAQsFAAOCAQEAVbwyi6GWGTsBKQ4X51zF
+# AX6IOmtiBYxyklQa6GrZM1blyBbNVlTQKq09io6VJZrLFi161d0VgZlae1VWQYy9
+# EoGL2o5syNH/dyUyCTMSAAws5K3lNUwzqytD/LNXVqoR2o0kXpxa0ryCq6/3LQAm
+# h33AUNIdbfX6gJ96UKtv/GiwAt1yJPgdED45nf/c6iR/o5tQNRUVbrs/au4yLqQL
+# gfjhCzVnF36WnnLWQWCOGM96dq8evKMA/U5UuM8/8MQvV/CMUP0HCoTofmyrlPNb
+# 3xr2E175XhiKIwPuIL1otnNZB30+ZIYKxkZniS/sUbghzFAfNOytPowH0vni82FX
+# ZTGCAxAwggMMAgEBMG8wWDETMBEGCgmSJomT8ixkARkWA2VkdTEaMBgGCgmSJomT
+# 8ixkARkWCm9oaW8tc3RhdGUxEzARBgoJkiaJk/IsZAEZFgNhc2MxEDAOBgNVBAMT
+# B0FTQy1QS0kCE3oAAOEPnUrHvueZLKQAAQAA4Q8wCQYFKw4DAhoFAKB4MBgGCisG
+# AQQBgjcCAQwxCjAIoAKAAKECgAAwGQYJKoZIhvcNAQkDMQwGCisGAQQBgjcCAQQw
+# HAYKKwYBBAGCNwIBCzEOMAwGCisGAQQBgjcCARUwIwYJKoZIhvcNAQkEMRYEFOlF
+# cTBAfq9bMHkAZ3dqy+mVuuRRMA0GCSqGSIb3DQEBAQUABIICAHvI8by2JdLzJoPb
+# Qo6BhNq9B7BEWwyIibAClt5zRqmmZBR31BCHSJycqhwqe1xIqUaUCxvE0Q66JVoA
+# kEWx12NPqSp6JHIBqwFi+ZP3eSGlvl6Zdh8AzMFI1AJ3HiDwWCz00IkYkYK+79TI
+# 9OSVuUCE1ZRy9i0pzRN9zXylHNa2CMTd+4+TZBkTP2Og0u2F3l3Z1MPOt5aPZCea
+# yb1eV0DuhdOSVV/17QBQmSb1vgIzL/AmfIotyx4ekoh8Ou6ZZx/GZbwIG/UXngen
+# OtJAZFK+6dkiwF/zfQOYflrM+ahen06RAt0IP0fPgYtnzElsMVLnM5ksiThcvo/o
+# D4LLDql8J7inTzHDrIdFKiuiUk4Br8CHxr4kc8KRD4PE25zu4HFa/gr9T3NheEzo
+# uT+qgNJnEI7zfFBM38dRnCS4t2lVrdwz0dHBAJe1/bnFavco4+fP2qaSfWLNC8Mh
+# KueufjiQ4sxSMjVBthjTuL+Ba0QAx4mV18KGbrXKPKG2q/6b5IFR0EeujZGhbZBN
+# 7UEBCW1iw+igQWmniBbF5CjcltlRs2uQhW8mPxYv8DTtSMjXkT1CrK8mLpt8LM5o
+# 8DG9Tj3zKQwItAWW5sMUXHl7NOCzv/h9IUvc4xl1JcKNILzil9ybYxYdCm423N5j
+# 0jGFlfEc4byQzike0jqQmQKWvke3
+# SIG # End signature block
