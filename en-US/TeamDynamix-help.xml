@@ -3447,6 +3447,296 @@ $AddUserToFunctionalRole | Remove-TDFunctionalRole</dev:code>
   </command:command>
   <command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10" xmlns:MSHelp="http://msdn.microsoft.com/mshelp">
     <command:details>
+      <command:name>Approve-TDTicketWorkflowStep</command:name>
+      <command:verb>Approve</command:verb>
+      <command:noun>TDTicketWorkflowStep</command:noun>
+      <maml:description>
+        <maml:para>Perform the specified action on the workflow step.</maml:para>
+      </maml:description>
+    </command:details>
+    <maml:description>
+      <maml:para>Perform the specified action on the specified workflow step for a ticket in TeamDynamix. Use Get-TDTicketWorkflowActions to determine what action IDs are available for the workflow step.</maml:para>
+    </maml:description>
+    <command:syntax>
+      <command:syntaxItem>
+        <maml:name>Approve-TDTicketWorkflowStep</maml:name>
+        <command:parameter required="true" variableLength="true" globbing="false" pipelineInput="True (ByPropertyName)" position="0" aliases="none">
+          <maml:name>ID</maml:name>
+          <maml:description>
+            <maml:para>Ticket ID to perform workflow step actions on TeamDynamix.</maml:para>
+          </maml:description>
+          <command:parameterValue required="true" variableLength="false">Int32</command:parameterValue>
+          <dev:type>
+            <maml:name>Int32</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>None</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="true" variableLength="true" globbing="false" pipelineInput="True (ByPropertyName)" position="1" aliases="none">
+          <maml:name>StepID</maml:name>
+          <maml:description>
+            <maml:para>Workflow step ID to perform action on in TeamDynamix.</maml:para>
+          </maml:description>
+          <command:parameterValue required="true" variableLength="false">Guid</command:parameterValue>
+          <dev:type>
+            <maml:name>Guid</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>None</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="true" variableLength="true" globbing="false" pipelineInput="True (ByPropertyName)" position="2" aliases="none">
+          <maml:name>ActionID</maml:name>
+          <maml:description>
+            <maml:para>Approval action. Use Get-TDTicketWorkflowActions to determine what action IDs are available for the workflow step.</maml:para>
+          </maml:description>
+          <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+          <dev:type>
+            <maml:name>String</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>None</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="True (ByPropertyName)" position="3" aliases="none">
+          <maml:name>Comments</maml:name>
+          <maml:description>
+            <maml:para>Comments to include with workflow step action.</maml:para>
+          </maml:description>
+          <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+          <dev:type>
+            <maml:name>String</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>None</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="True (ByPropertyName)" position="4" aliases="none">
+          <maml:name>AppID</maml:name>
+          <maml:description>
+            <maml:para>Application ID for the ticketing app.</maml:para>
+          </maml:description>
+          <command:parameterValue required="true" variableLength="false">Int32</command:parameterValue>
+          <dev:type>
+            <maml:name>Int32</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>None</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="5" aliases="none">
+          <maml:name>AuthenticationToken</maml:name>
+          <maml:description>
+            <maml:para>Hashtable with one key: "Authorization" and value of "Bearer" followed by the JSON bearer web token. See Set-TDAuthentication.</maml:para>
+          </maml:description>
+          <command:parameterValue required="true" variableLength="false">Hashtable</command:parameterValue>
+          <dev:type>
+            <maml:name>Hashtable</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>None</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="6" aliases="none">
+          <maml:name>Environment</maml:name>
+          <maml:description>
+            <maml:para>Execute the commands on the specified TeamDynamix site. Valid options are "Production", "Sandbox", and "Preview". Default is the site selected when the module was loaded.</maml:para>
+          </maml:description>
+          <command:parameterValueGroup>
+            <command:parameterValue required="false" command:variableLength="false">Production</command:parameterValue>
+            <command:parameterValue required="false" command:variableLength="false">Sandbox</command:parameterValue>
+            <command:parameterValue required="false" command:variableLength="false">Preview</command:parameterValue>
+          </command:parameterValueGroup>
+          <command:parameterValue required="true" variableLength="false">EnvironmentChoices</command:parameterValue>
+          <dev:type>
+            <maml:name>EnvironmentChoices</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>None</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="cf">
+          <maml:name>Confirm</maml:name>
+          <maml:description>
+            <maml:para>Prompts you for confirmation before running the cmdlet.</maml:para>
+          </maml:description>
+          <dev:type>
+            <maml:name>SwitchParameter</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>False</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="wi">
+          <maml:name>WhatIf</maml:name>
+          <maml:description>
+            <maml:para>Shows what would happen if the cmdlet runs. The cmdlet is not run.</maml:para>
+          </maml:description>
+          <dev:type>
+            <maml:name>SwitchParameter</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>False</dev:defaultValue>
+        </command:parameter>
+      </command:syntaxItem>
+    </command:syntax>
+    <command:parameters>
+      <command:parameter required="true" variableLength="true" globbing="false" pipelineInput="True (ByPropertyName)" position="2" aliases="none">
+        <maml:name>ActionID</maml:name>
+        <maml:description>
+          <maml:para>Approval action. Use Get-TDTicketWorkflowActions to determine what action IDs are available for the workflow step.</maml:para>
+        </maml:description>
+        <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+        <dev:type>
+          <maml:name>String</maml:name>
+          <maml:uri />
+        </dev:type>
+        <dev:defaultValue>None</dev:defaultValue>
+      </command:parameter>
+      <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="True (ByPropertyName)" position="4" aliases="none">
+        <maml:name>AppID</maml:name>
+        <maml:description>
+          <maml:para>Application ID for the ticketing app.</maml:para>
+        </maml:description>
+        <command:parameterValue required="true" variableLength="false">Int32</command:parameterValue>
+        <dev:type>
+          <maml:name>Int32</maml:name>
+          <maml:uri />
+        </dev:type>
+        <dev:defaultValue>None</dev:defaultValue>
+      </command:parameter>
+      <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="5" aliases="none">
+        <maml:name>AuthenticationToken</maml:name>
+        <maml:description>
+          <maml:para>Hashtable with one key: "Authorization" and value of "Bearer" followed by the JSON bearer web token. See Set-TDAuthentication.</maml:para>
+        </maml:description>
+        <command:parameterValue required="true" variableLength="false">Hashtable</command:parameterValue>
+        <dev:type>
+          <maml:name>Hashtable</maml:name>
+          <maml:uri />
+        </dev:type>
+        <dev:defaultValue>None</dev:defaultValue>
+      </command:parameter>
+      <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="True (ByPropertyName)" position="3" aliases="none">
+        <maml:name>Comments</maml:name>
+        <maml:description>
+          <maml:para>Comments to include with workflow step action.</maml:para>
+        </maml:description>
+        <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+        <dev:type>
+          <maml:name>String</maml:name>
+          <maml:uri />
+        </dev:type>
+        <dev:defaultValue>None</dev:defaultValue>
+      </command:parameter>
+      <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="cf">
+        <maml:name>Confirm</maml:name>
+        <maml:description>
+          <maml:para>Prompts you for confirmation before running the cmdlet.</maml:para>
+        </maml:description>
+        <command:parameterValue required="false" variableLength="false">SwitchParameter</command:parameterValue>
+        <dev:type>
+          <maml:name>SwitchParameter</maml:name>
+          <maml:uri />
+        </dev:type>
+        <dev:defaultValue>False</dev:defaultValue>
+      </command:parameter>
+      <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="6" aliases="none">
+        <maml:name>Environment</maml:name>
+        <maml:description>
+          <maml:para>Execute the commands on the specified TeamDynamix site. Valid options are "Production", "Sandbox", and "Preview". Default is the site selected when the module was loaded.</maml:para>
+        </maml:description>
+        <command:parameterValue required="true" variableLength="false">EnvironmentChoices</command:parameterValue>
+        <dev:type>
+          <maml:name>EnvironmentChoices</maml:name>
+          <maml:uri />
+        </dev:type>
+        <dev:defaultValue>None</dev:defaultValue>
+      </command:parameter>
+      <command:parameter required="true" variableLength="true" globbing="false" pipelineInput="True (ByPropertyName)" position="0" aliases="none">
+        <maml:name>ID</maml:name>
+        <maml:description>
+          <maml:para>Ticket ID to perform workflow step actions on TeamDynamix.</maml:para>
+        </maml:description>
+        <command:parameterValue required="true" variableLength="false">Int32</command:parameterValue>
+        <dev:type>
+          <maml:name>Int32</maml:name>
+          <maml:uri />
+        </dev:type>
+        <dev:defaultValue>None</dev:defaultValue>
+      </command:parameter>
+      <command:parameter required="true" variableLength="true" globbing="false" pipelineInput="True (ByPropertyName)" position="1" aliases="none">
+        <maml:name>StepID</maml:name>
+        <maml:description>
+          <maml:para>Workflow step ID to perform action on in TeamDynamix.</maml:para>
+        </maml:description>
+        <command:parameterValue required="true" variableLength="false">Guid</command:parameterValue>
+        <dev:type>
+          <maml:name>Guid</maml:name>
+          <maml:uri />
+        </dev:type>
+        <dev:defaultValue>None</dev:defaultValue>
+      </command:parameter>
+      <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="wi">
+        <maml:name>WhatIf</maml:name>
+        <maml:description>
+          <maml:para>Shows what would happen if the cmdlet runs. The cmdlet is not run.</maml:para>
+        </maml:description>
+        <command:parameterValue required="false" variableLength="false">SwitchParameter</command:parameterValue>
+        <dev:type>
+          <maml:name>SwitchParameter</maml:name>
+          <maml:uri />
+        </dev:type>
+        <dev:defaultValue>False</dev:defaultValue>
+      </command:parameter>
+    </command:parameters>
+    <command:inputTypes>
+      <command:inputType>
+        <dev:type>
+          <maml:name>System.Int32</maml:name>
+        </dev:type>
+        <maml:description>
+          <maml:para></maml:para>
+        </maml:description>
+      </command:inputType>
+      <command:inputType>
+        <dev:type>
+          <maml:name>System.Guid</maml:name>
+        </dev:type>
+        <maml:description>
+          <maml:para></maml:para>
+        </maml:description>
+      </command:inputType>
+      <command:inputType>
+        <dev:type>
+          <maml:name>System.String</maml:name>
+        </dev:type>
+        <maml:description>
+          <maml:para></maml:para>
+        </maml:description>
+      </command:inputType>
+    </command:inputTypes>
+    <command:returnValues>
+      <command:returnValue>
+        <dev:type>
+          <maml:name>System.Object</maml:name>
+        </dev:type>
+        <maml:description>
+          <maml:para></maml:para>
+        </maml:description>
+      </command:returnValue>
+    </command:returnValues>
+    <maml:alertSet>
+      <maml:alert>
+        <maml:para>Author: Brian Keller &lt;keller.4@osu.edu&gt;</maml:para>
+      </maml:alert>
+    </maml:alertSet>
+    <command:examples>
+      <command:example>
+        <maml:title>-------------------------- Example 1 --------------------------</maml:title>
+        <dev:code>PS C:\&gt; Approve-TDTicketWorkflowStep -ID 551083 -StepID XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX -ActionID RejectItem</dev:code>
+        <dev:remarks>
+          <maml:para>Permforms the RejectItem action on the specified workflow step for the specified ticket.</maml:para>
+        </dev:remarks>
+      </command:example>
+    </command:examples>
+    <command:relatedLinks />
+  </command:command>
+  <command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10" xmlns:MSHelp="http://msdn.microsoft.com/mshelp">
+    <command:details>
       <command:name>Clear-TDLocalCache</command:name>
       <command:verb>Clear</command:verb>
       <command:noun>TDLocalCache</command:noun>
@@ -3654,151 +3944,6 @@ $AddUserToFunctionalRole | Remove-TDFunctionalRole</dev:code>
         <dev:code>Compare-TDAPIDefinitions -APIURL https://api.teamdynamix.com/TDWebApi/Home/type/TeamDynamix.Api.Accounts.Account</dev:code>
         <dev:remarks>
           <maml:para>Compare the TeamDynamix API definitions for an account in the preview with the current implementation.</maml:para>
-        </dev:remarks>
-      </command:example>
-    </command:examples>
-    <command:relatedLinks />
-  </command:command>
-  <command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10" xmlns:MSHelp="http://msdn.microsoft.com/mshelp">
-    <command:details>
-      <command:name>ConvertFrom-ADtoTDUser</command:name>
-      <command:verb>ConvertFrom</command:verb>
-      <command:noun>ADtoTDUser</command:noun>
-      <maml:description>
-        <maml:para>Convert AD user data to TD user data</maml:para>
-      </maml:description>
-    </command:details>
-    <maml:description>
-      <maml:para>OSU-specific function. Convert AD user information to TD user information for use with the New-TDUser function.</maml:para>
-    </maml:description>
-    <command:syntax>
-      <command:syntaxItem>
-        <maml:name>ConvertFrom-ADtoTDUser</maml:name>
-        <command:parameter required="true" variableLength="true" globbing="false" pipelineInput="True (ByValue)" position="1" aliases="none">
-          <maml:name>ADUser</maml:name>
-          <maml:description>
-            <maml:para>Active Directory user account name, suitable for use with Get-ADUser.</maml:para>
-          </maml:description>
-          <command:parameterValue required="true" variableLength="false">Object</command:parameterValue>
-          <dev:type>
-            <maml:name>Object</maml:name>
-            <maml:uri />
-          </dev:type>
-          <dev:defaultValue>None</dev:defaultValue>
-        </command:parameter>
-        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
-          <maml:name>AuthenticationToken</maml:name>
-          <maml:description>
-            <maml:para>Hashtable with one key: "Authorization" and value of "Bearer" followed by the JSON bearer web token. See Set-TDAuthentication.</maml:para>
-          </maml:description>
-          <command:parameterValue required="true" variableLength="false">Hashtable</command:parameterValue>
-          <dev:type>
-            <maml:name>Hashtable</maml:name>
-            <maml:uri />
-          </dev:type>
-          <dev:defaultValue>$TDAuthentication</dev:defaultValue>
-        </command:parameter>
-        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
-          <maml:name>Environment</maml:name>
-          <maml:description>
-            <maml:para>Execute the commands on the specified TeamDynamix site. Valid options are "Production", "Sandbox", and "Preview". Default is the site selected when the module was loaded.</maml:para>
-          </maml:description>
-          <command:parameterValueGroup>
-            <command:parameterValue required="false" command:variableLength="false">Production</command:parameterValue>
-            <command:parameterValue required="false" command:variableLength="false">Sandbox</command:parameterValue>
-            <command:parameterValue required="false" command:variableLength="false">Preview</command:parameterValue>
-          </command:parameterValueGroup>
-          <command:parameterValue required="true" variableLength="false">EnvironmentChoices</command:parameterValue>
-          <dev:type>
-            <maml:name>EnvironmentChoices</maml:name>
-            <maml:uri />
-          </dev:type>
-          <dev:defaultValue>$WorkingEnvironment</dev:defaultValue>
-        </command:parameter>
-        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
-          <maml:name>ADDomainName</maml:name>
-          <maml:description>
-            <maml:para>The Active Directory domain name, used to look up the AD user.</maml:para>
-          </maml:description>
-          <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
-          <dev:type>
-            <maml:name>String</maml:name>
-            <maml:uri />
-          </dev:type>
-          <dev:defaultValue>(Invoke-Expression $script:DefaultADConnectorFinder).Data.ADDomainName</dev:defaultValue>
-        </command:parameter>
-      </command:syntaxItem>
-    </command:syntax>
-    <command:parameters>
-      <command:parameter required="true" variableLength="true" globbing="false" pipelineInput="True (ByValue)" position="1" aliases="none">
-        <maml:name>ADUser</maml:name>
-        <maml:description>
-          <maml:para>Active Directory user account name, suitable for use with Get-ADUser.</maml:para>
-        </maml:description>
-        <command:parameterValue required="true" variableLength="false">Object</command:parameterValue>
-        <dev:type>
-          <maml:name>Object</maml:name>
-          <maml:uri />
-        </dev:type>
-        <dev:defaultValue>None</dev:defaultValue>
-      </command:parameter>
-      <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
-        <maml:name>AuthenticationToken</maml:name>
-        <maml:description>
-          <maml:para>Hashtable with one key: "Authorization" and value of "Bearer" followed by the JSON bearer web token. See Set-TDAuthentication.</maml:para>
-        </maml:description>
-        <command:parameterValue required="true" variableLength="false">Hashtable</command:parameterValue>
-        <dev:type>
-          <maml:name>Hashtable</maml:name>
-          <maml:uri />
-        </dev:type>
-        <dev:defaultValue>$TDAuthentication</dev:defaultValue>
-      </command:parameter>
-      <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
-        <maml:name>Environment</maml:name>
-        <maml:description>
-          <maml:para>Execute the commands on the specified TeamDynamix site. Valid options are "Production", "Sandbox", and "Preview". Default is the site selected when the module was loaded.</maml:para>
-        </maml:description>
-        <command:parameterValue required="true" variableLength="false">EnvironmentChoices</command:parameterValue>
-        <dev:type>
-          <maml:name>EnvironmentChoices</maml:name>
-          <maml:uri />
-        </dev:type>
-        <dev:defaultValue>$WorkingEnvironment</dev:defaultValue>
-      </command:parameter>
-      <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
-        <maml:name>ADDomainName</maml:name>
-        <maml:description>
-          <maml:para>The Active Directory domain name, used to look up the AD user.</maml:para>
-        </maml:description>
-        <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
-        <dev:type>
-          <maml:name>String</maml:name>
-          <maml:uri />
-        </dev:type>
-        <dev:defaultValue>(Invoke-Expression $script:DefaultADConnectorFinder).Data.ADDomainName</dev:defaultValue>
-      </command:parameter>
-    </command:parameters>
-    <command:inputTypes />
-    <command:returnValues />
-    <maml:alertSet>
-      <maml:alert>
-        <maml:para>OSU-specific function. Depends on the Get-OSUDirectoryListing function to retrieve user's phone number. Author: Brian Keller &lt;keller.4@osu.edu&gt;</maml:para>
-      </maml:alert>
-    </maml:alertSet>
-    <command:examples>
-      <command:example>
-        <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>ConvertFrom-ADtoTDUser -ADUser user1 -ADDomainName $ADDomainName</dev:code>
-        <dev:remarks>
-          <maml:para>Look up AD user, "user1", and return formatted data for TD user.</maml:para>
-        </dev:remarks>
-      </command:example>
-      <command:example>
-        <maml:title>-------------------------- EXAMPLE 2 --------------------------</maml:title>
-        <dev:code>'user1','user2','user3','user4' | ConvertFrom-ADtoTDUser</dev:code>
-        <dev:remarks>
-          <maml:para>Look up AD users from the pipeline and return formatted data for TD users.</maml:para>
         </dev:remarks>
       </command:example>
     </command:examples>
@@ -4331,6 +4476,206 @@ $AddUserToFunctionalRole | Remove-TDFunctionalRole</dev:code>
         <dev:code>ConvertFrom-TDWebAPIToFunction -URL 'https://www.teamdynamix.com/TDWebApi/Home/type/TeamDynamix.Api.TestType' -FunctionName Get-TestFunction</dev:code>
         <dev:remarks>
           <maml:para>Converts text from a web page into an enum description.</maml:para>
+        </dev:remarks>
+      </command:example>
+    </command:examples>
+    <command:relatedLinks />
+  </command:command>
+  <command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10" xmlns:MSHelp="http://msdn.microsoft.com/mshelp">
+    <command:details>
+      <command:name>ConvertFrom-UserToTD</command:name>
+      <command:verb>ConvertFrom</command:verb>
+      <command:noun>UserToTD</command:noun>
+      <maml:description>
+        <maml:para>Convert local user data to TD user data</maml:para>
+      </maml:description>
+    </command:details>
+    <maml:description>
+      <maml:para>Convert user information derived from local data connectors to TD user information for use with the New-TDUser or Set-TDUser functions.</maml:para>
+    </maml:description>
+    <command:syntax>
+      <command:syntaxItem>
+        <maml:name>ConvertFrom-UserToTD</maml:name>
+        <command:parameter required="true" variableLength="true" globbing="false" pipelineInput="True (ByValue)" position="1" aliases="none">
+          <maml:name>Username</maml:name>
+          <maml:description>
+            <maml:para>User account name, suitable for use with user data connectors.</maml:para>
+          </maml:description>
+          <command:parameterValue required="true" variableLength="false">Object</command:parameterValue>
+          <dev:type>
+            <maml:name>Object</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>None</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+          <maml:name>AuthenticationToken</maml:name>
+          <maml:description>
+            <maml:para>Hashtable with one key: "Authorization" and value of "Bearer" followed by the JSON bearer web token. See Set-TDAuthentication.</maml:para>
+          </maml:description>
+          <command:parameterValue required="true" variableLength="false">Hashtable</command:parameterValue>
+          <dev:type>
+            <maml:name>Hashtable</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>$TDAuthentication</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+          <maml:name>Environment</maml:name>
+          <maml:description>
+            <maml:para>Execute the commands on the specified TeamDynamix site. Valid options are "Production", "Sandbox", and "Preview". Default is the site selected when the module was loaded.</maml:para>
+          </maml:description>
+          <command:parameterValueGroup>
+            <command:parameterValue required="false" command:variableLength="false">Production</command:parameterValue>
+            <command:parameterValue required="false" command:variableLength="false">Sandbox</command:parameterValue>
+            <command:parameterValue required="false" command:variableLength="false">Preview</command:parameterValue>
+          </command:parameterValueGroup>
+          <command:parameterValue required="true" variableLength="false">EnvironmentChoices</command:parameterValue>
+          <dev:type>
+            <maml:name>EnvironmentChoices</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>$WorkingEnvironment</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+          <maml:name>ADDomainName</maml:name>
+          <maml:description>
+            <maml:para>The Active Directory domain name, used to look up the AD user.</maml:para>
+          </maml:description>
+          <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+          <dev:type>
+            <maml:name>String</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>(Invoke-Expression $script:DefaultADConnectorFinder).Data.ADDomainName</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+          <maml:name>PrimaryConnector</maml:name>
+          <maml:description>
+            <maml:para>The name of the primary connector used to look up the user data. Data connectors are found in the Configuration.psd1 file.</maml:para>
+          </maml:description>
+          <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+          <dev:type>
+            <maml:name>String</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>None</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+          <maml:name>SupplementalConnector</maml:name>
+          <maml:description>
+            <maml:para>The name of the supplemental connector used to look up the user data. Supplemental connectors are intended to augment user data collected from the primary connector. Data connectors are found in the Configuration.psd1 file.</maml:para>
+          </maml:description>
+          <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+          <dev:type>
+            <maml:name>String</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>None</dev:defaultValue>
+        </command:parameter>
+      </command:syntaxItem>
+    </command:syntax>
+    <command:parameters>
+      <command:parameter required="true" variableLength="true" globbing="false" pipelineInput="True (ByValue)" position="1" aliases="none">
+        <maml:name>Username</maml:name>
+        <maml:description>
+          <maml:para>User account name, suitable for use with user data connectors.</maml:para>
+        </maml:description>
+        <command:parameterValue required="true" variableLength="false">Object</command:parameterValue>
+        <dev:type>
+          <maml:name>Object</maml:name>
+          <maml:uri />
+        </dev:type>
+        <dev:defaultValue>None</dev:defaultValue>
+      </command:parameter>
+      <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+        <maml:name>AuthenticationToken</maml:name>
+        <maml:description>
+          <maml:para>Hashtable with one key: "Authorization" and value of "Bearer" followed by the JSON bearer web token. See Set-TDAuthentication.</maml:para>
+        </maml:description>
+        <command:parameterValue required="true" variableLength="false">Hashtable</command:parameterValue>
+        <dev:type>
+          <maml:name>Hashtable</maml:name>
+          <maml:uri />
+        </dev:type>
+        <dev:defaultValue>$TDAuthentication</dev:defaultValue>
+      </command:parameter>
+      <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+        <maml:name>Environment</maml:name>
+        <maml:description>
+          <maml:para>Execute the commands on the specified TeamDynamix site. Valid options are "Production", "Sandbox", and "Preview". Default is the site selected when the module was loaded.</maml:para>
+        </maml:description>
+        <command:parameterValue required="true" variableLength="false">EnvironmentChoices</command:parameterValue>
+        <dev:type>
+          <maml:name>EnvironmentChoices</maml:name>
+          <maml:uri />
+        </dev:type>
+        <dev:defaultValue>$WorkingEnvironment</dev:defaultValue>
+      </command:parameter>
+      <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+        <maml:name>ADDomainName</maml:name>
+        <maml:description>
+          <maml:para>The Active Directory domain name, used to look up the AD user.</maml:para>
+        </maml:description>
+        <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+        <dev:type>
+          <maml:name>String</maml:name>
+          <maml:uri />
+        </dev:type>
+        <dev:defaultValue>(Invoke-Expression $script:DefaultADConnectorFinder).Data.ADDomainName</dev:defaultValue>
+      </command:parameter>
+      <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+        <maml:name>PrimaryConnector</maml:name>
+        <maml:description>
+          <maml:para>The name of the primary connector used to look up the user data. Data connectors are found in the Configuration.psd1 file.</maml:para>
+        </maml:description>
+        <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+        <dev:type>
+          <maml:name>String</maml:name>
+          <maml:uri />
+        </dev:type>
+        <dev:defaultValue>None</dev:defaultValue>
+      </command:parameter>
+      <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+        <maml:name>SupplementalConnector</maml:name>
+        <maml:description>
+          <maml:para>The name of the supplemental connector used to look up the user data. Supplemental connectors are intended to augment user data collected from the primary connector. Data connectors are found in the Configuration.psd1 file.</maml:para>
+        </maml:description>
+        <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+        <dev:type>
+          <maml:name>String</maml:name>
+          <maml:uri />
+        </dev:type>
+        <dev:defaultValue>None</dev:defaultValue>
+      </command:parameter>
+    </command:parameters>
+    <command:inputTypes />
+    <command:returnValues />
+    <maml:alertSet>
+      <maml:alert>
+        <maml:para>OSU-specific function. Depends on the Get-OSUDirectoryListing function to retrieve user's phone number. Author: Brian Keller &lt;keller.4@osu.edu&gt;</maml:para>
+      </maml:alert>
+    </maml:alertSet>
+    <command:examples>
+      <command:example>
+        <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
+        <dev:code>ConvertFrom-UserToTD -Username user1 -ADDomainName $ADDomainName -PrimaryConnector 'Active Directory People'</dev:code>
+        <dev:remarks>
+          <maml:para>Look up user, "user1", using data mappings specified in the "Active Directory People" data connector and return formatted data for TD user.</maml:para>
+        </dev:remarks>
+      </command:example>
+      <command:example>
+        <maml:title>-------------------------- EXAMPLE 2 --------------------------</maml:title>
+        <dev:code>ConvertFrom-UserToTD -Username user1 -ADDomainName $ADDomainName -PrimaryConnector 'Active Directory People' -SupplementalConnector GetPeople -GetPeopleCredential (Get-Credential)</dev:code>
+        <dev:remarks>
+          <maml:para>Look up user, "user1", using data mappings specified in the "Active Directory People" and GetPeople data connectors, prompting for credentials for the GetPeople service, and return formatted data for TD user.</maml:para>
+        </dev:remarks>
+      </command:example>
+      <command:example>
+        <maml:title>-------------------------- EXAMPLE 3 --------------------------</maml:title>
+        <dev:code>'user1','user2','user3','user4' | ConvertFrom-UserToTD PrimaryConnector 'Active Directory People'</dev:code>
+        <dev:remarks>
+          <maml:para>Look up AD users from the pipeline and return formatted data for TD users.</maml:para>
         </dev:remarks>
       </command:example>
     </command:examples>
@@ -25708,6 +26053,350 @@ Get-TDProductModel -ID 5504 -Attributes @($ExceptionFiledID,$ExceptionFiledYesID
   </command:command>
   <command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10" xmlns:MSHelp="http://msdn.microsoft.com/mshelp">
     <command:details>
+      <command:name>Get-TDTicketWorkflow</command:name>
+      <command:verb>Get</command:verb>
+      <command:noun>TDTicketWorkflow</command:noun>
+      <maml:description>
+        <maml:para>Get workflow for ticket from TeamDynamix.</maml:para>
+      </maml:description>
+    </command:details>
+    <maml:description>
+      <maml:para>Get workflow for specified ticket from TeamDynamix. Throws an error if there is no workflow present.</maml:para>
+    </maml:description>
+    <command:syntax>
+      <command:syntaxItem>
+        <maml:name>Get-TDTicketWorkflow</maml:name>
+        <command:parameter required="true" variableLength="true" globbing="false" pipelineInput="True (ByPropertyName)" position="0" aliases="none">
+          <maml:name>ID</maml:name>
+          <maml:description>
+            <maml:para>Ticket ID to retrieve workflow from TeamDynamix.</maml:para>
+          </maml:description>
+          <command:parameterValue required="true" variableLength="false">Int32</command:parameterValue>
+          <dev:type>
+            <maml:name>Int32</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>None</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="True (ByPropertyName)" position="named" aliases="none">
+          <maml:name>AppID</maml:name>
+          <maml:description>
+            <maml:para>Application ID for the ticketing app.</maml:para>
+          </maml:description>
+          <command:parameterValue required="true" variableLength="false">Int32</command:parameterValue>
+          <dev:type>
+            <maml:name>Int32</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>None</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+          <maml:name>AuthenticationToken</maml:name>
+          <maml:description>
+            <maml:para>Hashtable with one key: "Authorization" and value of "Bearer" followed by the JSON bearer web token. See Set-TDAuthentication.</maml:para>
+          </maml:description>
+          <command:parameterValue required="true" variableLength="false">Hashtable</command:parameterValue>
+          <dev:type>
+            <maml:name>Hashtable</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>None</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+          <maml:name>Environment</maml:name>
+          <maml:description>
+            <maml:para>Execute the commands on the specified TeamDynamix site. Valid options are "Production", "Sandbox", and "Preview". Default is the site selected when the module was loaded.</maml:para>
+          </maml:description>
+          <command:parameterValueGroup>
+            <command:parameterValue required="false" command:variableLength="false">Production</command:parameterValue>
+            <command:parameterValue required="false" command:variableLength="false">Sandbox</command:parameterValue>
+            <command:parameterValue required="false" command:variableLength="false">Preview</command:parameterValue>
+          </command:parameterValueGroup>
+          <command:parameterValue required="true" variableLength="false">EnvironmentChoices</command:parameterValue>
+          <dev:type>
+            <maml:name>EnvironmentChoices</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>None</dev:defaultValue>
+        </command:parameter>
+      </command:syntaxItem>
+    </command:syntax>
+    <command:parameters>
+      <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="True (ByPropertyName)" position="named" aliases="none">
+        <maml:name>AppID</maml:name>
+        <maml:description>
+          <maml:para>Application ID for the ticketing app.</maml:para>
+        </maml:description>
+        <command:parameterValue required="true" variableLength="false">Int32</command:parameterValue>
+        <dev:type>
+          <maml:name>Int32</maml:name>
+          <maml:uri />
+        </dev:type>
+        <dev:defaultValue>None</dev:defaultValue>
+      </command:parameter>
+      <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+        <maml:name>AuthenticationToken</maml:name>
+        <maml:description>
+          <maml:para>Hashtable with one key: "Authorization" and value of "Bearer" followed by the JSON bearer web token. See Set-TDAuthentication.</maml:para>
+        </maml:description>
+        <command:parameterValue required="true" variableLength="false">Hashtable</command:parameterValue>
+        <dev:type>
+          <maml:name>Hashtable</maml:name>
+          <maml:uri />
+        </dev:type>
+        <dev:defaultValue>None</dev:defaultValue>
+      </command:parameter>
+      <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+        <maml:name>Environment</maml:name>
+        <maml:description>
+          <maml:para>Execute the commands on the specified TeamDynamix site. Valid options are "Production", "Sandbox", and "Preview". Default is the site selected when the module was loaded.</maml:para>
+        </maml:description>
+        <command:parameterValue required="true" variableLength="false">EnvironmentChoices</command:parameterValue>
+        <dev:type>
+          <maml:name>EnvironmentChoices</maml:name>
+          <maml:uri />
+        </dev:type>
+        <dev:defaultValue>None</dev:defaultValue>
+      </command:parameter>
+      <command:parameter required="true" variableLength="true" globbing="false" pipelineInput="True (ByPropertyName)" position="0" aliases="none">
+        <maml:name>ID</maml:name>
+        <maml:description>
+          <maml:para>Ticket ID to retrieve workflow from TeamDynamix.</maml:para>
+        </maml:description>
+        <command:parameterValue required="true" variableLength="false">Int32</command:parameterValue>
+        <dev:type>
+          <maml:name>Int32</maml:name>
+          <maml:uri />
+        </dev:type>
+        <dev:defaultValue>None</dev:defaultValue>
+      </command:parameter>
+    </command:parameters>
+    <command:inputTypes>
+      <command:inputType>
+        <dev:type>
+          <maml:name>System.Int32</maml:name>
+        </dev:type>
+        <maml:description>
+          <maml:para></maml:para>
+        </maml:description>
+      </command:inputType>
+    </command:inputTypes>
+    <command:returnValues>
+      <command:returnValue>
+        <dev:type>
+          <maml:name>System.Object</maml:name>
+        </dev:type>
+        <maml:description>
+          <maml:para></maml:para>
+        </maml:description>
+      </command:returnValue>
+    </command:returnValues>
+    <maml:alertSet>
+      <maml:alert>
+        <maml:para>Author: Brian Keller &lt;keller.4@osu.edu&gt;</maml:para>
+      </maml:alert>
+    </maml:alertSet>
+    <command:examples>
+      <command:example>
+        <maml:title>-------------------------- Example 1 --------------------------</maml:title>
+        <dev:code>PS C:\&gt; Get-TDTicketWorkflow -ID 551008</dev:code>
+        <dev:remarks>
+          <maml:para>Returns the information on workflow assigned to specified ticket ID.</maml:para>
+        </dev:remarks>
+      </command:example>
+    </command:examples>
+    <command:relatedLinks />
+  </command:command>
+  <command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10" xmlns:MSHelp="http://msdn.microsoft.com/mshelp">
+    <command:details>
+      <command:name>Get-TDTicketWorkflowActions</command:name>
+      <command:verb>Get</command:verb>
+      <command:noun>TDTicketWorkflowActions</command:noun>
+      <maml:description>
+        <maml:para>Get the currently assigned workflow's actions for a ticket.</maml:para>
+      </maml:description>
+    </command:details>
+    <maml:description>
+      <maml:para>Get the currently assigned workflow's actions for a ticket.</maml:para>
+    </maml:description>
+    <command:syntax>
+      <command:syntaxItem>
+        <maml:name>Get-TDTicketWorkflowActions</maml:name>
+        <command:parameter required="true" variableLength="true" globbing="false" pipelineInput="True (ByPropertyName)" position="0" aliases="none">
+          <maml:name>ID</maml:name>
+          <maml:description>
+            <maml:para>Ticket ID to retrieve workflow step actions from TeamDynamix.</maml:para>
+          </maml:description>
+          <command:parameterValue required="true" variableLength="false">Int32</command:parameterValue>
+          <dev:type>
+            <maml:name>Int32</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>None</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="true" variableLength="true" globbing="false" pipelineInput="True (ByPropertyName)" position="1" aliases="none">
+          <maml:name>StepID</maml:name>
+          <maml:description>
+            <maml:para>Workflow step ID to retrieve actions from TeamDynamix.</maml:para>
+          </maml:description>
+          <command:parameterValue required="true" variableLength="false">Guid</command:parameterValue>
+          <dev:type>
+            <maml:name>Guid</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>None</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="True (ByPropertyName)" position="named" aliases="none">
+          <maml:name>AppID</maml:name>
+          <maml:description>
+            <maml:para>Application ID for the ticketing app.</maml:para>
+          </maml:description>
+          <command:parameterValue required="true" variableLength="false">Int32</command:parameterValue>
+          <dev:type>
+            <maml:name>Int32</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>None</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+          <maml:name>AuthenticationToken</maml:name>
+          <maml:description>
+            <maml:para>Hashtable with one key: "Authorization" and value of "Bearer" followed by the JSON bearer web token. See Set-TDAuthentication.</maml:para>
+          </maml:description>
+          <command:parameterValue required="true" variableLength="false">Hashtable</command:parameterValue>
+          <dev:type>
+            <maml:name>Hashtable</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>None</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+          <maml:name>Environment</maml:name>
+          <maml:description>
+            <maml:para>Execute the commands on the specified TeamDynamix site. Valid options are "Production", "Sandbox", and "Preview". Default is the site selected when the module was loaded.</maml:para>
+          </maml:description>
+          <command:parameterValueGroup>
+            <command:parameterValue required="false" command:variableLength="false">Production</command:parameterValue>
+            <command:parameterValue required="false" command:variableLength="false">Sandbox</command:parameterValue>
+            <command:parameterValue required="false" command:variableLength="false">Preview</command:parameterValue>
+          </command:parameterValueGroup>
+          <command:parameterValue required="true" variableLength="false">EnvironmentChoices</command:parameterValue>
+          <dev:type>
+            <maml:name>EnvironmentChoices</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>None</dev:defaultValue>
+        </command:parameter>
+      </command:syntaxItem>
+    </command:syntax>
+    <command:parameters>
+      <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="True (ByPropertyName)" position="named" aliases="none">
+        <maml:name>AppID</maml:name>
+        <maml:description>
+          <maml:para>Application ID for the ticketing app.</maml:para>
+        </maml:description>
+        <command:parameterValue required="true" variableLength="false">Int32</command:parameterValue>
+        <dev:type>
+          <maml:name>Int32</maml:name>
+          <maml:uri />
+        </dev:type>
+        <dev:defaultValue>None</dev:defaultValue>
+      </command:parameter>
+      <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+        <maml:name>AuthenticationToken</maml:name>
+        <maml:description>
+          <maml:para>Hashtable with one key: "Authorization" and value of "Bearer" followed by the JSON bearer web token. See Set-TDAuthentication.</maml:para>
+        </maml:description>
+        <command:parameterValue required="true" variableLength="false">Hashtable</command:parameterValue>
+        <dev:type>
+          <maml:name>Hashtable</maml:name>
+          <maml:uri />
+        </dev:type>
+        <dev:defaultValue>None</dev:defaultValue>
+      </command:parameter>
+      <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+        <maml:name>Environment</maml:name>
+        <maml:description>
+          <maml:para>Execute the commands on the specified TeamDynamix site. Valid options are "Production", "Sandbox", and "Preview". Default is the site selected when the module was loaded.</maml:para>
+        </maml:description>
+        <command:parameterValue required="true" variableLength="false">EnvironmentChoices</command:parameterValue>
+        <dev:type>
+          <maml:name>EnvironmentChoices</maml:name>
+          <maml:uri />
+        </dev:type>
+        <dev:defaultValue>None</dev:defaultValue>
+      </command:parameter>
+      <command:parameter required="true" variableLength="true" globbing="false" pipelineInput="True (ByPropertyName)" position="0" aliases="none">
+        <maml:name>ID</maml:name>
+        <maml:description>
+          <maml:para>Ticket ID to retrieve workflow step actions from TeamDynamix.</maml:para>
+        </maml:description>
+        <command:parameterValue required="true" variableLength="false">Int32</command:parameterValue>
+        <dev:type>
+          <maml:name>Int32</maml:name>
+          <maml:uri />
+        </dev:type>
+        <dev:defaultValue>None</dev:defaultValue>
+      </command:parameter>
+      <command:parameter required="true" variableLength="true" globbing="false" pipelineInput="True (ByPropertyName)" position="1" aliases="none">
+        <maml:name>StepID</maml:name>
+        <maml:description>
+          <maml:para>Workflow step ID to retrieve actions from TeamDynamix.</maml:para>
+        </maml:description>
+        <command:parameterValue required="true" variableLength="false">Guid</command:parameterValue>
+        <dev:type>
+          <maml:name>Guid</maml:name>
+          <maml:uri />
+        </dev:type>
+        <dev:defaultValue>None</dev:defaultValue>
+      </command:parameter>
+    </command:parameters>
+    <command:inputTypes>
+      <command:inputType>
+        <dev:type>
+          <maml:name>System.Int32</maml:name>
+        </dev:type>
+        <maml:description>
+          <maml:para></maml:para>
+        </maml:description>
+      </command:inputType>
+      <command:inputType>
+        <dev:type>
+          <maml:name>System.Guid</maml:name>
+        </dev:type>
+        <maml:description>
+          <maml:para></maml:para>
+        </maml:description>
+      </command:inputType>
+    </command:inputTypes>
+    <command:returnValues>
+      <command:returnValue>
+        <dev:type>
+          <maml:name>System.Object</maml:name>
+        </dev:type>
+        <maml:description>
+          <maml:para></maml:para>
+        </maml:description>
+      </command:returnValue>
+    </command:returnValues>
+    <maml:alertSet>
+      <maml:alert>
+        <maml:para>Author: Brian Keller &lt;keller.4@osu.edu&gt;</maml:para>
+      </maml:alert>
+    </maml:alertSet>
+    <command:examples>
+      <command:example>
+        <maml:title>-------------------------- Example 1 --------------------------</maml:title>
+        <dev:code>PS C:\&gt; Get-TDTicketWorkflowActions -ID 551083 -StepID XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX</dev:code>
+        <dev:remarks>
+          <maml:para>Returns the specified workflow step's actions for the specified ticket.</maml:para>
+        </dev:remarks>
+      </command:example>
+    </command:examples>
+    <command:relatedLinks />
+  </command:command>
+  <command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10" xmlns:MSHelp="http://msdn.microsoft.com/mshelp">
+    <command:details>
       <command:name>Get-TDTime</command:name>
       <command:verb>Get</command:verb>
       <command:noun>TDTime</command:noun>
@@ -28169,7 +28858,7 @@ Get-TDProductModel -ID 5504 -Attributes @($ExceptionFiledID,$ExceptionFiledYesID
         <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
           <maml:name>AppName</maml:name>
           <maml:description>
-            <maml:para>Return users who have been granted access to the application</maml:para>
+            <maml:para>Name of TeamDynamix application</maml:para>
           </maml:description>
           <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
           <dev:type>
@@ -28501,7 +29190,7 @@ Get-TDProductModel -ID 5504 -Attributes @($ExceptionFiledID,$ExceptionFiledYesID
       <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
         <maml:name>AppName</maml:name>
         <maml:description>
-          <maml:para>Return users who have been granted access to the application</maml:para>
+          <maml:para>Name of TeamDynamix application</maml:para>
         </maml:description>
         <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
         <dev:type>
@@ -29632,6 +30321,30 @@ Get-TDProductModel -ID 5504 -Attributes @($ExceptionFiledID,$ExceptionFiledYesID
           </dev:type>
           <dev:defaultValue>Customer</dev:defaultValue>
         </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="2" aliases="none">
+          <maml:name>PrimaryConnector</maml:name>
+          <maml:description>
+            <maml:para>Name of the data connector to use to collect primary user information. Default: 'Active Directory People'.</maml:para>
+          </maml:description>
+          <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+          <dev:type>
+            <maml:name>String</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>Customer</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="2" aliases="none">
+          <maml:name>SupplementalConnector</maml:name>
+          <maml:description>
+            <maml:para>Name of the data connector to use to collect supplemental user information. Default: 'FindPeople'.</maml:para>
+          </maml:description>
+          <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+          <dev:type>
+            <maml:name>String</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>Customer</dev:defaultValue>
+        </command:parameter>
         <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="3" aliases="none">
           <maml:name>AuthenticationToken</maml:name>
           <maml:description>
@@ -29714,6 +30427,30 @@ Get-TDProductModel -ID 5504 -Attributes @($ExceptionFiledID,$ExceptionFiledYesID
         <maml:name>SecurityRoleName</maml:name>
         <maml:description>
           <maml:para>Name of the new user's security role. One of 'Customer' or 'Technician'. Default: 'Customer'.</maml:para>
+        </maml:description>
+        <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+        <dev:type>
+          <maml:name>String</maml:name>
+          <maml:uri />
+        </dev:type>
+        <dev:defaultValue>Customer</dev:defaultValue>
+      </command:parameter>
+      <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="2" aliases="none">
+        <maml:name>PrimaryConnector</maml:name>
+        <maml:description>
+          <maml:para>Name of the data connector to use to collect primary user information. Default: 'Active Directory People'.</maml:para>
+        </maml:description>
+        <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+        <dev:type>
+          <maml:name>String</maml:name>
+          <maml:uri />
+        </dev:type>
+        <dev:defaultValue>Customer</dev:defaultValue>
+      </command:parameter>
+      <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="2" aliases="none">
+        <maml:name>SupplementalConnector</maml:name>
+        <maml:description>
+          <maml:para>Name of the data connector to use to collect supplemental user information. Default: 'FindPeople'.</maml:para>
         </maml:description>
         <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
         <dev:type>
@@ -39396,6 +40133,30 @@ New-TDGroup -Name 'Psychobotany Support' -PlatformApplications @($GroupApplicati
           </dev:type>
           <dev:defaultValue>True</dev:defaultValue>
         </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="True (ByPropertyName)" position="4" aliases="none">
+          <maml:name>RequireGoesOffHold</maml:name>
+          <maml:description>
+            <maml:para>Set whether ticket requires a Goes Off Hold value. Only applicable when ticket status class is OnHold. Default: true.</maml:para>
+          </maml:description>
+          <command:parameterValue required="true" variableLength="false">Boolean</command:parameterValue>
+          <dev:type>
+            <maml:name>Boolean</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>True</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="True (ByPropertyName)" position="4" aliases="none">
+          <maml:name>DoNotReopen</maml:name>
+          <maml:description>
+            <maml:para>Set whether ticket is exempt from automatically updating based on the Reopening Completed/Cancelled Ticket Options or the Completed Ticket Options ticket application settings. Only applicable when the ticket status class is Completed or Cancelled. Default: true.</maml:para>
+          </maml:description>
+          <command:parameterValue required="true" variableLength="false">Boolean</command:parameterValue>
+          <dev:type>
+            <maml:name>Boolean</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>True</dev:defaultValue>
+        </command:parameter>
         <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="True (ByPropertyName)" position="5" aliases="none">
           <maml:name>StatusClass</maml:name>
           <maml:description>
@@ -39542,6 +40303,30 @@ New-TDGroup -Name 'Psychobotany Support' -PlatformApplications @($GroupApplicati
           <maml:uri />
         </dev:type>
         <dev:defaultValue>None</dev:defaultValue>
+      </command:parameter>
+      <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="True (ByPropertyName)" position="4" aliases="none">
+        <maml:name>RequireGoesOffHold</maml:name>
+        <maml:description>
+          <maml:para>Set whether ticket requires a Goes Off Hold value. Only applicable when ticket status class is OnHold. Default: true.</maml:para>
+        </maml:description>
+        <command:parameterValue required="true" variableLength="false">Boolean</command:parameterValue>
+        <dev:type>
+          <maml:name>Boolean</maml:name>
+          <maml:uri />
+        </dev:type>
+        <dev:defaultValue>True</dev:defaultValue>
+      </command:parameter>
+      <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="True (ByPropertyName)" position="4" aliases="none">
+        <maml:name>DoNotReopen</maml:name>
+        <maml:description>
+          <maml:para>Set whether ticket is exempt from automatically updating based on the Reopening Completed/Cancelled Ticket Options or the Completed Ticket Options ticket application settings. Only applicable when the ticket status class is Completed or Cancelled. Default: true.</maml:para>
+        </maml:description>
+        <command:parameterValue required="true" variableLength="false">Boolean</command:parameterValue>
+        <dev:type>
+          <maml:name>Boolean</maml:name>
+          <maml:uri />
+        </dev:type>
+        <dev:defaultValue>True</dev:defaultValue>
       </command:parameter>
       <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="True (ByPropertyName)" position="6" aliases="none">
         <maml:name>AppID</maml:name>
@@ -45495,9 +46280,9 @@ $RemoveUserFromFunctionalRole | Remove-TDUserFunctionalRole</dev:code>
   </command:command>
   <command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10" xmlns:MSHelp="http://msdn.microsoft.com/mshelp">
     <command:details>
-      <command:name>Restore-AssetErasedDataError</command:name>
+      <command:name>Restore-TDAssetErasedDataError</command:name>
       <command:verb>Restore</command:verb>
-      <command:noun>AssetErasedDataError</command:noun>
+      <command:noun>TDAssetErasedDataError</command:noun>
       <maml:description>
         <maml:para>Fix errors on assets related to erased data</maml:para>
       </maml:description>
@@ -45507,7 +46292,7 @@ $RemoveUserFromFunctionalRole | Remove-TDUserFunctionalRole</dev:code>
     </maml:description>
     <command:syntax>
       <command:syntaxItem>
-        <maml:name>Restore-AssetErasedDataError</maml:name>
+        <maml:name>Restore-TDAssetErasedDataError</maml:name>
         <command:parameter required="true" variableLength="true" globbing="false" pipelineInput="True (ByValue)" position="1" aliases="none">
           <maml:name>FeedEntry</maml:name>
           <maml:description>
@@ -45546,10 +46331,10 @@ $RemoveUserFromFunctionalRole | Remove-TDUserFunctionalRole</dev:code>
     <command:examples>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-        <dev:code>$AssetChanges = Get-TDAssetFeed -DateFrom 11-2-2018 -DateTo 11-1-2018 -ReturnCount 10000
-$AssetChanges | Restore-AssetErasedDataError</dev:code>
+        <dev:code>$ChangedAssets = Get-TDAsset | Where-Object ModifiedDate -gt 11-1-2018
+$ChangedAssets.ID | ForEach-Object {Get-TDAssetFeed -ID $_ | Select-Object -First 1} | Restore-TDAssetErasedDataError | Set-TDAsset</dev:code>
         <dev:remarks>
-          <maml:para>Retrieves 10,000 changes to assets from November 1, 2018 and finds data that has been erased. Restores that data to the asset records.</maml:para>
+          <maml:para>Retrieves changes to assets after November 1, 2018 and finds data that has been erased. Restores erased data to the asset records.</maml:para>
         </dev:remarks>
       </command:example>
     </command:examples>
@@ -60144,6 +60929,30 @@ Set-TDProductModel -ID 71292 -Attributes @{ID=$OutOfSupportID;Value=$OutOfSuppor
           </dev:type>
           <dev:defaultValue>0</dev:defaultValue>
         </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="True (ByPropertyName)" position="4" aliases="none">
+          <maml:name>RequireGoesOffHold</maml:name>
+          <maml:description>
+            <maml:para>Set whether ticket requires a Goes Off Hold value. Only applicable when ticket status class is OnHold. Default: true.</maml:para>
+          </maml:description>
+          <command:parameterValue required="true" variableLength="false">Boolean</command:parameterValue>
+          <dev:type>
+            <maml:name>Boolean</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>True</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="True (ByPropertyName)" position="4" aliases="none">
+          <maml:name>DoNotReopen</maml:name>
+          <maml:description>
+            <maml:para>Set whether ticket is exempt from automatically updating based on the Reopening Completed/Cancelled Ticket Options or the Completed Ticket Options ticket application settings. Only applicable when the ticket status class is Completed or Cancelled. Default: true.</maml:para>
+          </maml:description>
+          <command:parameterValue required="true" variableLength="false">Boolean</command:parameterValue>
+          <dev:type>
+            <maml:name>Boolean</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>True</dev:defaultValue>
+        </command:parameter>
         <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="True (ByPropertyName)" position="5" aliases="none">
           <maml:name>IsActive</maml:name>
           <maml:description>
@@ -60314,6 +61123,30 @@ Set-TDProductModel -ID 71292 -Attributes @{ID=$OutOfSupportID;Value=$OutOfSuppor
           <maml:uri />
         </dev:type>
         <dev:defaultValue>None</dev:defaultValue>
+      </command:parameter>
+      <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="True (ByPropertyName)" position="4" aliases="none">
+        <maml:name>RequireGoesOffHold</maml:name>
+        <maml:description>
+          <maml:para>Set whether ticket requires a Goes Off Hold value. Only applicable when ticket status class is OnHold. Default: true.</maml:para>
+        </maml:description>
+        <command:parameterValue required="true" variableLength="false">Boolean</command:parameterValue>
+        <dev:type>
+          <maml:name>Boolean</maml:name>
+          <maml:uri />
+        </dev:type>
+        <dev:defaultValue>True</dev:defaultValue>
+      </command:parameter>
+      <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="True (ByPropertyName)" position="4" aliases="none">
+        <maml:name>DoNotReopen</maml:name>
+        <maml:description>
+          <maml:para>Set whether ticket is exempt from automatically updating based on the Reopening Completed/Cancelled Ticket Options or the Completed Ticket Options ticket application settings. Only applicable when the ticket status class is Completed or Cancelled. Default: true.</maml:para>
+        </maml:description>
+        <command:parameterValue required="true" variableLength="false">Boolean</command:parameterValue>
+        <dev:type>
+          <maml:name>Boolean</maml:name>
+          <maml:uri />
+        </dev:type>
+        <dev:defaultValue>True</dev:defaultValue>
       </command:parameter>
       <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="True (ByPropertyName)" position="7" aliases="none">
         <maml:name>AppID</maml:name>
@@ -60813,6 +61646,575 @@ Set-TDProductModel -ID 71292 -Attributes @{ID=$OutOfSupportID;Value=$OutOfSuppor
         <dev:code>Set-TDTicketTask -ID 99432 -TaskID 27744 -Title 'First task' -ResponsibleUID XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX</dev:code>
         <dev:remarks>
           <maml:para>Changes task with ID 27744 to title "First task" on ticket wth ID 99432 in TeamDynamix.</maml:para>
+        </dev:remarks>
+      </command:example>
+    </command:examples>
+    <command:relatedLinks />
+  </command:command>
+  <command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10" xmlns:MSHelp="http://msdn.microsoft.com/mshelp">
+    <command:details>
+      <command:name>Set-TDTicketWorkflow</command:name>
+      <command:verb>Set</command:verb>
+      <command:noun>TDTicketWorkflow</command:noun>
+      <maml:description>
+        <maml:para>Assign or replace workflow to a ticket.</maml:para>
+      </maml:description>
+    </command:details>
+    <maml:description>
+      <maml:para>Assign a workflow to a ticket if none was present before or, optionally, replace an existing workflow.</maml:para>
+    </maml:description>
+    <command:syntax>
+      <command:syntaxItem>
+        <maml:name>Set-TDTicketWorkflow</maml:name>
+        <command:parameter required="true" variableLength="true" globbing="false" pipelineInput="True (ByPropertyName)" position="0" aliases="none">
+          <maml:name>ID</maml:name>
+          <maml:description>
+            <maml:para>Ticket ID to assign workflow to on TeamDynamix.</maml:para>
+          </maml:description>
+          <command:parameterValue required="true" variableLength="false">Int32</command:parameterValue>
+          <dev:type>
+            <maml:name>Int32</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>None</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="true" variableLength="true" globbing="false" pipelineInput="True (ByPropertyName)" position="1" aliases="none">
+          <maml:name>NewWorkflowID</maml:name>
+          <maml:description>
+            <maml:para>Workflow ID to assign to ticket on TeamDynamix.</maml:para>
+          </maml:description>
+          <command:parameterValue required="true" variableLength="false">Int32</command:parameterValue>
+          <dev:type>
+            <maml:name>Int32</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>None</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="True (ByPropertyName)" position="2" aliases="none">
+          <maml:name>AppID</maml:name>
+          <maml:description>
+            <maml:para>Application ID for the ticketing app.</maml:para>
+          </maml:description>
+          <command:parameterValue required="true" variableLength="false">Int32</command:parameterValue>
+          <dev:type>
+            <maml:name>Int32</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>None</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="3" aliases="none">
+          <maml:name>AuthenticationToken</maml:name>
+          <maml:description>
+            <maml:para>Hashtable with one key: "Authorization" and value of "Bearer" followed by the JSON bearer web token. See Set-TDAuthentication.</maml:para>
+          </maml:description>
+          <command:parameterValue required="true" variableLength="false">Hashtable</command:parameterValue>
+          <dev:type>
+            <maml:name>Hashtable</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>None</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="4" aliases="none">
+          <maml:name>Environment</maml:name>
+          <maml:description>
+            <maml:para>Execute the commands on the specified TeamDynamix site. Valid options are "Production", "Sandbox", and "Preview". Default is the site selected when the module was loaded.</maml:para>
+          </maml:description>
+          <command:parameterValueGroup>
+            <command:parameterValue required="false" command:variableLength="false">Production</command:parameterValue>
+            <command:parameterValue required="false" command:variableLength="false">Sandbox</command:parameterValue>
+            <command:parameterValue required="false" command:variableLength="false">Preview</command:parameterValue>
+          </command:parameterValueGroup>
+          <command:parameterValue required="true" variableLength="false">EnvironmentChoices</command:parameterValue>
+          <dev:type>
+            <maml:name>EnvironmentChoices</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>None</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="True (ByPropertyName)" position="named" aliases="none">
+          <maml:name>AllowRemoveExisting</maml:name>
+          <maml:description>
+            <maml:para>Replace existing workflow on ticket. Omitting this option causes the command to function only on tickets with no workflow.</maml:para>
+          </maml:description>
+          <dev:type>
+            <maml:name>SwitchParameter</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>False</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="cf">
+          <maml:name>Confirm</maml:name>
+          <maml:description>
+            <maml:para>Prompts you for confirmation before running the cmdlet.</maml:para>
+          </maml:description>
+          <dev:type>
+            <maml:name>SwitchParameter</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>False</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="wi">
+          <maml:name>WhatIf</maml:name>
+          <maml:description>
+            <maml:para>Shows what would happen if the cmdlet runs. The cmdlet is not run.</maml:para>
+          </maml:description>
+          <dev:type>
+            <maml:name>SwitchParameter</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>False</dev:defaultValue>
+        </command:parameter>
+      </command:syntaxItem>
+    </command:syntax>
+    <command:parameters>
+      <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="True (ByPropertyName)" position="named" aliases="none">
+        <maml:name>AllowRemoveExisting</maml:name>
+        <maml:description>
+          <maml:para>Replace existing workflow on ticket. Omitting this option causes the command to function only on tickets with no workflow.</maml:para>
+        </maml:description>
+        <command:parameterValue required="false" variableLength="false">SwitchParameter</command:parameterValue>
+        <dev:type>
+          <maml:name>SwitchParameter</maml:name>
+          <maml:uri />
+        </dev:type>
+        <dev:defaultValue>False</dev:defaultValue>
+      </command:parameter>
+      <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="True (ByPropertyName)" position="2" aliases="none">
+        <maml:name>AppID</maml:name>
+        <maml:description>
+          <maml:para>Application ID for the ticketing app.</maml:para>
+        </maml:description>
+        <command:parameterValue required="true" variableLength="false">Int32</command:parameterValue>
+        <dev:type>
+          <maml:name>Int32</maml:name>
+          <maml:uri />
+        </dev:type>
+        <dev:defaultValue>None</dev:defaultValue>
+      </command:parameter>
+      <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="3" aliases="none">
+        <maml:name>AuthenticationToken</maml:name>
+        <maml:description>
+          <maml:para>Hashtable with one key: "Authorization" and value of "Bearer" followed by the JSON bearer web token. See Set-TDAuthentication.</maml:para>
+        </maml:description>
+        <command:parameterValue required="true" variableLength="false">Hashtable</command:parameterValue>
+        <dev:type>
+          <maml:name>Hashtable</maml:name>
+          <maml:uri />
+        </dev:type>
+        <dev:defaultValue>None</dev:defaultValue>
+      </command:parameter>
+      <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="cf">
+        <maml:name>Confirm</maml:name>
+        <maml:description>
+          <maml:para>Prompts you for confirmation before running the cmdlet.</maml:para>
+        </maml:description>
+        <command:parameterValue required="false" variableLength="false">SwitchParameter</command:parameterValue>
+        <dev:type>
+          <maml:name>SwitchParameter</maml:name>
+          <maml:uri />
+        </dev:type>
+        <dev:defaultValue>False</dev:defaultValue>
+      </command:parameter>
+      <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="4" aliases="none">
+        <maml:name>Environment</maml:name>
+        <maml:description>
+          <maml:para>Execute the commands on the specified TeamDynamix site. Valid options are "Production", "Sandbox", and "Preview". Default is the site selected when the module was loaded.</maml:para>
+        </maml:description>
+        <command:parameterValue required="true" variableLength="false">EnvironmentChoices</command:parameterValue>
+        <dev:type>
+          <maml:name>EnvironmentChoices</maml:name>
+          <maml:uri />
+        </dev:type>
+        <dev:defaultValue>None</dev:defaultValue>
+      </command:parameter>
+      <command:parameter required="true" variableLength="true" globbing="false" pipelineInput="True (ByPropertyName)" position="0" aliases="none">
+        <maml:name>ID</maml:name>
+        <maml:description>
+          <maml:para>Ticket ID to assign workflow to on TeamDynamix.</maml:para>
+        </maml:description>
+        <command:parameterValue required="true" variableLength="false">Int32</command:parameterValue>
+        <dev:type>
+          <maml:name>Int32</maml:name>
+          <maml:uri />
+        </dev:type>
+        <dev:defaultValue>None</dev:defaultValue>
+      </command:parameter>
+      <command:parameter required="true" variableLength="true" globbing="false" pipelineInput="True (ByPropertyName)" position="1" aliases="none">
+        <maml:name>NewWorkflowID</maml:name>
+        <maml:description>
+          <maml:para>Workflow ID to assign to ticket on TeamDynamix.</maml:para>
+        </maml:description>
+        <command:parameterValue required="true" variableLength="false">Int32</command:parameterValue>
+        <dev:type>
+          <maml:name>Int32</maml:name>
+          <maml:uri />
+        </dev:type>
+        <dev:defaultValue>None</dev:defaultValue>
+      </command:parameter>
+      <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="wi">
+        <maml:name>WhatIf</maml:name>
+        <maml:description>
+          <maml:para>Shows what would happen if the cmdlet runs. The cmdlet is not run.</maml:para>
+        </maml:description>
+        <command:parameterValue required="false" variableLength="false">SwitchParameter</command:parameterValue>
+        <dev:type>
+          <maml:name>SwitchParameter</maml:name>
+          <maml:uri />
+        </dev:type>
+        <dev:defaultValue>False</dev:defaultValue>
+      </command:parameter>
+    </command:parameters>
+    <command:inputTypes>
+      <command:inputType>
+        <dev:type>
+          <maml:name>System.Int32</maml:name>
+        </dev:type>
+        <maml:description>
+          <maml:para></maml:para>
+        </maml:description>
+      </command:inputType>
+      <command:inputType>
+        <dev:type>
+          <maml:name>System.Management.Automation.SwitchParameter</maml:name>
+        </dev:type>
+        <maml:description>
+          <maml:para></maml:para>
+        </maml:description>
+      </command:inputType>
+    </command:inputTypes>
+    <command:returnValues>
+      <command:returnValue>
+        <dev:type>
+          <maml:name>System.Object</maml:name>
+        </dev:type>
+        <maml:description>
+          <maml:para></maml:para>
+        </maml:description>
+      </command:returnValue>
+    </command:returnValues>
+    <maml:alertSet>
+      <maml:alert>
+        <maml:para>Author: Brian Keller &lt;keller.4@osu.edu&gt;</maml:para>
+      </maml:alert>
+    </maml:alertSet>
+    <command:examples>
+      <command:example>
+        <maml:title>-------------------------- Example 1 --------------------------</maml:title>
+        <dev:code>PS C:\&gt; Set-TDTicketWorkflow -ID 551083 -NewWorkflowID 10874</dev:code>
+        <dev:remarks>
+          <maml:para>Assign the specified workflow to the specified ticket if no workflow is currently assigned. If a workflow is currently assigned, the command will fail with an error.</maml:para>
+        </dev:remarks>
+      </command:example>
+      <command:example>
+        <maml:title>-------------------------- Example 2 --------------------------</maml:title>
+        <dev:code>PS C:\&gt; Set-TDTicketWorkflow -ID 551083 -NewWorkflowID 10874 -AllowRemoveExisting</dev:code>
+        <dev:remarks>
+          <maml:para>Assign the specified workflow to the specified ticket replacing any existing workflow that may be currently assigned.</maml:para>
+        </dev:remarks>
+      </command:example>
+    </command:examples>
+    <command:relatedLinks />
+  </command:command>
+  <command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10" xmlns:MSHelp="http://msdn.microsoft.com/mshelp">
+    <command:details>
+      <command:name>Set-TDTicketWorkflowStepAssignment</command:name>
+      <command:verb>Set</command:verb>
+      <command:noun>TDTicketWorkflowStepAssignment</command:noun>
+      <maml:description>
+        <maml:para>Assign workflow step to user or group.</maml:para>
+      </maml:description>
+    </command:details>
+    <maml:description>
+      <maml:para>Assign ticket workflow step to a user or group.</maml:para>
+    </maml:description>
+    <command:syntax>
+      <command:syntaxItem>
+        <maml:name>Set-TDTicketWorkflowStepAssignment</maml:name>
+        <command:parameter required="true" variableLength="true" globbing="false" pipelineInput="True (ByPropertyName)" position="0" aliases="none">
+          <maml:name>ID</maml:name>
+          <maml:description>
+            <maml:para>Ticket ID for the ticket workflow on TeamDynamix.</maml:para>
+          </maml:description>
+          <command:parameterValue required="true" variableLength="false">Int32</command:parameterValue>
+          <dev:type>
+            <maml:name>Int32</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>None</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="true" variableLength="true" globbing="false" pipelineInput="True (ByPropertyName)" position="1" aliases="none">
+          <maml:name>StepID</maml:name>
+          <maml:description>
+            <maml:para>ID of the ticket workflow step to assign to a user or group.</maml:para>
+          </maml:description>
+          <command:parameterValue required="true" variableLength="false">Guid</command:parameterValue>
+          <dev:type>
+            <maml:name>Guid</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>None</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="True (ByPropertyName)" position="2" aliases="none">
+          <maml:name>UserID</maml:name>
+          <maml:description>
+            <maml:para>User to assign ticket workflow step to.</maml:para>
+          </maml:description>
+          <command:parameterValue required="true" variableLength="false">Guid</command:parameterValue>
+          <dev:type>
+            <maml:name>Guid</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>None</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="True (ByPropertyName)" position="3" aliases="none">
+          <maml:name>GroupID</maml:name>
+          <maml:description>
+            <maml:para>Group to assign ticket workflow step to.</maml:para>
+          </maml:description>
+          <command:parameterValue required="true" variableLength="false">Int32</command:parameterValue>
+          <dev:type>
+            <maml:name>Int32</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>None</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="True (ByPropertyName)" position="4" aliases="none">
+          <maml:name>AppID</maml:name>
+          <maml:description>
+            <maml:para>Application ID for the ticketing app.</maml:para>
+          </maml:description>
+          <command:parameterValue required="true" variableLength="false">Int32</command:parameterValue>
+          <dev:type>
+            <maml:name>Int32</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>None</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="5" aliases="none">
+          <maml:name>AuthenticationToken</maml:name>
+          <maml:description>
+            <maml:para>Hashtable with one key: "Authorization" and value of "Bearer" followed by the JSON bearer web token. See Set-TDAuthentication.</maml:para>
+          </maml:description>
+          <command:parameterValue required="true" variableLength="false">Hashtable</command:parameterValue>
+          <dev:type>
+            <maml:name>Hashtable</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>None</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="6" aliases="none">
+          <maml:name>Environment</maml:name>
+          <maml:description>
+            <maml:para>Execute the commands on the specified TeamDynamix site. Valid options are "Production", "Sandbox", and "Preview". Default is the site selected when the module was loaded.</maml:para>
+          </maml:description>
+          <command:parameterValueGroup>
+            <command:parameterValue required="false" command:variableLength="false">Production</command:parameterValue>
+            <command:parameterValue required="false" command:variableLength="false">Sandbox</command:parameterValue>
+            <command:parameterValue required="false" command:variableLength="false">Preview</command:parameterValue>
+          </command:parameterValueGroup>
+          <command:parameterValue required="true" variableLength="false">EnvironmentChoices</command:parameterValue>
+          <dev:type>
+            <maml:name>EnvironmentChoices</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>None</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="cf">
+          <maml:name>Confirm</maml:name>
+          <maml:description>
+            <maml:para>Prompts you for confirmation before running the cmdlet.</maml:para>
+          </maml:description>
+          <dev:type>
+            <maml:name>SwitchParameter</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>False</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="wi">
+          <maml:name>WhatIf</maml:name>
+          <maml:description>
+            <maml:para>Shows what would happen if the cmdlet runs. The cmdlet is not run.</maml:para>
+          </maml:description>
+          <dev:type>
+            <maml:name>SwitchParameter</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>False</dev:defaultValue>
+        </command:parameter>
+      </command:syntaxItem>
+    </command:syntax>
+    <command:parameters>
+      <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="True (ByPropertyName)" position="4" aliases="none">
+        <maml:name>AppID</maml:name>
+        <maml:description>
+          <maml:para>Application ID for the ticketing app.</maml:para>
+        </maml:description>
+        <command:parameterValue required="true" variableLength="false">Int32</command:parameterValue>
+        <dev:type>
+          <maml:name>Int32</maml:name>
+          <maml:uri />
+        </dev:type>
+        <dev:defaultValue>None</dev:defaultValue>
+      </command:parameter>
+      <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="5" aliases="none">
+        <maml:name>AuthenticationToken</maml:name>
+        <maml:description>
+          <maml:para>Hashtable with one key: "Authorization" and value of "Bearer" followed by the JSON bearer web token. See Set-TDAuthentication.</maml:para>
+        </maml:description>
+        <command:parameterValue required="true" variableLength="false">Hashtable</command:parameterValue>
+        <dev:type>
+          <maml:name>Hashtable</maml:name>
+          <maml:uri />
+        </dev:type>
+        <dev:defaultValue>None</dev:defaultValue>
+      </command:parameter>
+      <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="cf">
+        <maml:name>Confirm</maml:name>
+        <maml:description>
+          <maml:para>Prompts you for confirmation before running the cmdlet.</maml:para>
+        </maml:description>
+        <command:parameterValue required="false" variableLength="false">SwitchParameter</command:parameterValue>
+        <dev:type>
+          <maml:name>SwitchParameter</maml:name>
+          <maml:uri />
+        </dev:type>
+        <dev:defaultValue>False</dev:defaultValue>
+      </command:parameter>
+      <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="6" aliases="none">
+        <maml:name>Environment</maml:name>
+        <maml:description>
+          <maml:para>Execute the commands on the specified TeamDynamix site. Valid options are "Production", "Sandbox", and "Preview". Default is the site selected when the module was loaded.</maml:para>
+        </maml:description>
+        <command:parameterValue required="true" variableLength="false">EnvironmentChoices</command:parameterValue>
+        <dev:type>
+          <maml:name>EnvironmentChoices</maml:name>
+          <maml:uri />
+        </dev:type>
+        <dev:defaultValue>None</dev:defaultValue>
+      </command:parameter>
+      <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="True (ByPropertyName)" position="3" aliases="none">
+        <maml:name>GroupID</maml:name>
+        <maml:description>
+          <maml:para>Group to assign ticket workflow step to.</maml:para>
+        </maml:description>
+        <command:parameterValue required="true" variableLength="false">Int32</command:parameterValue>
+        <dev:type>
+          <maml:name>Int32</maml:name>
+          <maml:uri />
+        </dev:type>
+        <dev:defaultValue>None</dev:defaultValue>
+      </command:parameter>
+      <command:parameter required="true" variableLength="true" globbing="false" pipelineInput="True (ByPropertyName)" position="0" aliases="none">
+        <maml:name>ID</maml:name>
+        <maml:description>
+          <maml:para>Ticket ID for the ticket workflow on TeamDynamix.</maml:para>
+        </maml:description>
+        <command:parameterValue required="true" variableLength="false">Int32</command:parameterValue>
+        <dev:type>
+          <maml:name>Int32</maml:name>
+          <maml:uri />
+        </dev:type>
+        <dev:defaultValue>None</dev:defaultValue>
+      </command:parameter>
+      <command:parameter required="true" variableLength="true" globbing="false" pipelineInput="True (ByPropertyName)" position="1" aliases="none">
+        <maml:name>StepID</maml:name>
+        <maml:description>
+          <maml:para>ID of the ticket workflow step to assign to a user or group.</maml:para>
+        </maml:description>
+        <command:parameterValue required="true" variableLength="false">Guid</command:parameterValue>
+        <dev:type>
+          <maml:name>Guid</maml:name>
+          <maml:uri />
+        </dev:type>
+        <dev:defaultValue>None</dev:defaultValue>
+      </command:parameter>
+      <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="True (ByPropertyName)" position="2" aliases="none">
+        <maml:name>UserID</maml:name>
+        <maml:description>
+          <maml:para>User to assign ticket workflow step to.</maml:para>
+        </maml:description>
+        <command:parameterValue required="true" variableLength="false">Guid</command:parameterValue>
+        <dev:type>
+          <maml:name>Guid</maml:name>
+          <maml:uri />
+        </dev:type>
+        <dev:defaultValue>None</dev:defaultValue>
+      </command:parameter>
+      <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="wi">
+        <maml:name>WhatIf</maml:name>
+        <maml:description>
+          <maml:para>Shows what would happen if the cmdlet runs. The cmdlet is not run.</maml:para>
+        </maml:description>
+        <command:parameterValue required="false" variableLength="false">SwitchParameter</command:parameterValue>
+        <dev:type>
+          <maml:name>SwitchParameter</maml:name>
+          <maml:uri />
+        </dev:type>
+        <dev:defaultValue>False</dev:defaultValue>
+      </command:parameter>
+    </command:parameters>
+    <command:inputTypes>
+      <command:inputType>
+        <dev:type>
+          <maml:name>System.Int32</maml:name>
+        </dev:type>
+        <maml:description>
+          <maml:para></maml:para>
+        </maml:description>
+      </command:inputType>
+      <command:inputType>
+        <dev:type>
+          <maml:name>System.Guid</maml:name>
+        </dev:type>
+        <maml:description>
+          <maml:para></maml:para>
+        </maml:description>
+      </command:inputType>
+      <command:inputType>
+        <dev:type>
+          <maml:name>System.Nullable`1[[System.Guid, System.Private.CoreLib, Version=6.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]</maml:name>
+        </dev:type>
+        <maml:description>
+          <maml:para></maml:para>
+        </maml:description>
+      </command:inputType>
+      <command:inputType>
+        <dev:type>
+          <maml:name>System.Nullable`1[[System.Int32, System.Private.CoreLib, Version=6.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]</maml:name>
+        </dev:type>
+        <maml:description>
+          <maml:para></maml:para>
+        </maml:description>
+      </command:inputType>
+    </command:inputTypes>
+    <command:returnValues>
+      <command:returnValue>
+        <dev:type>
+          <maml:name>System.Object</maml:name>
+        </dev:type>
+        <maml:description>
+          <maml:para></maml:para>
+        </maml:description>
+      </command:returnValue>
+    </command:returnValues>
+    <maml:alertSet>
+      <maml:alert>
+        <maml:para>Author: Brian Keller &lt;keller.4@osu.edu&gt;</maml:para>
+      </maml:alert>
+    </maml:alertSet>
+    <command:examples>
+      <command:example>
+        <maml:title>-------------------------- Example 1 --------------------------</maml:title>
+        <dev:code>PS C:\&gt; Set-TDTicketWorkflowStepAssignment -ID 771083 -StepID XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX -UserID YYYYYYYY-YYYY-YYYY-YYYY-YYYYYYYYYYYY</dev:code>
+        <dev:remarks>
+          <maml:para>Assign the specified workflow step for the specified ticket to the specified user.</maml:para>
+        </dev:remarks>
+      </command:example>
+      <command:example>
+        <maml:title>-------------------------- Example 2 --------------------------</maml:title>
+        <dev:code>PS C:\&gt; Set-TDTicketWorkflowStepAssignment -ID 771083 -StepID XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX -GroupID 5764</dev:code>
+        <dev:remarks>
+          <maml:para>Assign the specified workflow step for the specified ticket to the specified group.</maml:para>
         </dev:remarks>
       </command:example>
     </command:examples>
@@ -65044,20 +66446,114 @@ Set-TDUser -UID XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX -OrgApplications $UserApp</
       <command:verb>Update</command:verb>
       <command:noun>TDAsset</command:noun>
       <maml:description>
-        <maml:para>Update asset(s) on TeamDynamix from data connectors.</maml:para>
+        <maml:para>Update asset data from ASC in TeamDynamix.</maml:para>
       </maml:description>
     </command:details>
     <maml:description>
-      <maml:para>This function forms a frame for updating assets on TeamDynamix, using data connectors specified in Configuration.psd1.</maml:para>
+      <maml:para>OSU-specific function. This function updates assets on TeamDynamix, using data connectors specified in Configuration.psd1 to map the data fields.</maml:para>
     </maml:description>
     <command:syntax>
       <command:syntaxItem>
         <maml:name>Update-TDAsset</maml:name>
-        <command:parameter required="true" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
-          <maml:name>Name</maml:name>
+        <command:parameter required="true" variableLength="true" globbing="false" pipelineInput="True (ByValue)" position="named" aliases="none">
+          <maml:name>AssetData</maml:name>
           <maml:description>
-            <maml:para>Name of asset to be updated.</maml:para>
+            <maml:para>Data to be used to update TeamDynamix assets.</maml:para>
           </maml:description>
+          <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+          <dev:type>
+            <maml:name>String</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>None</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="true" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+          <maml:name>ScanForNewHardwareTypes</maml:name>
+          <maml:description>
+            <maml:para>Scan data for new hardware types.</maml:para>
+          </maml:description>
+          <dev:type>
+            <maml:name>SwitchParameter</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>False</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+          <maml:name>AppID</maml:name>
+          <maml:description>
+            <maml:para>ID number of the asset application to be updated on TeamDynamix</maml:para>
+          </maml:description>
+          <dev:type>
+            <maml:name>SwitchParameter</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>False</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+          <maml:name>AuthenticationToken</maml:name>
+          <maml:description>
+            <maml:para>Hashtable with one key: "Authorization" and value of "Bearer" followed by the JSON bearer web token. See Set-TDAuthentication.</maml:para>
+          </maml:description>
+          <command:parameterValue required="true" variableLength="false">Hashtable</command:parameterValue>
+          <dev:type>
+            <maml:name>Hashtable</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>$TDAuthentication</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+          <maml:name>Environment</maml:name>
+          <maml:description>
+            <maml:para>Execute the commands on the specified TeamDynamix site. Valid options are "Production", "Sandbox", and "Preview". Default is the site selected when the module was loaded.</maml:para>
+          </maml:description>
+          <command:parameterValueGroup>
+            <command:parameterValue required="false" command:variableLength="false">Production</command:parameterValue>
+            <command:parameterValue required="false" command:variableLength="false">Sandbox</command:parameterValue>
+            <command:parameterValue required="false" command:variableLength="false">Preview</command:parameterValue>
+          </command:parameterValueGroup>
+          <command:parameterValue required="true" variableLength="false">EnvironmentChoices</command:parameterValue>
+          <dev:type>
+            <maml:name>EnvironmentChoices</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>$WorkingEnvironment</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+          <maml:name>Status</maml:name>
+          <maml:description>
+            <maml:para>Equipment status.</maml:para>
+          </maml:description>
+          <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+          <dev:type>
+            <maml:name>String</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>None</dev:defaultValue>
+        </command:parameter>
+      </command:syntaxItem>
+      <command:syntaxItem>
+        <maml:name>Update-TDAsset</maml:name>
+        <command:parameter required="true" variableLength="true" globbing="false" pipelineInput="True (ByValue)" position="named" aliases="none">
+          <maml:name>AssetData</maml:name>
+          <maml:description>
+            <maml:para>Data to be used to update TeamDynamix assets.</maml:para>
+          </maml:description>
+          <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+          <dev:type>
+            <maml:name>String</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>None</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+          <maml:name>DataSource</maml:name>
+          <maml:description>
+            <maml:para>What is the source of the data, to separate between ASC and OCIO sources. Valid entries are OCIO and ASC.</maml:para>
+          </maml:description>
+          <command:parameterValueGroup>
+            <command:parameterValue required="false" command:variableLength="false">ASC</command:parameterValue>
+            <command:parameterValue required="false" command:variableLength="false">OCIO</command:parameterValue>
+          </command:parameterValueGroup>
           <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
           <dev:type>
             <maml:name>String</maml:name>
@@ -65076,13 +66572,39 @@ Set-TDUser -UID XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX -OrgApplications $UserApp</
           </dev:type>
           <dev:defaultValue>False</dev:defaultValue>
         </command:parameter>
-      </command:syntaxItem>
-      <command:syntaxItem>
-        <maml:name>Update-TDAsset</maml:name>
-        <command:parameter required="true" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
-          <maml:name>SerialNumber</maml:name>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+          <maml:name>AuthenticationToken</maml:name>
           <maml:description>
-            <maml:para>Serial number of asset to be updated.</maml:para>
+            <maml:para>Hashtable with one key: "Authorization" and value of "Bearer" followed by the JSON bearer web token. See Set-TDAuthentication.</maml:para>
+          </maml:description>
+          <command:parameterValue required="true" variableLength="false">Hashtable</command:parameterValue>
+          <dev:type>
+            <maml:name>Hashtable</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>$TDAuthentication</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+          <maml:name>Environment</maml:name>
+          <maml:description>
+            <maml:para>Execute the commands on the specified TeamDynamix site. Valid options are "Production", "Sandbox", and "Preview". Default is the site selected when the module was loaded.</maml:para>
+          </maml:description>
+          <command:parameterValueGroup>
+            <command:parameterValue required="false" command:variableLength="false">Production</command:parameterValue>
+            <command:parameterValue required="false" command:variableLength="false">Sandbox</command:parameterValue>
+            <command:parameterValue required="false" command:variableLength="false">Preview</command:parameterValue>
+          </command:parameterValueGroup>
+          <command:parameterValue required="true" variableLength="false">EnvironmentChoices</command:parameterValue>
+          <dev:type>
+            <maml:name>EnvironmentChoices</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>$WorkingEnvironment</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+          <maml:name>Status</maml:name>
+          <maml:description>
+            <maml:para>Equipment status.</maml:para>
           </maml:description>
           <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
           <dev:type>
@@ -65091,50 +66613,69 @@ Set-TDUser -UID XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX -OrgApplications $UserApp</
           </dev:type>
           <dev:defaultValue>None</dev:defaultValue>
         </command:parameter>
-        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
-          <maml:name>AppID</maml:name>
-          <maml:description>
-            <maml:para>ID number of the asset application to be updated on TeamDynamix</maml:para>
-          </maml:description>
-          <dev:type>
-            <maml:name>SwitchParameter</maml:name>
-            <maml:uri />
-          </dev:type>
-          <dev:defaultValue>False</dev:defaultValue>
-        </command:parameter>
       </command:syntaxItem>
       <command:syntaxItem>
         <maml:name>Update-TDAsset</maml:name>
-        <command:parameter required="true" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
-          <maml:name>ID</maml:name>
+        <command:parameter required="true" variableLength="true" globbing="false" pipelineInput="True (ByValue)" position="named" aliases="none">
+          <maml:name>AssetData</maml:name>
           <maml:description>
-            <maml:para>TeamDynamix ID number of asset to be updated.</maml:para>
+            <maml:para>Data to be used to update TeamDynamix assets.</maml:para>
           </maml:description>
-          <command:parameterValue required="true" variableLength="false">Int32</command:parameterValue>
+          <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
           <dev:type>
-            <maml:name>Int32</maml:name>
+            <maml:name>String</maml:name>
             <maml:uri />
           </dev:type>
-          <dev:defaultValue>0</dev:defaultValue>
+          <dev:defaultValue>None</dev:defaultValue>
         </command:parameter>
-        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
-          <maml:name>AppID</maml:name>
-          <maml:description>
-            <maml:para>ID number of the asset application to be updated on TeamDynamix</maml:para>
-          </maml:description>
-          <dev:type>
-            <maml:name>SwitchParameter</maml:name>
-            <maml:uri />
-          </dev:type>
-          <dev:defaultValue>False</dev:defaultValue>
-        </command:parameter>
-      </command:syntaxItem>
-      <command:syntaxItem>
-        <maml:name>Update-TDAsset</maml:name>
         <command:parameter required="true" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
           <maml:name>Template</maml:name>
           <maml:description>
-            <maml:para>ID of asset to be updated</maml:para>
+            <maml:para>Input data from Template. Used for updating data from the field. Expects CSV file with column headers to match names of TeamDynamix asset attributes or custom attributes.</maml:para>
+          </maml:description>
+          <dev:type>
+            <maml:name>SwitchParameter</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>False</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+          <maml:name>OverrideName</maml:name>
+          <maml:description>
+            <maml:para>Override the name check on a template import. Do not check if the name matches the serial number. Overwrites the name of the asset if the template has a different name.</maml:para>
+          </maml:description>
+          <dev:type>
+            <maml:name>SwitchParameter</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>False</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+          <maml:name>OverrideSerialNumber</maml:name>
+          <maml:description>
+            <maml:para>Override the serial number check on a template import. Do not check if the serial number matches the name. Overwrites the serial number of the asset if the template has a different serial number. Use with extreme caution because the serial number is used as an index by automated asset update processes. Overriding the serial number check can result in overwriting the wrong asset, particularly when names are duplicated.</maml:para>
+          </maml:description>
+          <dev:type>
+            <maml:name>SwitchParameter</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>False</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+          <maml:name>AcceptBadSerialNumber</maml:name>
+          <maml:description>
+            <maml:para>Accept bad serial numbers, such as blanks, in template import data. Use with caution because the serial number is used as an index by automated asset update processes. Creating an asset with a bad serial number creates an asset whose serial number is not usable as an index and cannot be managed by the automated asset update processes.</maml:para>
+          </maml:description>
+          <dev:type>
+            <maml:name>SwitchParameter</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>False</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+          <maml:name>TemplateCSVTest</maml:name>
+          <maml:description>
+            <maml:para>Review CSV columns to see which are valid for template import.</maml:para>
           </maml:description>
           <dev:type>
             <maml:name>SwitchParameter</maml:name>
@@ -65152,14 +66693,213 @@ Set-TDUser -UID XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX -OrgApplications $UserApp</
             <maml:uri />
           </dev:type>
           <dev:defaultValue>False</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+          <maml:name>AuthenticationToken</maml:name>
+          <maml:description>
+            <maml:para>Hashtable with one key: "Authorization" and value of "Bearer" followed by the JSON bearer web token. See Set-TDAuthentication.</maml:para>
+          </maml:description>
+          <command:parameterValue required="true" variableLength="false">Hashtable</command:parameterValue>
+          <dev:type>
+            <maml:name>Hashtable</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>$TDAuthentication</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+          <maml:name>Environment</maml:name>
+          <maml:description>
+            <maml:para>Execute the commands on the specified TeamDynamix site. Valid options are "Production", "Sandbox", and "Preview". Default is the site selected when the module was loaded.</maml:para>
+          </maml:description>
+          <command:parameterValueGroup>
+            <command:parameterValue required="false" command:variableLength="false">Production</command:parameterValue>
+            <command:parameterValue required="false" command:variableLength="false">Sandbox</command:parameterValue>
+            <command:parameterValue required="false" command:variableLength="false">Preview</command:parameterValue>
+          </command:parameterValueGroup>
+          <command:parameterValue required="true" variableLength="false">EnvironmentChoices</command:parameterValue>
+          <dev:type>
+            <maml:name>EnvironmentChoices</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>$WorkingEnvironment</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+          <maml:name>Status</maml:name>
+          <maml:description>
+            <maml:para>Equipment status.</maml:para>
+          </maml:description>
+          <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+          <dev:type>
+            <maml:name>String</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>None</dev:defaultValue>
+        </command:parameter>
+      </command:syntaxItem>
+      <command:syntaxItem>
+        <maml:name>Update-TDAsset</maml:name>
+        <command:parameter required="true" variableLength="true" globbing="false" pipelineInput="True (ByValue)" position="named" aliases="none">
+          <maml:name>AssetData</maml:name>
+          <maml:description>
+            <maml:para>Data to be used to update TeamDynamix assets.</maml:para>
+          </maml:description>
+          <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+          <dev:type>
+            <maml:name>String</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>None</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+          <maml:name>AppID</maml:name>
+          <maml:description>
+            <maml:para>ID number of the asset application to be updated on TeamDynamix</maml:para>
+          </maml:description>
+          <dev:type>
+            <maml:name>SwitchParameter</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>False</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+          <maml:name>AuthenticationToken</maml:name>
+          <maml:description>
+            <maml:para>Hashtable with one key: "Authorization" and value of "Bearer" followed by the JSON bearer web token. See Set-TDAuthentication.</maml:para>
+          </maml:description>
+          <command:parameterValue required="true" variableLength="false">Hashtable</command:parameterValue>
+          <dev:type>
+            <maml:name>Hashtable</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>$TDAuthentication</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+          <maml:name>Environment</maml:name>
+          <maml:description>
+            <maml:para>Execute the commands on the specified TeamDynamix site. Valid options are "Production", "Sandbox", and "Preview". Default is the site selected when the module was loaded.</maml:para>
+          </maml:description>
+          <command:parameterValueGroup>
+            <command:parameterValue required="false" command:variableLength="false">Production</command:parameterValue>
+            <command:parameterValue required="false" command:variableLength="false">Sandbox</command:parameterValue>
+            <command:parameterValue required="false" command:variableLength="false">Preview</command:parameterValue>
+          </command:parameterValueGroup>
+          <command:parameterValue required="true" variableLength="false">EnvironmentChoices</command:parameterValue>
+          <dev:type>
+            <maml:name>EnvironmentChoices</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>$WorkingEnvironment</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+          <maml:name>AppName</maml:name>
+          <maml:description>
+            <maml:para>Name of TeamDynamix application.</maml:para>
+          </maml:description>
+          <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+          <dev:type>
+            <maml:name>String</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>None</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+          <maml:name>Status</maml:name>
+          <maml:description>
+            <maml:para>Equipment status.</maml:para>
+          </maml:description>
+          <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+          <dev:type>
+            <maml:name>String</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>None</dev:defaultValue>
+        </command:parameter>
+      </command:syntaxItem>
+      <command:syntaxItem>
+        <maml:name>Update-TDAsset</maml:name>
+        <command:parameter required="true" variableLength="true" globbing="false" pipelineInput="True (ByValue)" position="named" aliases="none">
+          <maml:name>AssetData</maml:name>
+          <maml:description>
+            <maml:para>Data to be used to update TeamDynamix assets.</maml:para>
+          </maml:description>
+          <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+          <dev:type>
+            <maml:name>String</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>None</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+          <maml:name>AppID</maml:name>
+          <maml:description>
+            <maml:para>ID number of the asset application to be updated on TeamDynamix</maml:para>
+          </maml:description>
+          <dev:type>
+            <maml:name>SwitchParameter</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>False</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+          <maml:name>AuthenticationToken</maml:name>
+          <maml:description>
+            <maml:para>Hashtable with one key: "Authorization" and value of "Bearer" followed by the JSON bearer web token. See Set-TDAuthentication.</maml:para>
+          </maml:description>
+          <command:parameterValue required="true" variableLength="false">Hashtable</command:parameterValue>
+          <dev:type>
+            <maml:name>Hashtable</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>$TDAuthentication</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+          <maml:name>Environment</maml:name>
+          <maml:description>
+            <maml:para>Execute the commands on the specified TeamDynamix site. Valid options are "Production", "Sandbox", and "Preview". Default is the site selected when the module was loaded.</maml:para>
+          </maml:description>
+          <command:parameterValueGroup>
+            <command:parameterValue required="false" command:variableLength="false">Production</command:parameterValue>
+            <command:parameterValue required="false" command:variableLength="false">Sandbox</command:parameterValue>
+            <command:parameterValue required="false" command:variableLength="false">Preview</command:parameterValue>
+          </command:parameterValueGroup>
+          <command:parameterValue required="true" variableLength="false">EnvironmentChoices</command:parameterValue>
+          <dev:type>
+            <maml:name>EnvironmentChoices</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>$WorkingEnvironment</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+          <maml:name>Status</maml:name>
+          <maml:description>
+            <maml:para>Equipment status.</maml:para>
+          </maml:description>
+          <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+          <dev:type>
+            <maml:name>String</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>None</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="true" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+          <maml:name>ConnectorName</maml:name>
+          <maml:description>
+            <maml:para>Name of data connector.</maml:para>
+          </maml:description>
+          <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+          <dev:type>
+            <maml:name>String</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>None</dev:defaultValue>
         </command:parameter>
       </command:syntaxItem>
     </command:syntax>
     <command:parameters>
-      <command:parameter required="true" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
-        <maml:name>Name</maml:name>
+      <command:parameter required="true" variableLength="true" globbing="false" pipelineInput="True (ByValue)" position="named" aliases="none">
+        <maml:name>AssetData</maml:name>
         <maml:description>
-          <maml:para>Name of asset to be updated.</maml:para>
+          <maml:para>Data to be used to update TeamDynamix assets.</maml:para>
         </maml:description>
         <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
         <dev:type>
@@ -65169,9 +66909,21 @@ Set-TDUser -UID XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX -OrgApplications $UserApp</
         <dev:defaultValue>None</dev:defaultValue>
       </command:parameter>
       <command:parameter required="true" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
-        <maml:name>SerialNumber</maml:name>
+        <maml:name>ScanForNewHardwareTypes</maml:name>
         <maml:description>
-          <maml:para>Serial number of asset to be updated.</maml:para>
+          <maml:para>Scan data for new hardware types.</maml:para>
+        </maml:description>
+        <command:parameterValue required="false" variableLength="false">SwitchParameter</command:parameterValue>
+        <dev:type>
+          <maml:name>SwitchParameter</maml:name>
+          <maml:uri />
+        </dev:type>
+        <dev:defaultValue>False</dev:defaultValue>
+      </command:parameter>
+      <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+        <maml:name>DataSource</maml:name>
+        <maml:description>
+          <maml:para>What is the source of the data, to separate between ASC and OCIO sources. Valid entries are OCIO and ASC.</maml:para>
         </maml:description>
         <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
         <dev:type>
@@ -65179,23 +66931,59 @@ Set-TDUser -UID XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX -OrgApplications $UserApp</
           <maml:uri />
         </dev:type>
         <dev:defaultValue>None</dev:defaultValue>
-      </command:parameter>
-      <command:parameter required="true" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
-        <maml:name>ID</maml:name>
-        <maml:description>
-          <maml:para>TeamDynamix ID number of asset to be updated.</maml:para>
-        </maml:description>
-        <command:parameterValue required="true" variableLength="false">Int32</command:parameterValue>
-        <dev:type>
-          <maml:name>Int32</maml:name>
-          <maml:uri />
-        </dev:type>
-        <dev:defaultValue>0</dev:defaultValue>
       </command:parameter>
       <command:parameter required="true" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
         <maml:name>Template</maml:name>
         <maml:description>
-          <maml:para>ID of asset to be updated</maml:para>
+          <maml:para>Input data from Template. Used for updating data from the field. Expects CSV file with column headers to match names of TeamDynamix asset attributes or custom attributes.</maml:para>
+        </maml:description>
+        <command:parameterValue required="false" variableLength="false">SwitchParameter</command:parameterValue>
+        <dev:type>
+          <maml:name>SwitchParameter</maml:name>
+          <maml:uri />
+        </dev:type>
+        <dev:defaultValue>False</dev:defaultValue>
+      </command:parameter>
+      <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+        <maml:name>OverrideName</maml:name>
+        <maml:description>
+          <maml:para>Override the name check on a template import. Do not check if the name matches the serial number. Overwrites the name of the asset if the template has a different name.</maml:para>
+        </maml:description>
+        <command:parameterValue required="false" variableLength="false">SwitchParameter</command:parameterValue>
+        <dev:type>
+          <maml:name>SwitchParameter</maml:name>
+          <maml:uri />
+        </dev:type>
+        <dev:defaultValue>False</dev:defaultValue>
+      </command:parameter>
+      <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+        <maml:name>OverrideSerialNumber</maml:name>
+        <maml:description>
+          <maml:para>Override the serial number check on a template import. Do not check if the serial number matches the name. Overwrites the serial number of the asset if the template has a different serial number. Use with extreme caution because the serial number is used as an index by automated asset update processes. Overriding the serial number check can result in overwriting the wrong asset, particularly when names are duplicated.</maml:para>
+        </maml:description>
+        <command:parameterValue required="false" variableLength="false">SwitchParameter</command:parameterValue>
+        <dev:type>
+          <maml:name>SwitchParameter</maml:name>
+          <maml:uri />
+        </dev:type>
+        <dev:defaultValue>False</dev:defaultValue>
+      </command:parameter>
+      <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+        <maml:name>AcceptBadSerialNumber</maml:name>
+        <maml:description>
+          <maml:para>Accept bad serial numbers, such as blanks, in template import data. Use with caution because the serial number is used as an index by automated asset update processes. Creating an asset with a bad serial number creates an asset whose serial number is not usable as an index and cannot be managed by the automated asset update processes.</maml:para>
+        </maml:description>
+        <command:parameterValue required="false" variableLength="false">SwitchParameter</command:parameterValue>
+        <dev:type>
+          <maml:name>SwitchParameter</maml:name>
+          <maml:uri />
+        </dev:type>
+        <dev:defaultValue>False</dev:defaultValue>
+      </command:parameter>
+      <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+        <maml:name>TemplateCSVTest</maml:name>
+        <maml:description>
+          <maml:para>Review CSV columns to see which are valid for template import.</maml:para>
         </maml:description>
         <command:parameterValue required="false" variableLength="false">SwitchParameter</command:parameterValue>
         <dev:type>
@@ -65215,6 +67003,66 @@ Set-TDUser -UID XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX -OrgApplications $UserApp</
           <maml:uri />
         </dev:type>
         <dev:defaultValue>False</dev:defaultValue>
+      </command:parameter>
+      <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+        <maml:name>AuthenticationToken</maml:name>
+        <maml:description>
+          <maml:para>Hashtable with one key: "Authorization" and value of "Bearer" followed by the JSON bearer web token. See Set-TDAuthentication.</maml:para>
+        </maml:description>
+        <command:parameterValue required="true" variableLength="false">Hashtable</command:parameterValue>
+        <dev:type>
+          <maml:name>Hashtable</maml:name>
+          <maml:uri />
+        </dev:type>
+        <dev:defaultValue>$TDAuthentication</dev:defaultValue>
+      </command:parameter>
+      <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+        <maml:name>Environment</maml:name>
+        <maml:description>
+          <maml:para>Execute the commands on the specified TeamDynamix site. Valid options are "Production", "Sandbox", and "Preview". Default is the site selected when the module was loaded.</maml:para>
+        </maml:description>
+        <command:parameterValue required="true" variableLength="false">EnvironmentChoices</command:parameterValue>
+        <dev:type>
+          <maml:name>EnvironmentChoices</maml:name>
+          <maml:uri />
+        </dev:type>
+        <dev:defaultValue>$WorkingEnvironment</dev:defaultValue>
+      </command:parameter>
+      <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+        <maml:name>AppName</maml:name>
+        <maml:description>
+          <maml:para>Name of TeamDynamix application.</maml:para>
+        </maml:description>
+        <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+        <dev:type>
+          <maml:name>String</maml:name>
+          <maml:uri />
+        </dev:type>
+        <dev:defaultValue>None</dev:defaultValue>
+      </command:parameter>
+      <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+        <maml:name>Status</maml:name>
+        <maml:description>
+          <maml:para>Equipment status.</maml:para>
+        </maml:description>
+        <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+        <dev:type>
+          <maml:name>String</maml:name>
+          <maml:uri />
+        </dev:type>
+        <dev:defaultValue>None</dev:defaultValue>
+      </command:parameter>
+      <command:parameter required="true" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+        <maml:name>ConnectorName</maml:name>
+        <maml:description>
+          <maml:para>Name of data connector.</maml:para>
+        </maml:description>
+        <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+        <dev:type>
+          <maml:name>String</maml:name>
+          <maml:uri />
+        </dev:type>
+        <dev:defaultValue>None</dev:defaultValue>
       </command:parameter>
     </command:parameters>
     <command:inputTypes />

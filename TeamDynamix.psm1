@@ -16,11 +16,20 @@
 #   Import-Module PlatyPS
 #  Help files are stored as markdown files in .\Docs
 #  When new modules are created or their help is updated in comment-based help, issue the following command
-#   Update-MarkdownHelpModule .\docs
+#   Update-MarkdownHelpModule -OutputFolder .\docs\
+#  When new commands are added, issue the following command to create new MarkDown help files:
+#   New-MarkdownHelp -Command "New-CommandName" -OutputFolder .\docs\
 #  Issue the following commands to update XML help file
 #   New-ExternalHelp -Path .\Docs -OutputPath .\en-US\ -Force
 
-Write-Progress -ID 100 -Activity 'Loading module' -Status 'Setting up environment' -PercentComplete 0
+# Operational note on code signing
+#  When code is modified, issue the following commands to update the code-signing:
+<#
+    $Certificate = (Get-ChildItem cert:\\CurrentUser\\My -codesign)
+    Get-ChildItem *.ps* -Recurse | Set-AuthenticodeSignature -Certificate $Certificate -TimestampServer http://timestamp.comodoca.com?td=sha256
+#>
+
+Write-Progress -ID 100 -Activity 'Loading module' -Status 'Setting up environment' -PercentComplete 33
 
 # Update/create configuration file
 #  If Configuration.psd1 is present, extract its settings
@@ -422,6 +431,21 @@ enum TeamDynamix_Api_Plans_RelationshipType {
     StartToEnd   = 2
     StartToStart = 3
 }
+
+# Ways in which a workflow progresses in response to actions taken
+enum TeamDynamix_Api_WorkflowEngine_WorkflowAdvancement {
+    None     = 0
+    Approve  = 1
+    Reject   = 2
+    Complete = 3
+    Neutral  = 4
+    Skip     = 5}
+
+# Statuses of a workflow
+enum TeamDynamix_Api_WorkflowEngine_WorkflowStatus {
+    None     = 0
+    Approved = 1
+    Rejected = 2}
 #endregion
 
 #region Class definitions
@@ -562,21 +586,23 @@ class TeamDynamix_Api_CustomAttributes_CustomAttribute
 
     # Methods
     Static [TeamDynamix_Api_CustomAttributes_CustomAttribute[]] GetCustomAttribute(
-        [int]$ID,
+        [int]               $ID,
         [TeamDynamix_Api_CustomAttributes_CustomAttributeComponent]$Component,
-        [hashtable]$TDAuthentication,
+        [int]               $AppID,
+        [hashtable]         $TDAuthentication,
         [EnvironmentChoices]$Environment)
     {
-        return (Get-TDCustomAttribute -ComponentID $Component -AuthenticationToken $TDAuthentication -Environment $Environment | Where-Object ID -eq $ID)
+        return $script:TDCustomAttributes.Get($ID,$Component,$AppID,$Environment)
     }
 
     Static [TeamDynamix_Api_CustomAttributes_CustomAttribute[]] GetCustomAttribute(
-        [string] $Name,
+        [string]            $Name,
         [TeamDynamix_Api_CustomAttributes_CustomAttributeComponent]$Component,
-        [hashtable]$TDAuthentication,
+        [int]               $AppID,
+        [hashtable]         $TDAuthentication,
         [EnvironmentChoices]$Environment)
     {
-        return (Get-TDCustomAttribute -ComponentID $Component -AuthenticationToken $TDAuthentication -Environment $Environment | Where-Object Name -eq $Name)
+        return $script:TDCustomAttributes.Get($Name,$Component,$AppID,$Environment)
     }
 
     # Convenience constructor for editable parameters
@@ -601,13 +627,14 @@ class TeamDynamix_Api_CustomAttributes_CustomAttribute
     }
 
     TeamDynamix_Api_CustomAttributes_CustomAttribute(
-        [string] $AttributeName,
-        [string] $AttributeValue,
+        [string]            $AttributeName,
+        [string]            $AttributeValue,
         [TeamDynamix_Api_CustomAttributes_CustomAttributeComponent]$Component,
-        [hashtable]$TDAuthentication,
+        [int]               $AppID,
+        [hashtable]         $TDAuthentication,
         [EnvironmentChoices]$Environment)
     {
-        $Attribute = [TeamDynamix_Api_CustomAttributes_CustomAttribute]::GetCustomAttribute($AttributeName,$Component,$TDAuthentication,$Environment)
+        $Attribute = [TeamDynamix_Api_CustomAttributes_CustomAttribute]::GetCustomAttribute($AttributeName,$Component,$AppID,$TDAuthentication,$Environment)
         $this.ID   = $Attribute.ID
         $this.Name = $AttributeName
         # Assign value directly if there are no choices or the AttributeValue is blank
@@ -1079,7 +1106,7 @@ class TeamDynamix_Api_Assets_AssetStatus
         [hashtable]         $TDAuthentication,
         [EnvironmentChoices]$Environment)
     {
-        return (Get-TDAssetStatus -AuthenticationToken $TDAuthentication -Environment $Environment)
+        return ($script:TDAssetStatuses.GetAll($Environment))
     }
 }
 
@@ -1505,10 +1532,11 @@ class TeamDynamix_Api_Assets_Asset
         [string]   $AttributeName,
         [string]   $AttributeValue,
         [boolean]  $Overwrite,
+        [int]      $AppID,
         [hashtable]$TDAuthentication,
         [EnvironmentChoices]$Environment)
     {
-        $this.AddCustomAttribute([TeamDynamix_Api_CustomAttributes_CustomAttribute]::new($AttributeName,$AttributeValue,'Asset',$TDAuthentication,$Environment),$Overwrite)
+        $this.AddCustomAttribute([TeamDynamix_Api_CustomAttributes_CustomAttribute]::new($AttributeName,$AttributeValue,'Asset',$AppID,$TDAuthentication,$Environment),$Overwrite)
     }
 
     [void] AddCustomAttribute (
@@ -1527,10 +1555,11 @@ class TeamDynamix_Api_Assets_Asset
     [void] AddCustomAttribute (
         [string]   $AttributeName,
         [string]   $AttributeValue,
+        [int]      $AppID,
         [hashtable]$TDAuthentication,
         [EnvironmentChoices]$Environment)
     {
-        $this.AddCustomAttribute($AttributeName,$AttributeValue,$false,$TDAuthentication,$Environment)
+        $this.AddCustomAttribute($AttributeName,$AttributeValue,$false,$AppID,$TDAuthentication,$Environment)
     }
 
     [void] RemoveCustomAttribute (
@@ -1552,7 +1581,7 @@ class TeamDynamix_Api_Assets_Asset
         [hashtable]$TDAuthentication,
         [EnvironmentChoices]$Environment)
     {
-        $this.AppID = (Get-TDApplication -AuthenticationToken $TDAuthentication -Environment $Environment | Where-Object Name -eq $AppName).AppID
+        $this.AppID = ($script:TDApplications.Get($AppName,$Environment)).AppID
     }
 
     [void] SetStatusID (
@@ -1671,10 +1700,11 @@ class TeamDynamix_Api_Assets_Asset
     }
 
     Static [TeamDynamix_Api_CustomAttributes_CustomAttribute[]] GetCustomAttributes (
-        [hashtable]$TDAuthentication,
+        [int]               $AppID,
+        [hashtable]         $TDAuthentication,
         [EnvironmentChoices]$Environment)
     {
-        return (Get-TDCustomAttribute -ComponentID Asset -AuthenticationToken $TDAuthentication -Environment $Environment)
+        return $script:TDCustomAttributes.GetAll([TeamDynamix_Api_CustomAttributes_CustomAttributeComponent]'Asset',$AppID,$Environment)
     }
 }
 
@@ -2686,7 +2716,7 @@ class TeamDynamix_Api_Forms_Form
         [hashtable]$TDAuthentication,
         [EnvironmentChoices]$Environment)
     {
-        return (Get-TDForm -AuthenticationToken $TDAuthentication -Environment $Environment)
+        return ($script:TDForms.GetAll($Environment))
     }
 
     Static [TeamDynamix_Api_Forms_Form[]] GetForm (
@@ -2694,7 +2724,7 @@ class TeamDynamix_Api_Forms_Form
         [hashtable]$TDAuthentication,
         [EnvironmentChoices]$Environment)
     {
-        return (Get-TDForm -AppID $AppID -AuthenticationToken $TDAuthentication -Environment $Environment)
+        return ($script:TDForms.GetAll($AppID,$Environment))
     }
 }
 
@@ -2879,17 +2909,18 @@ class TeamDynamix_Api_Accounts_Account
 
     # Methods
     Static [TeamDynamix_Api_CustomAttributes_CustomAttribute[]] GetCustomAttributes (
-        [hashtable]$TDAuthentication,
+        [int]               $AppID,
+        [hashtable]         $TDAuthentication,
         [EnvironmentChoices]$Environment)
     {
-        return (Get-TDCustomAttribute -ComponentID Account -AuthenticationToken $TDAuthentication -Environment $Environment)
+        return $script:TDCustomAttributes.GetAll([TeamDynamix_Api_CustomAttributes_CustomAttributeComponent]'Account',$AppID,$Environment)
     }
 
     Static [TeamDynamix_Api_Accounts_Account[]] GetDepartment (
         [hashtable]$TDAuthentication,
         [EnvironmentChoices]$Environment)
     {
-        return (Get-TDDepartment -AuthenticationToken $TDAuthentication -Environment $Environment)
+        return ($script:TDAccounts.GetAll($Environment))
     }
 }
 
@@ -3358,7 +3389,6 @@ class TeamDynamix_Api_Users_User
         }
     }
 
-
     [void] AddCustomAttribute (
         [int]    $AttributeID,
         [int]    $AttributeValue,
@@ -3442,7 +3472,7 @@ class TeamDynamix_Api_Users_User
         [hashtable]$TDAuthentication,
         [EnvironmentChoices]$Environment)
     {
-        $this.SecurityRoleID = (Get-TDSecurityRole -AuthenticationToken $TDAuthentication -Environment $Environment | Where-Object Name -eq $SecurityRoleName).ID
+        $this.SecurityRoleID = ($script:TDSecurityRoles.Get($SecurityRoleName,$Environment)).ID
     }
 
     [void] SetDefaultPriorityID (
@@ -3450,7 +3480,7 @@ class TeamDynamix_Api_Users_User
         [hashtable]$TDAuthentication,
         [EnvironmentChoices]$Environment)
     {
-        $this.DefaultPriorityID = (Get-TDTicketPriority -AuthenticationToken $TDAuthentication -Environment $Environment | Where-Object Name -eq $DefaultPriorityName).ID
+        $this.DefaultPriorityID = (script:TDTicketPriorities.Get($DefaultPriorityName,$Environment)).ID
     }
 
     [void] SetTZID (
@@ -3458,7 +3488,7 @@ class TeamDynamix_Api_Users_User
         [hashtable]$TDAuthentication,
         [EnvironmentChoices]$Environment)
     {
-        $this.SetTZID = (Get-TDTimeZoneInformation -AuthenticationToken $TDAuthentication -Environment $Environment | Where-Object Name -eq $TZName).ID
+        $this.SetTZID = (script:TDTimeZones.Get($TZName,$Environment)).ID
     }
 
     Static [TeamDynamix_Api_Users_User[]] GetUser (
@@ -3482,6 +3512,21 @@ class TeamDynamix_Api_Users_User
             $Return = (Get-TDUser -SearchText $UserName -Detail -AuthenticationToken $TDAuthentication -Environment $Environment | Where-Object Name -like "$Username@*")
         }
         return $Return
+    }
+
+    [void] SetUserRole (
+        [string]$UserRoleName,
+        [hashtable]$TDAuthentication,
+        [EnvironmentChoices]$Environment)
+    {
+        $RoleData = $script:TDConfig.UserRoles | Where-Object Name -eq $UserRoleName
+        if ($RoleData)
+        {
+            $this.SecurityRoleID   = ($script:TDSecurityRoles.Get($RoleData.UserSecurityRole,$Environment)).ID
+            $this.SecurityRoleName = $RoleData.UserSecurityRole
+            $this.Applications     = $RoleData.Applications
+            $this.OrgApplications  = Get-OrgAppsByRoleName -UserRoleName $UserRoleName -AuthenticationToken $TDAuthentication -Environment $Environment
+        }
     }
 }
 
@@ -4698,7 +4743,7 @@ class TeamDynamix_Api_Assets_Vendor
         [hashtable]$TDAuthentication,
         [EnvironmentChoices]$Environment)
     {
-        return (Get-TDVendor -AuthenticationToken $TDAuthentication -Environment $Environment)
+        return (script:TDVendors.GetAll($Environment))
     }
 }
 
@@ -4866,8 +4911,8 @@ class TeamDynamix_Api_Assets_ProductModel
         $this.Name           = $Name
         $this.Description    = $Description
         $this.AppID          = $AppID
-        $this.ManufacturerID = (Get-TDVendor      -AuthenticationToken $TDAuthentication -Environment $Environment | Where-Object Name -eq $ManufacturerName).ID
-        $this.ProductTypeID  = (Get-TDProductType -AuthenticationToken $TDAuthentication -Environment $Environment | Where-Object Name -eq $ProductTypeName ).ID
+        $this.ManufacturerID = (script:TDVendors.Get($ManufacturerName,$Environment)).ID
+        $this.ProductTypeID  = (script:TDProductTypes.Get($ProductTypeName,$Environment)).ID
         $this.PartNumber     = $PartNumber
         $this.Attributes     = $Attributes
     }
@@ -4897,8 +4942,8 @@ class TeamDynamix_Api_Assets_ProductModel
     {
         $this.Name           = $Name
         $this.AppID          = $AppID
-        $this.ManufacturerID = (Get-TDVendor      -AuthenticationToken $TDAuthentication -Environment $Environment | Where-Object Name -eq $ManufacturerName).ID
-        $this.ProductTypeID  = (Get-TDProductType -AuthenticationToken $TDAuthentication -Environment $Environment | Where-Object Name -eq $ProductTypeName ).ID
+        $this.ManufacturerID = (script:TDVendors.Get($ManufacturerName,$Environment)).ID
+        $this.ProductTypeID  = (script:TDProductTypes.Get($ProductTypeName,$Environment)).ID
         $this.PartNumber     = $PartNumber
     }
 
@@ -5004,14 +5049,15 @@ class TeamDynamix_Api_Assets_ProductModel
         [hashtable]$TDAuthentication,
         [EnvironmentChoices]$Environment)
     {
-        return (Get-TDProductModel -AuthenticationToken $TDAuthentication -Environment $Environment)
+        return (script:TDProductModels.GetAll($Environment))
     }
 
     Static [TeamDynamix_Api_CustomAttributes_CustomAttribute[]] GetCustomAttributes (
-        [hashtable]$TDAuthentication,
+        [int]               $AppID,
+        [hashtable]         $TDAuthentication,
         [EnvironmentChoices]$Environment)
     {
-        return (Get-TDCustomAttribute -ComponentID ProductModel -AuthenticationToken $TDAuthentication -Environment $Environment)
+        return $script:TDCustomAttributes.GetAll([TeamDynamix_Api_CustomAttributes_CustomAttributeComponent]'ProductModel',$AppID,$Environment)
     }
 }
 
@@ -5164,10 +5210,11 @@ class TeamDynamix_Api_Assets_ProductModelSearch
     }
 
     Static [TeamDynamix_Api_CustomAttributes_CustomAttribute[]] GetCustomAttributes (
-        [hashtable]$TDAuthentication,
+        [int]               $AppID,
+        [hashtable]         $TDAuthentication,
         [EnvironmentChoices]$Environment)
     {
-        return (Get-TDCustomAttribute -ComponentID Asset -AuthenticationToken $TDAuthentication -Environment $Environment)
+        return $script:TDCustomAttributes.GetAll([TeamDynamix_Api_CustomAttributes_CustomAttributeComponent]'Asset',$AppID,$Environment)
     }
 }
 
@@ -5941,10 +5988,11 @@ class TeamDynamix_Api_Locations_LocationRoom
     }
 
     Static [TeamDynamix_Api_CustomAttributes_CustomAttribute] GetCustomAttribute(
-        [hashtable]$TDAuthentication,
+        [int]               $AppID,
+        [hashtable]         $TDAuthentication,
         [EnvironmentChoices]$Environment)
     {
-        return (Get-TDCustomAttribute -ComponentID LocationRoom -AuthenticationToken $TDAuthentication -Environment $Environment)
+        return $script:TDCustomAttributes.GetAll([TeamDynamix_Api_CustomAttributes_CustomAttributeComponent]'LocationRoom',$AppID,$Environment)
     }
 }
 
@@ -6171,10 +6219,11 @@ class TeamDynamix_Api_Locations_Location
     }
 
     Static [TeamDynamix_Api_CustomAttributes_CustomAttribute] GetCustomAttribute(
-        [hashtable]$TDAuthentication,
+        [int]               $AppID,
+        [hashtable]         $TDAuthentication,
         [EnvironmentChoices]$Environment)
     {
-        return (Get-TDCustomAttribute -ComponentID Location -AuthenticationToken $TDAuthentication -Environment $Environment)
+        return $script:TDCustomAttributes.GetAll([TeamDynamix_Api_CustomAttributes_CustomAttributeComponent]'Location',$AppID,$Environment)
     }
 }
 
@@ -6426,10 +6475,11 @@ class TeamDynamix_Api_KnowledgeBase_Article
     }
 
     Static [TeamDynamix_Api_CustomAttributes_CustomAttribute[]] GetCustomAttributes (
-        [hashtable]$TDAuthentication,
+        [int]               $AppID,
+        [hashtable]         $TDAuthentication,
         [EnvironmentChoices]$Environment)
     {
-        return (Get-TDCustomAttribute -ComponentID KnowledgeBaseArticle -AuthenticationToken $TDAuthentication -Environment $Environment)
+        return $script:TDCustomAttributes.GetAll([TeamDynamix_Api_CustomAttributes_CustomAttributeComponent]'KnowledgeBaseArticle',$AppID,$Environment)
     }
 }
 
@@ -6793,7 +6843,6 @@ class TeamDynamix_Api_ServiceCatalog_Service
         }
     }
 
-
     [void] AddCustomAttribute (
         [int]    $AttributeID,
         [int]    $AttributeValue,
@@ -6849,10 +6898,11 @@ class TeamDynamix_Api_ServiceCatalog_Service
     }
 
     Static [TeamDynamix_Api_CustomAttributes_CustomAttribute[]] GetCustomAttributes (
-        [hashtable]$TDAuthentication,
+        [int]               $AppID,
+        [hashtable]         $TDAuthentication,
         [EnvironmentChoices]$Environment)
     {
-        return (Get-TDCustomAttribute -ComponentID 'Service Catalog' -AuthenticationToken $TDAuthentication -Environment $Environment)
+        return $script:TDCustomAttributes.GetAll([TeamDynamix_Api_CustomAttributes_CustomAttributeComponent]'Service Catalog',$AppID,$Environment)
     }
 }
 
@@ -7377,6 +7427,9 @@ class TeamDynamix_Api_Tickets_Ticket
     [TeamDynamix_Api_Attachments_Attachment[]]$Attachments
     [TeamDynamix_Api_Tickets_TicketTask[]]$Tasks
     [TeamDynamix_Api_ResourceItem[]]$Notify
+    [Int32]   $WorkflowID
+    [Int32]   $WorkflowConfigurationID
+    [String]  $WorkflowName
 
     # Default constructor
     TeamDynamix_Api_Tickets_Ticket ()
@@ -7511,7 +7564,10 @@ class TeamDynamix_Api_Tickets_Ticket
         [TeamDynamix_Api_CustomAttributes_CustomAttribute[]]$Attributes,
         [TeamDynamix_Api_Attachments_Attachment[]]$Attachments,
         [TeamDynamix_Api_Tickets_TicketTask[]]$Tasks,
-        [TeamDynamix_Api_ResourceItem[]]$Notify)
+        [TeamDynamix_Api_ResourceItem[]]$Notify,
+        [Int32]   $WorkflowID,
+        [Int32]   $WorkflowConfigurationID,
+        [String]  $WorkflowName)
     {
         foreach ($Parameter in ([TeamDynamix_Api_Tickets_Ticket]::new() | Get-Member -MemberType Property))
         {
@@ -7777,10 +7833,11 @@ class TeamDynamix_Api_Tickets_Ticket
     }
 
     Static [TeamDynamix_Api_CustomAttributes_CustomAttribute[]] GetCustomAttributes (
-        [hashtable]$TDAuthentication,
+        [int]               $AppID,
+        [hashtable]         $TDAuthentication,
         [EnvironmentChoices]$Environment)
     {
-        return (Get-TDCustomAttribute -ComponentID Ticket -AuthenticationToken $TDAuthentication -Environment $Environment)
+        return $script:TDCustomAttributes.GetAll([TeamDynamix_Api_CustomAttributes_CustomAttributeComponent]'Ticket',$AppID,$Environment)
     }
 
     Static [TeamDynamix_Api_Tickets_Ticket[]] GetTicket (
@@ -7906,6 +7963,9 @@ class TD_TeamDynamix_Api_Tickets_Ticket
     [TeamDynamix_Api_Attachments_Attachment[]]$Attachments
     [TeamDynamix_Api_Tickets_TicketTask[]]$Tasks
     [TeamDynamix_Api_ResourceItem[]]$Notify
+    [Int32]  $WorkflowID
+    [Int32]  $WorkflowConfigurationID
+    [String] $WorkflowName
 
     # Constructor from object (such as a return from REST API)
     TD_TeamDynamix_Api_Tickets_Ticket ([psobject]$Ticket)
@@ -8270,6 +8330,8 @@ class TeamDynamix_Api_Tickets_TicketStatus
     [Double]  $Order
     [TeamDynamix_Api_Statuses_StatusClass]$StatusClass
     [Boolean] $IsActive
+    [Boolean] $RequiresGoesOffHold
+    [Boolean] $DoNotReopen
     [Boolean] $IsDefault
 
     # Default constructor
@@ -8303,6 +8365,8 @@ class TeamDynamix_Api_Tickets_TicketStatus
         [Double]  $Order,
         [TeamDynamix_Api_Statuses_StatusClass]$StatusClass,
         [Boolean] $IsActive,
+        [Boolean] $RequiresGoesOffHold,
+        [Boolean] $DoNotReopen,
         [Boolean] $IsDefault)
     {
         foreach ($Parameter in ([TeamDynamix_Api_Tickets_TicketStatus]::new() | Get-Member -MemberType Property))
@@ -8324,7 +8388,9 @@ class TeamDynamix_Api_Tickets_TicketStatus
         [String]  $Description,
         [Double]  $Order,
         [TeamDynamix_Api_Statuses_StatusClass]$StatusClass,
-        [Boolean] $IsActive)
+        [Boolean] $IsActive,
+        [Boolean] $RequiresGoesOffHold,
+        [Boolean] $DoNotReopen)
     {
         $this.Name        = $Name
         $this.Description = $Description
@@ -8512,6 +8578,733 @@ class TeamDynamix_Api_Tickets_TicketSource
             else
             {
                 $this.$($Parameter.Name) = (Get-Variable -Name $Parameter.Name).Value | Get-Date
+            }
+        }
+    }
+}
+
+class TeamDynamix_Api_Tickets_WorkflowSteps_TicketWorkflowStepApproveRequest
+{
+    [Guid]  $StepID
+    [String]$ActionID
+    [String]$Comments
+
+    # Default constructor
+    TeamDynamix_Api_Tickets_WorkflowSteps_TicketWorkflowStepApproveRequest ()
+    {
+    }
+
+    # Constructor from object (such as a return from REST API)
+    TeamDynamix_Api_Tickets_WorkflowSteps_TicketWorkflowStepApproveRequest ([psobject]$TicketWorkflowStepApproveRequest)
+    {
+        foreach ($Parameter in ([TeamDynamix_Api_Tickets_WorkflowSteps_TicketWorkflowStepApproveRequest]::new() | Get-Member -MemberType Property))
+        {
+            if ($Parameter.Definition -notmatch '^datetime')
+            {
+                $this.$($Parameter.Name) = $TicketWorkflowStepApproveRequest.$($Parameter.Name)
+            }
+            else
+            {
+                if ($Parameter.Definition -match '^datetime\[\]') # Handle array of dates
+                {
+                    if ($null -ne $this.$($Parameter.Name))
+                    {
+                        $this.$($Parameter.Name) = $TicketWorkflowStepApproveRequest.$($Parameter.Name) | ForEach-Object {$_ | Get-Date}
+                    }
+                }
+                else # Single date
+                {
+                    $this.$($Parameter.Name) = $TicketWorkflowStepApproveRequest.$($Parameter.Name) | Get-Date
+                }
+            }
+        }
+    }
+
+    # Full constructor
+    TeamDynamix_Api_Tickets_WorkflowSteps_TicketWorkflowStepApproveRequest(
+        [Guid]  $StepID,
+        [String]$ActionID,
+        [String]$Comments)
+    {
+        foreach ($Parameter in ([TeamDynamix_Api_Tickets_WorkflowSteps_TicketWorkflowStepApproveRequest]::new() | Get-Member -MemberType Property))
+        {
+            if ($Parameter.Definition -notmatch '^datetime')
+            {
+                $this.$($Parameter.Name) = (Get-Variable -Name $Parameter.Name).Value
+            }
+            else
+            {
+                if ($Parameter.Definition -match '^datetime\[\]') # Handle array of dates
+                {
+                    if ($null -ne $this.$($Parameter.Name))
+                    {
+                        $this.$($Parameter.Name) = (Get-Variable -Name $Parameter.Name).Value | ForEach-Object {$_ | Get-Date}
+                    }
+                }
+                else # Single date
+                {
+                    $this.$($Parameter.Name) = (Get-Variable -Name $Parameter.Name).Value | Get-Date
+                }
+            }
+        }
+    }
+}
+
+class TeamDynamix_Api_WorkflowEngine_WorkflowValidationMessage
+{
+    [Guid[]]  $StepIDs
+    [String]  $Message
+    [String[]]$MemberNames
+
+    # Default constructor
+    TeamDynamix_Api_WorkflowEngine_WorkflowValidationMessage ()
+    {
+    }
+
+    # Constructor from object (such as a return from REST API)
+    TeamDynamix_Api_WorkflowEngine_WorkflowValidationMessage ([psobject]$WorkflowValidationMessage)
+    {
+        foreach ($Parameter in ([TeamDynamix_Api_WorkflowEngine_WorkflowValidationMessage]::new() | Get-Member -MemberType Property))
+        {
+            if ($Parameter.Definition -notmatch '^datetime')
+            {
+                $this.$($Parameter.Name) = $WorkflowValidationMessage.$($Parameter.Name)
+            }
+            else
+            {
+                if ($Parameter.Definition -match '^datetime\[\]') # Handle array of dates
+                {
+                    if ($null -ne $this.$($Parameter.Name))
+                    {
+                        $this.$($Parameter.Name) = $WorkflowValidationMessage.$($Parameter.Name) | ForEach-Object {$_ | Get-Date}
+                    }
+                }
+                else # Single date
+                {
+                    $this.$($Parameter.Name) = $WorkflowValidationMessage.$($Parameter.Name) | Get-Date
+                }
+            }
+        }
+    }
+
+    # Full constructor
+    TeamDynamix_Api_WorkflowEngine_WorkflowValidationMessage(
+        [Guid[]]  $StepIDs,
+        [String]  $Message,
+        [String[]]$MemberNames)
+    {
+        foreach ($Parameter in ([TeamDynamix_Api_WorkflowEngine_WorkflowValidationMessage]::new() | Get-Member -MemberType Property))
+        {
+            if ($Parameter.Definition -notmatch '^datetime')
+            {
+                $this.$($Parameter.Name) = (Get-Variable -Name $Parameter.Name).Value
+            }
+            else
+            {
+                if ($Parameter.Definition -match '^datetime\[\]') # Handle array of dates
+                {
+                    if ($null -ne $this.$($Parameter.Name))
+                    {
+                        $this.$($Parameter.Name) = (Get-Variable -Name $Parameter.Name).Value | ForEach-Object {$_ | Get-Date}
+                    }
+                }
+                else # Single date
+                {
+                    $this.$($Parameter.Name) = (Get-Variable -Name $Parameter.Name).Value | Get-Date
+                }
+            }
+        }
+    }
+}
+
+class TeamDynamix_Api_Tickets_WorkflowSteps_TicketWorkflowStepActionResult
+{
+    [Boolean]$IsSuccessful
+    [String] $Message
+    [TeamDynamix_Api_WorkflowEngine_WorkflowValidationMessage[]]$Errors
+    [Boolean]$WasWorkflowUpdated
+
+    # Default constructor
+    TeamDynamix_Api_Tickets_WorkflowSteps_TicketWorkflowStepActionResult ()
+    {
+    }
+
+    # Constructor from object (such as a return from REST API)
+    TeamDynamix_Api_Tickets_WorkflowSteps_TicketWorkflowStepActionResult ([psobject]$TicketWorkflowStepActionResult)
+    {
+        foreach ($Parameter in ([TeamDynamix_Api_Tickets_WorkflowSteps_TicketWorkflowStepActionResult]::new() | Get-Member -MemberType Property))
+        {
+            if ($Parameter.Definition -notmatch '^datetime')
+            {
+                $this.$($Parameter.Name) = $TicketWorkflowStepActionResult.$($Parameter.Name)
+            }
+            else
+            {
+                if ($Parameter.Definition -match '^datetime\[\]') # Handle array of dates
+                {
+                    if ($null -ne $this.$($Parameter.Name))
+                    {
+                        $this.$($Parameter.Name) = $TicketWorkflowStepActionResult.$($Parameter.Name) | ForEach-Object {$_ | Get-Date}
+                    }
+                }
+                else # Single date
+                {
+                    $this.$($Parameter.Name) = $TicketWorkflowStepActionResult.$($Parameter.Name) | Get-Date
+                }
+            }
+        }
+    }
+
+    # Full constructor
+    TeamDynamix_Api_Tickets_WorkflowSteps_TicketWorkflowStepActionResult(
+        [Boolean]$IsSuccessful,
+        [String] $Message,
+        [TeamDynamix_Api_WorkflowEngine_WorkflowValidationMessage[]]$Errors,
+        [Boolean]$WasWorkflowUpdated)
+    {
+        foreach ($Parameter in ([TeamDynamix_Api_Tickets_WorkflowSteps_TicketWorkflowStepActionResult]::new() | Get-Member -MemberType Property))
+        {
+            if ($Parameter.Definition -notmatch '^datetime')
+            {
+                $this.$($Parameter.Name) = (Get-Variable -Name $Parameter.Name).Value
+            }
+            else
+            {
+                if ($Parameter.Definition -match '^datetime\[\]') # Handle array of dates
+                {
+                    if ($null -ne $this.$($Parameter.Name))
+                    {
+                        $this.$($Parameter.Name) = (Get-Variable -Name $Parameter.Name).Value | ForEach-Object {$_ | Get-Date}
+                    }
+                }
+                else # Single date
+                {
+                    $this.$($Parameter.Name) = (Get-Variable -Name $Parameter.Name).Value | Get-Date
+                }
+            }
+        }
+    }
+}
+
+class TeamDynamix_Api_Tickets_WorkflowSteps_TicketWorkflowStepAction
+{
+    [String]$ID
+    [String]$Name
+    [String]$Tooltip
+
+    # Default constructor
+    TeamDynamix_Api_Tickets_WorkflowSteps_TicketWorkflowStepAction ()
+    {
+    }
+
+    # Constructor from object (such as a return from REST API)
+    TeamDynamix_Api_Tickets_WorkflowSteps_TicketWorkflowStepAction ([psobject]$TicketWorkflowStepAction)
+    {
+        foreach ($Parameter in ([TeamDynamix_Api_Tickets_WorkflowSteps_TicketWorkflowStepAction]::new() | Get-Member -MemberType Property))
+        {
+            if ($Parameter.Definition -notmatch '^datetime')
+            {
+                $this.$($Parameter.Name) = $TicketWorkflowStepAction.$($Parameter.Name)
+            }
+            else
+            {
+                if ($Parameter.Definition -match '^datetime\[\]') # Handle array of dates
+                {
+                    if ($null -ne $this.$($Parameter.Name))
+                    {
+                        $this.$($Parameter.Name) = $TicketWorkflowStepAction.$($Parameter.Name) | ForEach-Object {$_ | Get-Date}
+                    }
+                }
+                else # Single date
+                {
+                    $this.$($Parameter.Name) = $TicketWorkflowStepAction.$($Parameter.Name) | Get-Date
+                }
+            }
+        }
+    }
+
+    # Full constructor
+    TeamDynamix_Api_Tickets_WorkflowSteps_TicketWorkflowStepAction(
+        [String]$ID,
+        [String]$Name,
+        [String]$Tooltip)
+    {
+        foreach ($Parameter in ([TeamDynamix_Api_Tickets_WorkflowSteps_TicketWorkflowStepAction]::new() | Get-Member -MemberType Property))
+        {
+            if ($Parameter.Definition -notmatch '^datetime')
+            {
+                $this.$($Parameter.Name) = (Get-Variable -Name $Parameter.Name).Value
+            }
+            else
+            {
+                if ($Parameter.Definition -match '^datetime\[\]') # Handle array of dates
+                {
+                    if ($null -ne $this.$($Parameter.Name))
+                    {
+                        $this.$($Parameter.Name) = (Get-Variable -Name $Parameter.Name).Value | ForEach-Object {$_ | Get-Date}
+                    }
+                }
+                else # Single date
+                {
+                    $this.$($Parameter.Name) = (Get-Variable -Name $Parameter.Name).Value | Get-Date
+                }
+            }
+        }
+    }
+}
+
+class TeamDynamix_Api_WorkflowEngine_HistoryEntry
+{
+    [Int32]   $ID
+    [Guid]    $StepID
+    [DateTime]$ActionDateUtc
+    [Guid]    $PersonUid
+    [Int32]   $PersonRefID
+    [String]  $PersonFirstName
+    [String]  $PersonLastName
+    [String]  $PersonFullName
+    [String]  $PersonProfileImageFileName
+    [String]  $ActionID
+    [String]  $ActionName
+    [TeamDynamix_Api_WorkflowEngine_WorkflowAdvancement]$Context
+    [String]  $Comments
+    [Boolean] $IsStepComplete
+
+    # Default constructor
+    TeamDynamix_Api_WorkflowEngine_HistoryEntry ()
+    {
+    }
+
+    # Constructor from object (such as a return from REST API)
+    TeamDynamix_Api_WorkflowEngine_HistoryEntry ([psobject]$HistoryEntry)
+    {
+        foreach ($Parameter in ([TeamDynamix_Api_WorkflowEngine_HistoryEntry]::new() | Get-Member -MemberType Property))
+        {
+            if ($Parameter.Definition -notmatch '^datetime')
+            {
+                $this.$($Parameter.Name) = $HistoryEntry.$($Parameter.Name)
+            }
+            else
+            {
+                if ($Parameter.Definition -match '^datetime\[\]') # Handle array of dates
+                {
+                    if ($null -ne $this.$($Parameter.Name))
+                    {
+                        $this.$($Parameter.Name) = $HistoryEntry.$($Parameter.Name) | ForEach-Object {$_ | Get-Date}
+                    }
+                }
+                else # Single date
+                {
+                    $this.$($Parameter.Name) = $HistoryEntry.$($Parameter.Name) | Get-Date
+                }
+            }
+        }
+    }
+
+    # Full constructor
+    TeamDynamix_Api_WorkflowEngine_HistoryEntry(
+        [Int32]   $ID,
+        [Guid]    $StepID,
+        [DateTime]$ActionDateUtc,
+        [Guid]    $PersonUid,
+        [Int32]   $PersonRefID,
+        [String]  $PersonFirstName,
+        [String]  $PersonLastName,
+        [String]  $PersonFullName,
+        [String]  $PersonProfileImageFileName,
+        [String]  $ActionID,
+        [String]  $ActionName,
+        [TeamDynamix_Api_WorkflowEngine_WorkflowAdvancement]$Context,
+        [String]  $Comments,
+        [Boolean] $IsStepComplete)
+    {
+        foreach ($Parameter in ([TeamDynamix_Api_WorkflowEngine_HistoryEntry]::new() | Get-Member -MemberType Property))
+        {
+            if ($Parameter.Definition -notmatch '^datetime')
+            {
+                $this.$($Parameter.Name) = (Get-Variable -Name $Parameter.Name).Value
+            }
+            else
+            {
+                if ($Parameter.Definition -match '^datetime\[\]') # Handle array of dates
+                {
+                    if ($null -ne $this.$($Parameter.Name))
+                    {
+                        $this.$($Parameter.Name) = (Get-Variable -Name $Parameter.Name).Value | ForEach-Object {$_ | Get-Date}
+                    }
+                }
+                else # Single date
+                {
+                    $this.$($Parameter.Name) = (Get-Variable -Name $Parameter.Name).Value | Get-Date
+                }
+            }
+        }
+    }
+}
+
+class TD_TeamDynamix_Api_WorkflowEngine_HistoryEntry
+{
+    [Int32]  $ID
+    [Guid]   $StepID
+    [String] $ActionDateUtc
+    [Guid]   $PersonUid
+    [Int32]  $PersonRefID
+    [String] $PersonFirstName
+    [String] $PersonLastName
+    [String] $PersonFullName
+    [String] $PersonProfileImageFileName
+    [String] $ActionID
+    [String] $ActionName
+    [TeamDynamix_Api_WorkflowEngine_WorkflowAdvancement]$Context
+    [String] $Comments
+    [Boolean]$IsStepComplete
+
+    # Constructor from object (such as a return from REST API)
+    TD_TeamDynamix_Api_WorkflowEngine_HistoryEntry ([psobject]$HistoryEntry)
+    {
+        foreach ($Parameter in ([TeamDynamix_Api_WorkflowEngine_HistoryEntry]::new() | Get-Member -MemberType Property))
+        {
+            if ($Parameter.Definition -notmatch '^datetime')
+            {
+                $this.$($Parameter.Name) = $HistoryEntry.$($Parameter.Name)
+            }
+            else
+            {
+                if ($Parameter.Definition -match '^datetime\[\]') # Handle array of dates
+                {
+                    if ($null -ne $this.$($Parameter.Name))
+                    {
+                        $this.$($Parameter.Name) = $HistoryEntry.$($Parameter.Name) | ForEach-Object {$_ | Get-Date -Format o}
+                    }
+                }
+                else # Single date
+                {
+                    $this.$($Parameter.Name) = $HistoryEntry.$($Parameter.Name) | Get-Date -Format o
+                }
+            }
+        }
+    }
+}
+
+class TeamDynamix_Api_Tickets_WorkflowSteps_TicketWorkflowStep
+{
+    [String]  $Name
+    [Guid]    $ID
+    [String]  $TypeName
+    [String]  $TypeDescription
+    [String]  $Description
+    [Int32]   $StageID
+    [TeamDynamix_Api_WorkflowEngine_HistoryEntry[]]$History
+    [DateTime]$StartDateTime
+    [Boolean] $IsCurrent
+
+    # Default constructor
+    TeamDynamix_Api_Tickets_WorkflowSteps_TicketWorkflowStep ()
+    {
+    }
+
+    # Constructor from object (such as a return from REST API)
+    TeamDynamix_Api_Tickets_WorkflowSteps_TicketWorkflowStep ([psobject]$TicketWorkflowStep)
+    {
+        foreach ($Parameter in ([TeamDynamix_Api_Tickets_WorkflowSteps_TicketWorkflowStep]::new() | Get-Member -MemberType Property))
+        {
+            if ($Parameter.Definition -notmatch '^datetime')
+            {
+                $this.$($Parameter.Name) = $TicketWorkflowStep.$($Parameter.Name)
+            }
+            else
+            {
+                if ($Parameter.Definition -match '^datetime\[\]') # Handle array of dates
+                {
+                    if ($null -ne $this.$($Parameter.Name))
+                    {
+                        $this.$($Parameter.Name) = $TicketWorkflowStep.$($Parameter.Name) | ForEach-Object {$_ | Get-Date}
+                    }
+                }
+                else # Single date
+                {
+                    $this.$($Parameter.Name) = $TicketWorkflowStep.$($Parameter.Name) | Get-Date
+                }
+            }
+        }
+    }
+
+    # Full constructor
+    TeamDynamix_Api_Tickets_WorkflowSteps_TicketWorkflowStep(
+        [String]  $Name,
+        [Guid]    $ID,
+        [String]  $TypeName,
+        [String]  $TypeDescription,
+        [String]  $Description,
+        [Int32]   $StageID,
+        [TeamDynamix_Api_WorkflowEngine_HistoryEntry[]]$History,
+        [DateTime]$StartDateTime,
+        [Boolean] $IsCurrent)
+    {
+        foreach ($Parameter in ([TeamDynamix_Api_Tickets_WorkflowSteps_TicketWorkflowStep]::new() | Get-Member -MemberType Property))
+        {
+            if ($Parameter.Definition -notmatch '^datetime')
+            {
+                $this.$($Parameter.Name) = (Get-Variable -Name $Parameter.Name).Value
+            }
+            else
+            {
+                if ($Parameter.Definition -match '^datetime\[\]') # Handle array of dates
+                {
+                    if ($null -ne $this.$($Parameter.Name))
+                    {
+                        $this.$($Parameter.Name) = (Get-Variable -Name $Parameter.Name).Value | ForEach-Object {$_ | Get-Date}
+                    }
+                }
+                else # Single date
+                {
+                    $this.$($Parameter.Name) = (Get-Variable -Name $Parameter.Name).Value | Get-Date
+                }
+            }
+        }
+    }
+}
+
+class TD_TeamDynamix_Api_Tickets_WorkflowSteps_TicketWorkflowStep
+{
+    [String] $Name
+    [Guid]   $ID
+    [String] $TypeName
+    [String] $TypeDescription
+    [String] $Description
+    [Int32]  $StageID
+    [TeamDynamix_Api_WorkflowEngine_HistoryEntry[]]$History
+    [String] $StartDateTime
+    [Boolean]$IsCurrent
+
+    # Constructor from object (such as a return from REST API)
+    TD_TeamDynamix_Api_Tickets_WorkflowSteps_TicketWorkflowStep ([psobject]$TicketWorkflowStep)
+    {
+        foreach ($Parameter in ([TeamDynamix_Api_Tickets_WorkflowSteps_TicketWorkflowStep]::new() | Get-Member -MemberType Property))
+        {
+            if ($Parameter.Definition -notmatch '^datetime')
+            {
+                $this.$($Parameter.Name) = $TicketWorkflowStep.$($Parameter.Name)
+            }
+            else
+            {
+                if ($Parameter.Definition -match '^datetime\[\]') # Handle array of dates
+                {
+                    if ($null -ne $this.$($Parameter.Name))
+                    {
+                        $this.$($Parameter.Name) = $TicketWorkflowStep.$($Parameter.Name) | ForEach-Object {$_ | Get-Date -Format o}
+                    }
+                }
+                else # Single date
+                {
+                    $this.$($Parameter.Name) = $TicketWorkflowStep.$($Parameter.Name) | Get-Date -Format o
+                }
+            }
+        }
+    }
+}
+
+class TeamDynamix_Api_Tickets_TicketWorkflow
+{
+    [Int32]   $ID
+    [String]  $Name
+    [String]  $Description
+    [Int32]   $TicketId
+    [Int32]   $WorkflowConfigurationID
+    [Guid]    $BeginStepID
+    [Guid[]]  $CurrentStepIDs
+    [TeamDynamix_Api_Tickets_WorkflowSteps_TicketWorkflowStep[]]$Steps
+    [TeamDynamix_Api_WorkflowEngine_WorkflowStatus]$Status
+    [Boolean] $IsComplete
+    [DateTime]$CreatedDateUtc
+    [DateTime]$StartDateUtc
+    [System.Nullable[DateTime]]$CompletedDateUtc
+    [Guid]    $FinalApprovalStepID
+    [Guid]    $FinalRejectionStepID
+    [TeamDynamix_Api_WorkflowEngine_HistoryEntry[]]$History
+
+    # Default constructor
+    TeamDynamix_Api_Tickets_TicketWorkflow ()
+    {
+    }
+
+    # Constructor from object (such as a return from REST API)
+    TeamDynamix_Api_Tickets_TicketWorkflow ([psobject]$TicketWorkflow)
+    {
+        foreach ($Parameter in ([TeamDynamix_Api_Tickets_TicketWorkflow]::new() | Get-Member -MemberType Property))
+        {
+            if ($Parameter.Definition -notmatch '^datetime')
+            {
+                $this.$($Parameter.Name) = $TicketWorkflow.$($Parameter.Name)
+            }
+            else
+            {
+                if ($Parameter.Definition -match '^datetime\[\]') # Handle array of dates
+                {
+                    if ($null -ne $this.$($Parameter.Name))
+                    {
+                        $this.$($Parameter.Name) = $TicketWorkflow.$($Parameter.Name) | ForEach-Object {$_ | Get-Date}
+                    }
+                }
+                else # Single date
+                {
+                    $this.$($Parameter.Name) = $TicketWorkflow.$($Parameter.Name) | Get-Date
+                }
+            }
+        }
+    }
+
+    # Full constructor
+    TeamDynamix_Api_Tickets_TicketWorkflow(
+        [Int32]   $ID,
+        [String]  $Name,
+        [String]  $Description,
+        [Int32]   $TicketId,
+        [Int32]   $WorkflowConfigurationID,
+        [Guid]    $BeginStepID,
+        [Guid[]]  $CurrentStepIDs,
+        [TeamDynamix_Api_Tickets_WorkflowSteps_TicketWorkflowStep[]]$Steps,
+        [TeamDynamix_Api_WorkflowEngine_WorkflowStatus]$Status,
+        [Boolean] $IsComplete,
+        [DateTime]$CreatedDateUtc,
+        [DateTime]$StartDateUtc,
+        [System.Nullable[DateTime]]$CompletedDateUtc,
+        [Guid]    $FinalApprovalStepID,
+        [Guid]    $FinalRejectionStepID,
+        [TeamDynamix_Api_WorkflowEngine_HistoryEntry[]]$History)
+    {
+        foreach ($Parameter in ([TeamDynamix_Api_Tickets_TicketWorkflow]::new() | Get-Member -MemberType Property))
+        {
+            if ($Parameter.Definition -notmatch '^datetime')
+            {
+                $this.$($Parameter.Name) = (Get-Variable -Name $Parameter.Name).Value
+            }
+            else
+            {
+                if ($Parameter.Definition -match '^datetime\[\]') # Handle array of dates
+                {
+                    if ($null -ne $this.$($Parameter.Name))
+                    {
+                        $this.$($Parameter.Name) = (Get-Variable -Name $Parameter.Name).Value | ForEach-Object {$_ | Get-Date}
+                    }
+                }
+                else # Single date
+                {
+                    $this.$($Parameter.Name) = (Get-Variable -Name $Parameter.Name).Value | Get-Date
+                }
+            }
+        }
+    }
+}
+
+class TD_TeamDynamix_Api_Tickets_TicketWorkflow
+{
+    [Int32]  $ID
+    [String] $Name
+    [String] $Description
+    [Int32]  $TicketId
+    [Int32]  $WorkflowConfigurationID
+    [Guid]   $BeginStepID
+    [Guid[]] $CurrentStepIDs
+    [TeamDynamix_Api_Tickets_WorkflowSteps_TicketWorkflowStep[]]$Steps
+    [TeamDynamix_Api_WorkflowEngine_WorkflowStatus]$Status
+    [Boolean]$IsComplete
+    [String] $CreatedDateUtc
+    [String] $StartDateUtc
+    [String] $CompletedDateUtc
+    [Guid]   $FinalApprovalStepID
+    [Guid]   $FinalRejectionStepID
+    [TeamDynamix_Api_WorkflowEngine_HistoryEntry[]]$History
+
+    # Constructor from object (such as a return from REST API)
+    TD_TeamDynamix_Api_Tickets_TicketWorkflow ([psobject]$TicketWorkflow)
+    {
+        foreach ($Parameter in ([TeamDynamix_Api_Tickets_TicketWorkflow]::new() | Get-Member -MemberType Property))
+        {
+            if ($Parameter.Definition -notmatch '^datetime')
+            {
+                $this.$($Parameter.Name) = $TicketWorkflow.$($Parameter.Name)
+            }
+            else
+            {
+                if ($Parameter.Definition -match '^datetime\[\]') # Handle array of dates
+                {
+                    if ($null -ne $this.$($Parameter.Name))
+                    {
+                        $this.$($Parameter.Name) = $TicketWorkflow.$($Parameter.Name) | ForEach-Object {$_ | Get-Date -Format o}
+                    }
+                }
+                else # Single date
+                {
+                    $this.$($Parameter.Name) = $TicketWorkflow.$($Parameter.Name) | Get-Date -Format o
+                }
+            }
+        }
+    }
+}
+
+class TeamDynamix_Api_Tickets_WorkflowSteps_TicketWorkflowStepReassignRequest
+{
+    [Guid] $StepID
+    [System.Nullable[Guid]] $UserId
+    [System.Nullable[Int32]]$GroupId
+
+    # Default constructor
+    TeamDynamix_Api_Tickets_WorkflowSteps_TicketWorkflowStepReassignRequest ()
+    {
+    }
+
+    # Constructor from object (such as a return from REST API)
+    TeamDynamix_Api_Tickets_WorkflowSteps_TicketWorkflowStepReassignRequest ([psobject]$TicketWorkflowStepReassignRequest)
+    {
+        foreach ($Parameter in ([TeamDynamix_Api_Tickets_WorkflowSteps_TicketWorkflowStepReassignRequest]::new() | Get-Member -MemberType Property))
+        {
+            if ($Parameter.Definition -notmatch '^datetime')
+            {
+                $this.$($Parameter.Name) = $TicketWorkflowStepReassignRequest.$($Parameter.Name)
+            }
+            else
+            {
+                if ($Parameter.Definition -match '^datetime\[\]') # Handle array of dates
+                {
+                    if ($null -ne $this.$($Parameter.Name))
+                    {
+                        $this.$($Parameter.Name) = $TicketWorkflowStepReassignRequest.$($Parameter.Name) | ForEach-Object {$_ | Get-Date}
+                    }
+                }
+                else # Single date
+                {
+                    $this.$($Parameter.Name) = $TicketWorkflowStepReassignRequest.$($Parameter.Name) | Get-Date
+                }
+            }
+        }
+    }
+
+    # Full constructor
+    TeamDynamix_Api_Tickets_WorkflowSteps_TicketWorkflowStepReassignRequest(
+        [Guid] $StepID,
+        [System.Nullable[Guid]] $UserId,
+        [System.Nullable[Int32]]$GroupId)
+    {
+        foreach ($Parameter in ([TeamDynamix_Api_Tickets_WorkflowSteps_TicketWorkflowStepReassignRequest]::new() | Get-Member -MemberType Property))
+        {
+            if ($Parameter.Definition -notmatch '^datetime')
+            {
+                $this.$($Parameter.Name) = (Get-Variable -Name $Parameter.Name).Value
+            }
+            else
+            {
+                if ($Parameter.Definition -match '^datetime\[\]') # Handle array of dates
+                {
+                    if ($null -ne $this.$($Parameter.Name))
+                    {
+                        $this.$($Parameter.Name) = (Get-Variable -Name $Parameter.Name).Value | ForEach-Object {$_ | Get-Date}
+                    }
+                }
+                else # Single date
+                {
+                    $this.$($Parameter.Name) = (Get-Variable -Name $Parameter.Name).Value | Get-Date
+                }
             }
         }
     }
@@ -13659,6 +14452,7 @@ class TD_UserInfo
     [string]  $MiddleName
     [boolean] $IsActive
     [string]  $PrimaryEmail
+    [string]  $AlternateEmail
     [string]  $AlertEmail
     [string]  $Company
     [string]  $Title
@@ -13676,6 +14470,7 @@ class TD_UserInfo
     [string]  $AlternateID
     [string]  $SecurityRoleID
     [string]  $SecurityRoleName
+    [guid]    $DesktopID
     [string[]]$Applications
     [TeamDynamix_Api_Apps_UserApplication[]]$OrgApplications
 
@@ -13719,6 +14514,7 @@ class TD_UserInfo
         [string]  $MiddleName,
         [boolean] $IsActive,
         [string]  $PrimaryEmail,
+        [string]  $AlternateEmail,
         [string]  $AlertEmail,
         [string]  $Company,
         [string]  $Title,
@@ -13736,6 +14532,7 @@ class TD_UserInfo
         [string]  $AlternateID,
         [string]  $SecurityRoleID,
         [string]  $SecurityRoleName,
+        [guid]    $DesktopID,
         [string[]]$Applications,
         [TeamDynamix_Api_Apps_UserApplication[]]$OrgApplications)
     {
@@ -13764,15 +14561,17 @@ class TD_UserInfo
 
     # Methods
     [void] SetUserRole (
-        [string]$UserRoleName)
+        [string]$UserRoleName,
+        [hashtable]$TDAuthentication,
+        [EnvironmentChoices]$Environment)
     {
         $RoleData = $script:TDConfig.UserRoles | Where-Object Name -eq $UserRoleName
         if ($RoleData)
         {
-            $this.SecurityRoleID   = (Get-TDSecurityRole -NameLike $RoleData.UserSecurityRole -Exact).ID
-            $this.SecurityRoleName = $UserRoleName
+            $this.SecurityRoleID   = ($script:TDSecurityRoles.Get($RoleData.UserSecurityRole,$Environment)).ID
+            $this.SecurityRoleName = $RoleData.UserSecurityRole
             $this.Applications     = $RoleData.Applications
-            $this.OrgApplications  = Get-OrgAppsByRoleName -UserRoleName $UserRoleName
+            $this.OrgApplications  = Get-OrgAppsByRoleName -UserRoleName $UserRoleName -AuthenticationToken $TDAuthentication -Environment $Environment
         }
     }
     [void] SetSecurityRoleID (
@@ -13793,6 +14592,25 @@ class TD_UserInfo
 }
 
 # Base class for caching TeamDynamix object data
+#  Constructs an in-memory cache, with separate containers for each environment name.
+#  In each environment container is another container for each AppID, which contains the objects.
+#  Data flows only into the cache from TeamDynamix. There is no capability to modify cached data locally or push it to TeamDynamix.
+#
+#  Prvate methods
+#   Add         - Adds an object to the cache. Checks to see if the object exists in the cache first, with GetCached, then adds the object if necessary.
+#                 Add by target name/ID must be overridden. For data types with no lookup by name/ID, they must be flagged as invalid actions.
+#   Remove      - Removes an object from the cache.
+#   FlushCache  - Removes all objects from the cache. Used automatically when re-authenticating. Should be used when making changes to the data on TeamDynamix.
+#   Replace     - Replaces an object in the cache.
+#   GetCached   - Internal function, retrieves an object from the cache. Calls LoadTargets if the requested environment/AppID combination does not exist.
+#               - Assumes that all possible data has been populated if the environment/AppID container exists. Override if that's not true.
+#
+#  Public methods
+#   Get         - Public version of GetCached. Must be overridden if detail is needed. Add already supports detail by default.
+#   GetAll      - Gets all objects from the cache. Calls LoadTargets if the requested environment/AppID combination does not exist.
+#   LoadTargets - Loads objects into the cache using the Add method, which expects objects. Objects are typically retrieved by calling the corresponding Get-TD command that retrieves all entries.
+#  Additional methods may be added as appropriate for the data type.
+#
 class Object_Cache
 {
     # $WorkingEnvironment points at the working environment cache
@@ -13835,7 +14653,7 @@ class Object_Cache
         if (-not $CachedTargetObject)
         {
             # Create the array holder for the data, if none exists
-            if (-not $this.$Environment."AppID$AppID")
+            if (-not ($this.$Environment.Keys -contains "AppID$AppID"))
             {
                 $this.$Environment += @{"AppID$AppID" = @()}
             }
@@ -14026,7 +14844,7 @@ class Object_Cache
         [EnvironmentChoices]$Environment
         )
     {
-        $this.$Environment."AppID$AppID" = $null
+        $this.$Environment."AppID$AppID" = @()
     }
     #  Remove all cached targets for all apps in a specific environment
     [void]FlushCache(
@@ -14061,7 +14879,6 @@ class Object_Cache
     {
         $this.Replace($TargetObject.ID,$this.DefaultAppID,$script:WorkingEnvironment)
     }
-
     # GetCached
     #  Get a target from the cache, by name
     hidden [system.object]GetCached(
@@ -14208,8 +15025,8 @@ class Object_Cache
     }
     #  Delegating methods for GetAll
     [system.object[]]GetAll(
-        [int]               $AppID,
-        [EnvironmentChoices]$Environment
+        [int]   $AppID,
+        [string]$Environment
         )
     {
         return $this.GetAll($AppID,$Environment,$null)
@@ -14302,9 +15119,9 @@ class TD_Location_Cache : Object_Cache
                 }
             }
             # Create the array holder for the data, if none exists
-            if (-not $this.$Environment."AppID$AppID")
+            if (-not ($this.$Environment.Keys -contains "AppID$AppID"))
             {
-                $this.$Environment = @{"AppID$AppID" = @()}
+                $this.$Environment += @{"AppID$AppID" = @()}
             }
             $this.$Environment."AppID$AppID" += $TargetObject
         }
@@ -14343,6 +15160,7 @@ class TD_Location_Cache : Object_Cache
     {
         $this.Add((Get-TDLocation -ID $TargetID -Environment $Environment),$AppID,$Environment,$Detail,$true)
     }
+    # Get
     #  Get a target from the cache, if present; if not retrieve and add to cache - by name
     [system.object]Get(
         [string]            $TargetName,
@@ -14419,6 +15237,35 @@ class TD_Location_Cache : Object_Cache
             return $null
         }
     }
+    # GetRoomByExternalID
+    #  Get a target from the cache by external ID
+    [TeamDynamix_Api_Locations_Location]GetRoomByExternalID(
+        [string]            $BuildingExternalID,
+        [string]            $RoomExternalID,
+        [EnvironmentChoices]$Environment
+        )
+    {
+        # Find target
+        $Target = $this.GetAll($this.DefaultAppID,$Environment) | Where-Object ExternalID -eq $BuildingExternalID
+        # Ensure detail data in included by passing through Get by ID, which pulls detail data
+        if ($Target)
+        {
+            $Target = $this.Get($Target.ID,$this.DefaultAppID,$Environment)
+            $Target = $this.Rooms | Where-Object ExternalID -eq $RoomExternalID
+            if ($Target)
+            {
+                return $Target
+            }
+            else
+            {
+                return $null
+            }
+        }
+        else
+        {
+            return $null
+        }
+    }
     #  Delegating method for GetByExternalID
     [TeamDynamix_Api_Locations_Location]GetByExternalID(
         [string]$ExternalID
@@ -14426,7 +15273,6 @@ class TD_Location_Cache : Object_Cache
     {
         return $this.GetByExternalID($ExternalID,$script:WorkingEnvironment)
     }
-    # GetRoom
     #  Get a room from the cache by location ID and room ID and Environment
     [TeamDynamix_Api_Locations_LocationRoom]GetRoom(
         [int]               $LocationID,
@@ -14544,15 +15390,15 @@ class TD_Application_Cache : Object_Cache
         }
         if (-not $CachedTargetObject)
         {
-            # Add an ID property alias to AppID if the ID is not already present
+            # Add an ID property alias set to AppID if the ID is not already present
             if (-not $TargetObject.ID)
             {
                 $TargetObject | Add-Member -MemberType AliasProperty -Name ID -Value AppID
             }
             # Create the array holder for the data, if none exists
-            if (-not $this.$Environment."AppID$AppID")
+            if (-not ($this.$Environment.Keys -contains "AppID$AppID"))
             {
-                $this.$Environment = @{"AppID$AppID" = @()}
+                $this.$Environment += @{"AppID$AppID" = @()}
             }
             $this.$Environment."AppID$AppID" += $TargetObject
         }
@@ -15972,6 +16818,405 @@ class TD_SecurityRole_Cache : Object_Cache
         return $this.Get($TargetID,$this.DefaultAppID,$script:WorkingEnvironment)
     }
 }
+# Stores custom attribute data
+class TD_CustomAttribute_Cache : Object_Cache
+{
+    # Default constructor
+    TD_CustomAttribute_Cache ()
+    {
+        # Nothing should ever end up with a default app ID
+        $this.DefaultAppID = 0
+    }
+
+    # Override methods
+    #  Add by target object - all add commands pass through here
+    #   Use ComponentID in GetCached call
+    hidden [void]Add(
+        [System.Object]     $TargetObject,
+        [int]               $AppID,
+        [EnvironmentChoices]$Environment,
+        [switch]            $Detail,
+        [switch]            $CheckCache
+        )
+    {
+        # Add
+        #  Add new items, or replace existing items if detail information isn't present
+        $CachedTargetObject = $null
+        if ($CheckCache)
+        {
+            # This check is skipped when bulk-loading data, since the cache is empty when that happens
+            $CachedTargetObject = $this.GetCached($TargetObject.Name,$TargetObject.ComponentID,$AppID,$Environment)
+        }
+        if (-not $CachedTargetObject)
+        {
+            # Create the array holder for the data, if none exists
+            if (-not ($this.$Environment.Keys -contains "AppID$AppID"))
+            {
+                $this.$Environment += @{"AppID$AppID" = @()}
+            }
+            $this.$Environment."AppID$AppID" += $TargetObject
+        }
+        $this.WorkingEnvironment = $this.$script:WorkingEnvironment
+    }
+    #  Invalid Add delegates - ComponentID required for this cache object
+    hidden [void]Add(
+        [string]            $TargetName,
+        [int]               $AppID,
+        [EnvironmentChoices]$Environment,
+        [switch]            $Detail
+        )
+    {
+        throw 'Invalid cache action.'
+    }
+    hidden [void]Add(
+        [int]               $TargetID,
+        [int]               $AppID,
+        [EnvironmentChoices]$Environment,
+        [switch]            $Detail
+        )
+    {
+        throw 'Invalid cache action.'
+    }
+    # GetCached
+    #  Get a target from the cache, by name
+    #   Add ComponentID
+    hidden [system.object]GetCached(
+        [string]            $TargetName,
+        [TeamDynamix_Api_CustomAttributes_CustomAttributeComponent]$ComponentID,
+        [int]               $AppID,
+        [EnvironmentChoices]$Environment
+        )
+    {
+        # If there's nothing in the cache, load basic target data
+        if (-not $this.$Environment."AppID$AppID")
+        {
+            $this.LoadTargets($ComponentID,$AppID,$Environment)
+        }
+        return $this.$Environment."AppID$AppID" | Where-Object Name -eq $TargetName
+    }
+    #  Get a target from the cache, by ID
+    hidden [system.object]GetCached(
+        [int]               $TargetID,
+        [TeamDynamix_Api_CustomAttributes_CustomAttributeComponent]$ComponentID,
+        [int]               $AppID,
+        [EnvironmentChoices]$Environment
+        )
+    {
+        # If there's nothing in the cache, load basic target data
+        if (-not $this.$Environment."AppID$AppID")
+        {
+            $this.LoadTargets($ComponentID,$AppID,$Environment)
+        }
+        return $this.$Environment."AppID$AppID" | Where-Object ID -eq $TargetID
+    }
+    #  Invalid GetCached delegates - ComponentID required for this cache object
+    hidden [system.object]GetCached(
+        [string]            $TargetName,
+        [int]               $AppID,
+        [EnvironmentChoices]$Environment
+        )
+    {
+        throw 'Invalid cache action.'
+    }
+    hidden [system.object]GetCached(
+        [int]               $TargetID,
+        [int]               $AppID,
+        [EnvironmentChoices]$Environment
+        )
+    {
+        throw 'Invalid cache action.'
+    }
+    # Get
+    #  Get a target from the cache, if present; if not retrieve and add to cache - by name
+    #   Add ComponentID
+    [system.object]Get(
+        [string]            $TargetName,
+        [TeamDynamix_Api_CustomAttributes_CustomAttributeComponent]$ComponentID,
+        [int]               $AppID,
+        [EnvironmentChoices]$Environment
+        )
+    {
+        $Target = $this.GetCached($TargetName,$ComponentID,$AppID,$Environment)
+        return $Target
+    }
+    #  Get a target from the cache, if present, if not retrieve and add to cache - by ID
+    #   Add ComponentID
+    [system.object]Get(
+        [int]               $TargetID,
+        [TeamDynamix_Api_CustomAttributes_CustomAttributeComponent]$ComponentID,
+        [int]               $AppID,
+        [EnvironmentChoices]$Environment
+        )
+    {
+        $Target = $this.GetCached($TargetID,$ComponentID,$AppID,$Environment)
+        return $Target
+    }
+    # GetAll
+    #  Get all targets from the cache for an environment, if present; if not retrieve and add to cache
+    #   Add ComponentID
+    [system.object[]]GetAll(
+        [TeamDynamix_Api_CustomAttributes_CustomAttributeComponent]$ComponentID,
+        [int]                     $AppID,
+        [string]                  $Environment,
+        [system.nullable[boolean]]$IsActive
+        )
+    {
+        # Retrieve data for cache
+        if (-not $this.$Environment."AppID$AppID")
+        {
+            $this.LoadTargets($ComponentID,$AppID,$Environment)
+        }
+        # Start with all entries, filter if necessary
+        $Return = $this.$Environment."AppID$AppID"
+        # Check for entry IsActive status and filter if requested
+        if (-not $null -eq $IsActive)
+        {
+            # Objects can have property of "Active" or "IsActive" - determine which is present
+            #  If object has no matching property, no filter is applied
+            if ($Return | Get-Member -Name IsActive)
+            {
+                $Return = $Return | Where-Object {($_.IsActive -eq $IsActive) -and ($_.ComponentID -eq $ComponentID)}
+            }
+            elseif ($Return | Get-Member -Name Active)
+            {
+                $Return = $Return | Where-Object {($_.Active -eq $IsActive) -and ($_.ComponentID -eq $ComponentID)}
+            }
+        }
+        else
+        {
+            $Return = $this.$Environment."AppID$AppID" | Where-Object ComponentID -eq $ComponentID
+        }
+        return $Return
+    }
+    #  Delegating methods for GetAll
+    #   Add ComponentID
+    #   Must specify TeamDynamix_Api_CustomAttributes_CustomAttributeComponent to ensure proper type coercion
+    [system.object[]]GetAll(
+        [TeamDynamix_Api_CustomAttributes_CustomAttributeComponent]$ComponentID,
+        [int]               $AppID,
+        [EnvironmentChoices]$Environment
+        )
+    {
+        return $this.GetAll($ComponentID,$AppID,$Environment,$null)
+    }
+    [system.object[]]GetAll(
+        [TeamDynamix_Api_CustomAttributes_CustomAttributeComponent]$ComponentID,
+        [int]$AppID
+        )
+    {
+        return $this.GetAll($ComponentID,$AppID,$script:WorkingEnvironment,$null)
+    }
+    #  Invalid GetAll delegates
+    [system.object[]]GetAll(
+        [string]                  $Environment, # Use string here to differentiate between a string and an int, (enums are both)
+        [system.nullable[boolean]]$IsActive
+        )
+    {
+        throw 'Invalid cache action.'
+    }
+    [system.object[]]GetAll(
+        [System.Nullable[boolean]]$IsActive
+        )
+    {
+        throw 'Invalid cache action.'
+    }
+    [system.object[]]GetAll()
+    {
+        throw 'Invalid cache action.'
+    }
+    # LoadTargets
+    #  Load existing targets into cache, no detail data
+    #   Add component ID
+    [void]LoadTargets(
+        [TeamDynamix_Api_CustomAttributes_CustomAttributeComponent]$ComponentID,
+        [int]               $AppID,
+        [EnvironmentChoices]$Environment
+        )
+    {
+        # Don't load detail data, skip cache checks
+        # Check to see if container exists
+        # Allow loading of additional data, even if the environment/AppID exist, since multiple components may apply to a single app
+        # Create the array holder for the data, if none exists
+        if (-not ($this.$Environment.Keys -contains "AppID$AppID"))
+        {
+            $this.$Environment += @{"AppID$AppID" = @()}
+        }
+        # Load requested data
+        $CustomAttributes = Get-TDCustomAttribute -ComponentID $ComponentID -AppID $AppID -Environment $Environment
+        $CustomAttributes | Add-Member -MemberType NoteProperty -Name ComponentID -Value $ComponentID
+        $this.Add(($CustomAttributes),$AppID,$Environment,$false,$false)
+    }
+    #  Invalid GetCached delegates - ComponentID required for this cache object
+    [void]LoadTargets(
+        [int]               $AppID,
+        [EnvironmentChoices]$Environment
+        )
+    {
+        throw 'Invalid cache action.'
+    }
+}
+# Stores choice data for custom attribute choices
+class TD_CustomAttributeChoice_Cache : Object_Cache
+{
+    # Default constructor
+    TD_Application_Cache ()
+    {
+        $this.DefaultAppID = 0
+    }
+
+    # Override methods
+    #  Search cache by ID - Names are not unique for custom attribute choices
+    hidden [void]Add(
+        [System.Object]     $TargetObject,
+        [int]               $AppID,
+        [EnvironmentChoices]$Environment,
+        [switch]            $Detail,
+        [switch]            $CheckCache
+        )
+    {
+        # Add
+        #  Add new items, or replace existing items if detail information isn't present
+        $CachedTargetObject = $null
+        if ($CheckCache)
+        {
+            # This check is skipped when bulk-loading data, since the cache is empty when that happens
+            $CachedTargetObject = $this.GetCached($TargetObject.ID,$AppID,$Environment)
+        }
+        if (-not $CachedTargetObject)
+        {
+            # Create the array holder for the data, if none exists
+            if (-not ($this.$Environment.Keys -contains "AppID$AppID"))
+            {
+                $this.$Environment += @{"AppID$AppID" = @()}
+            }
+            $this.$Environment."AppID$AppID" += $TargetObject
+        }
+        $this.WorkingEnvironment = $this.$script:WorkingEnvironment
+    }
+    #  Add by target ID - target IDs are unique for custom attribute choices
+    hidden [void]Add(
+        [int]               $TargetID,
+        [int]               $AppID,
+        [EnvironmentChoices]$Environment,
+        [switch]            $Detail
+        )
+    {
+        $Choices = $null
+        # Look up by ID
+        try
+        {
+            $Choices = Get-TDCustomAttributeChoice -ID $TargetID -Environment $Environment
+        }
+        catch {}
+        if ($Choices)
+        {
+            $ChoiceObject = [pscustomobject]@{
+                ID      = $TargetID
+                Choices = $Choices
+            }
+            $this.Add($ChoiceObject,$AppID,$Environment,$Detail,$true)
+        }
+        else
+        {
+            return
+        }
+    }
+    #  Invalid Add delegates - target names are not unique for custom attribute choices
+    hidden [void]Add(
+        [string]            $TargetName,
+        [int]               $AppID,
+        [EnvironmentChoices]$Environment,
+        [switch]            $Detail
+        )
+    {
+        throw 'Invalid cache action.'
+    }
+    # GetCached
+    #  Get a target from the cache, by ID
+    #   Add TargetID to LoadTargets call
+    hidden [system.object]GetCached(
+        [int]               $TargetID,
+        [int]               $AppID,
+        [EnvironmentChoices]$Environment
+        )
+    {
+        # If there's nothing in the cache, load basic target data
+        if (-not $this.$Environment."AppID$AppID")
+        {
+            $this.LoadTargets($TargetID,$AppID,$Environment)
+        }
+        return $this.$Environment."AppID$AppID" | Where-Object ID -eq $TargetID
+    }
+    #  Invalid GetCached delegates - target names are not unique for custom attribute choices
+    hidden [system.object]GetCached(
+        [string]            $TargetName,
+        [int]               $AppID,
+        [EnvironmentChoices]$Environment
+        )
+    {
+        throw 'Invalid cache action.'
+    }
+    # Get
+    #  Return only choices, as the Get-TDCustomAttributeChoice would do
+    #  Must specify AppID of 0
+    [system.object]Get(
+        [int]               $TargetID,
+        [int]               $AppID,
+        [EnvironmentChoices]$Environment
+        )
+    {
+        $Target = $this.GetCached($TargetID,$AppID,$Environment)
+        return $Target.Choices
+    }
+    # LoadTargets
+    #  Load existing targets into cache, no detail data
+    #   Add component ID
+    [void]LoadTargets(
+        [int]               $TargetID,
+        [int]               $AppID,
+        [EnvironmentChoices]$Environment
+        )
+    {
+        # Don't load detail data, skip cache checks
+        # Check to see if container exists
+        # Allow loading of additional data, even if the environment/AppID exist, since multiple components may apply to a single app
+        if (-not ($this.$Environment.Keys -contains "AppID$AppID"))
+        {
+            $this.$Environment += @{"AppID$AppID" = @()}
+        }
+        # Load requested data
+        $Choices = $null
+        try
+        {
+            $Choices = Get-TDCustomAttributeChoice -ID $TargetID -Environment $Environment
+        }
+        catch {}
+        if ($Choices)
+        {
+            $ChoiceObject = [pscustomobject]@{
+                ID      = $TargetID
+                Choices = $Choices
+            }
+            $this.Add($ChoiceObject,$AppID,$Environment,$false,$false)
+        }
+        else
+        {
+            return
+        }
+    }
+    #  Invalid GetCached delegates - Name or ID required for this cache object
+    [void]LoadTargets(
+        [int]               $AppID,
+        [EnvironmentChoices]$Environment
+        )
+    {
+        throw 'Invalid cache action.'
+    }
+    [void]LoadTargets()
+    {
+        throw 'Invalid cache action.'
+    }
+}
 #endregion
 #endregion
 
@@ -15979,7 +17224,7 @@ class TD_SecurityRole_Cache : Object_Cache
 (Test-ModuleManifest $PSScriptRoot\TeamDynamix.psd1).FileList | Where-Object {$_ -like '*.ps1'} | ForEach-Object {. $_}
 
 #region Module authentication
-Write-Progress -ID 100 -Activity 'Loading module' -Status 'Authenticating' -PercentComplete 10
+Write-Progress -ID 100 -Activity 'Loading module' -Status 'Authenticating' -PercentComplete 66
 
 # Check to see if a credential is supplied via -ArgumentList
 if (-not $Credential)
@@ -16015,32 +17260,24 @@ else
 #endregion
 
 #region Any script-wide or global variables that depend on class definitions or TD authentication must come after this point.
-Write-Progress -ID 100 -Activity 'Loading module' -Status 'Loading applications' -PercentComplete 20
+Write-Progress -ID 100 -Activity 'Loading module' -Status 'Loading caches' -PercentComplete 90
 
-# Load applications list - order dependent
+# Load caches - order dependent
 try
 {
-    $script:TDApplications = [TD_Application_Cache]::new()
-    $script:TicketingAppID = ($TDApplications.Get($TDConfig.DefaultTicketingApp)).AppID
-    $script:AssetCIAppID   = ($TDApplications.Get($TDConfig.DefaultAssetCIsApp )).AppID
-    $script:ClientPortalID = ($TDApplications.Get($TDConfig.DefaultPortalApp   )).AppID
-
-    Write-Progress -ID 100 -Activity 'Loading module' -Status 'Loading asset statuses' -PercentComplete 30
-    $script:TDAssetStatuses       = [TD_AssetStatus_Cache]::new($AssetCIAppID)
-
-    Write-Progress -ID 100 -Activity 'Loading module' -Status 'Loading ticket types and statuses' -PercentComplete 40
-    $script:TDTicketPriorities    = [TD_TicketPriority_Cache]::new($TicketingAppID)
-    $script:TDTicketUrgencies     = [TD_TicketUrgency_Cache ]::new($TicketingAppID)
-    $script:TDTicketStatuses      = [TD_TicketStatus_Cache  ]::new($TicketingAppID)
-    $script:TDTicketSources       = [TD_TicketSource_Cache  ]::new($TicketingAppID)
-    $script:TDTicketImpacts       = [TD_TicketImpact_Cache  ]::new($TicketingAppID)
-    $script:TDTicketTypes         = [TD_TicketType_Cache    ]::new($TicketingAppID)
-    $script:TDTicketStatusClasses = Get-TDTicketStatusClass -AuthenticationToken $TDAuthentication -Environment $WorkingEnvironment | Sort-Object Name
-
-    Write-Progress -ID 100 -Activity 'Loading module' -Status 'Loading time zones' -PercentComplete 50
-    $script:TDTimeZones     = Get-TDTimeZoneInformation -SortByGMTOffset
-
-    Write-Progress -ID 100 -Activity 'Loading module' -Status 'Initiating data caches' -PercentComplete 60
+    $script:TDApplications           = [TD_Application_Cache]::new()
+    $script:TicketingAppID           = ($TDApplications.Get($TDConfig.DefaultTicketingApp)).AppID
+    $script:AssetCIAppID             = ($TDApplications.Get($TDConfig.DefaultAssetCIsApp )).AppID
+    $script:ClientPortalID           = ($TDApplications.Get($TDConfig.DefaultPortalApp   )).AppID
+    $script:TDAssetStatuses          = [TD_AssetStatus_Cache]::new($AssetCIAppID)
+    $script:TDTicketPriorities       = [TD_TicketPriority_Cache]::new($TicketingAppID)
+    $script:TDTicketUrgencies        = [TD_TicketUrgency_Cache ]::new($TicketingAppID)
+    $script:TDTicketStatuses         = [TD_TicketStatus_Cache  ]::new($TicketingAppID)
+    $script:TDTicketSources          = [TD_TicketSource_Cache  ]::new($TicketingAppID)
+    $script:TDTicketImpacts          = [TD_TicketImpact_Cache  ]::new($TicketingAppID)
+    $script:TDTicketTypes            = [TD_TicketType_Cache    ]::new($TicketingAppID)
+    $script:TDTicketStatusClasses    = Get-TDTicketStatusClass -AuthenticationToken $TDAuthentication -Environment $WorkingEnvironment | Sort-Object Name
+    $script:TDTimeZones              = Get-TDTimeZoneInformation -SortByGMTOffset
     $script:TDVendors                = [TD_Vendor_Cache]::new($AssetCIAppID)
     $script:TDProductTypes           = [TD_ProductType_Cache ]::new($AssetCIAppID)
     $script:TDProductModels          = [TD_ProductModel_Cache]::new($AssetCIAppID)
@@ -16052,6 +17289,8 @@ try
     $script:TDSecurityRoles          = [TD_SecurityRole_Cache]::new()
     $script:TDBuildingsRooms         = [TD_Location_Cache]::new()
     $script:TDServices               = [TD_Service_Cache]::new()
+    $script:TDCustomAttributes       = [TD_CustomAttribute_Cache]::new()
+    $script:TDCustomAttributeChoices = [TD_CustomAttributeChoice_Cache]::new()
 }
 catch
 {
@@ -16060,3 +17299,84 @@ catch
 #endregion
 
 Write-Progress -ID 100 -Completed -Activity 'Finishing'
+# SIG # Begin signature block
+# MIIOsQYJKoZIhvcNAQcCoIIOojCCDp4CAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
+# gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQU4DodeiOo52AAerTywxDrGfnL
+# PVegggsLMIIEnTCCA4WgAwIBAgITXAAAAASry1piY/gB3QAAAAAABDANBgkqhkiG
+# 9w0BAQsFADAaMRgwFgYDVQQDEw9BU0MgUEtJIE9mZmxpbmUwHhcNMTcwNTA4MTcx
+# NDA5WhcNMjcwNTA4MTcyNDA5WjBYMRMwEQYKCZImiZPyLGQBGRYDZWR1MRowGAYK
+# CZImiZPyLGQBGRYKb2hpby1zdGF0ZTETMBEGCgmSJomT8ixkARkWA2FzYzEQMA4G
+# A1UEAxMHQVNDLVBLSTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAOF4
+# 1t2KTcMPjn/gtqYCaWsRjqTvsL0AjDvZDeTUqc4rABZw5rbZFLMRKeuFMmCKeCEb
+# wtNDSv2GVCvZnRJuUPVowSyT1+0rHNYnzyTrJDiZTm/WzurPOSlaqGuJovb2mJLk
+# 4351McVNwN7T9io8Tpi4pov1kFfJqHH7MY6H4Sa/6xuy2Al0/8+c3QubJc1Fl4Ew
+# XJGMLIvmYIkik1pRr3eT52JP2uu7yyyU+JMRwhvbMEnhuhVGwi5aKTg1G3z6AoOn
+# bdWl+AMfxwaNtl0Hhz4NWQIgo/ieiXUqC1DZqKj4vauBlSLxE66CSJnLDD3IMmss
+# NJlFi2Q0NAw4HulTpLsCAwEAAaOCAZwwggGYMBAGCSsGAQQBgjcVAQQDAgEBMCMG
+# CSsGAQQBgjcVAgQWBBTeaCQAfNtGUFhb0QBZ02IBaUIJzTAdBgNVHQ4EFgQULgSe
+# hPTwfxn4sIe7oPMkGIyw97YwgZIGA1UdIASBijCBhzCBhAYGKwYBBAFkMHowOgYI
+# KwYBBQUHAgIwLh4sAEwAZQBnAGEAbAAgAFAAbwBsAGkAYwB5ACAAUwB0AGEAdABl
+# AG0AZQBuAHQwPAYIKwYBBQUHAgEWMGh0dHA6Ly9jZXJ0ZW5yb2xsLmFzYy5vaGlv
+# LXN0YXRlLmVkdS9wa2kvY3BzLnR4dDAZBgkrBgEEAYI3FAIEDB4KAFMAdQBiAEMA
+# QTALBgNVHQ8EBAMCAYYwDwYDVR0TAQH/BAUwAwEB/zAfBgNVHSMEGDAWgBSmmXUH
+# 2YrKB5bSFEUMk0oNSezdUTBRBgNVHR8ESjBIMEagRKBChkBodHRwOi8vY2VydGVu
+# cm9sbC5hc2Mub2hpby1zdGF0ZS5lZHUvcGtpL0FTQyUyMFBLSSUyME9mZmxpbmUu
+# Y3JsMA0GCSqGSIb3DQEBCwUAA4IBAQAifGwk/QoUSRvJ/ecvyk6MymoQgZByKSsn
+# 1BNkJ3R7RjUE75/1cFVhRylPH3ADe8wRzjwJF1BgJsa1p2TCVHpIoxOWV4EwWwqU
+# k3ufAGfxhMd7D5AAxOon0UKUIgcW9LCq+R7GfcbBsFxc9IL6GQVRTISTOkfzsqqP
+# 4tUe5joCIGfO2qcx2uhnavVF+4nq2OrQEMqM/gOWD+YhmMh/QrlpMOOSBdhpKBk4
+# lF2/3+dqD0dVuX7/s6xnUoYwDyp1rw/ExOy6kT8dNSVIjXVXEd2/bhqD6UqYYly4
+# KrwQTTbeHQif7Q8E0ecf+FOhrBmZCwYhXeSmnTPT7vMmfvU4aOEyMIIGZjCCBU6g
+# AwIBAgITegAA4Q+dSse+55kspAABAADhDzANBgkqhkiG9w0BAQsFADBYMRMwEQYK
+# CZImiZPyLGQBGRYDZWR1MRowGAYKCZImiZPyLGQBGRYKb2hpby1zdGF0ZTETMBEG
+# CgmSJomT8ixkARkWA2FzYzEQMA4GA1UEAxMHQVNDLVBLSTAeFw0yMjA0MTcxNDI5
+# MjFaFw0yMzA0MTcxNDI5MjFaMIGUMRMwEQYKCZImiZPyLGQBGRYDZWR1MRowGAYK
+# CZImiZPyLGQBGRYKb2hpby1zdGF0ZTETMBEGCgmSJomT8ixkARkWA2FzYzEXMBUG
+# A1UECxMOQWRtaW5pc3RyYXRvcnMxEjAQBgNVBAMTCWtlbGxlci40YTEfMB0GCSqG
+# SIb3DQEJARYQa2VsbGVyLjRAb3N1LmVkdTCCAiIwDQYJKoZIhvcNAQEBBQADggIP
+# ADCCAgoCggIBANJyDgYNySplxbw/CyHHvLSAa0IGnMKoelKIqh2uBz7eA8osQRiZ
+# 5+H9IZGSjjUz6o6xFdqLSL+zgzjVrqs/wXZDcHJyOvUSYLJXQ9/FipmOM0TNHMts
+# vUNrSqIu2kyEQnvkNX9bTcfziDpuzQW1KiK9M54EoERX61BIUgCrn3fUB5R/v12n
+# t+/aXI6cIm6fJDOCD/k5XQKyXC6BWcAmOZCCr2YRmFVyW/bHez9HXhBZ44WQBgJ8
+# jS53rBFxlSNmDiB1qn5O5xJMX/aoEf0GRgI89q99jmLrcDEk/YMfqq7Pr1atRh0P
+# Atk7C0f38aj9LNqJpZ9dH+gHqd2TMuXW2zu45RjX+sZ2J96xCl6SVrdSqVuDSCnq
+# AMtAIOzgoDjH+263xmuRiyi5iWVkYh5sIQJ0M/nVJWWfa4Fi9+qGRpUCaI4GtHy3
+# 23jlU8EFi+ebnPqNY1EdXzvhtF5FXnoguMH/oGnWsCm51JTB7WePShEJloL7i2OZ
+# 65QE8U8zuXCxDo3CJpl6fbpd+ntCSxBZnrRhnsxLoD5CMCOEfbvJEM6+hsYwgxEI
+# 5SBbM+AUbslp4HPWR6BNZIiLSHH3GoTpxs1DC3PajdeWlgigwb+2vsxjw55xQFvL
+# oMGRY8haLpzetIbj5XDkaPxuUCRRNuiTEPXOCYUMjh85yAU256c+e02FAgMBAAGj
+# ggHqMIIB5jA7BgkrBgEEAYI3FQcELjAsBiQrBgEEAYI3FQiHps4T49FzgumVIoT0
+# jhjIwUl6gofXTITr6w0CAWQCAQ0wEwYDVR0lBAwwCgYIKwYBBQUHAwMwCwYDVR0P
+# BAQDAgeAMBsGCSsGAQQBgjcVCgQOMAwwCgYIKwYBBQUHAwMwHQYDVR0OBBYEFIO5
+# hudGmrID2txhbFUlhuoo1tuaMB8GA1UdIwQYMBaAFC4EnoT08H8Z+LCHu6DzJBiM
+# sPe2MEUGA1UdHwQ+MDwwOqA4oDaGNGh0dHA6Ly9jZXJ0ZW5yb2xsLmFzYy5vaGlv
+# LXN0YXRlLmVkdS9wa2kvQVNDLVBLSS5jcmwwgacGCCsGAQUFBwEBBIGaMIGXMF0G
+# CCsGAQUFBzAChlFodHRwOi8vY2VydGVucm9sbC5hc2Mub2hpby1zdGF0ZS5lZHUv
+# cGtpL1BLSS1DQS5hc2Mub2hpby1zdGF0ZS5lZHVfQVNDLVBLSSgxKS5jcnQwNgYI
+# KwYBBQUHMAGGKmh0dHBzOi8vY2VydGVucm9sbC5hc2Mub2hpby1zdGF0ZS5lZHUv
+# b2NzcDA3BgNVHREEMDAuoCwGCisGAQQBgjcUAgOgHgwca2VsbGVyLjRhQGFzYy5v
+# aGlvLXN0YXRlLmVkdTANBgkqhkiG9w0BAQsFAAOCAQEAVbwyi6GWGTsBKQ4X51zF
+# AX6IOmtiBYxyklQa6GrZM1blyBbNVlTQKq09io6VJZrLFi161d0VgZlae1VWQYy9
+# EoGL2o5syNH/dyUyCTMSAAws5K3lNUwzqytD/LNXVqoR2o0kXpxa0ryCq6/3LQAm
+# h33AUNIdbfX6gJ96UKtv/GiwAt1yJPgdED45nf/c6iR/o5tQNRUVbrs/au4yLqQL
+# gfjhCzVnF36WnnLWQWCOGM96dq8evKMA/U5UuM8/8MQvV/CMUP0HCoTofmyrlPNb
+# 3xr2E175XhiKIwPuIL1otnNZB30+ZIYKxkZniS/sUbghzFAfNOytPowH0vni82FX
+# ZTGCAxAwggMMAgEBMG8wWDETMBEGCgmSJomT8ixkARkWA2VkdTEaMBgGCgmSJomT
+# 8ixkARkWCm9oaW8tc3RhdGUxEzARBgoJkiaJk/IsZAEZFgNhc2MxEDAOBgNVBAMT
+# B0FTQy1QS0kCE3oAAOEPnUrHvueZLKQAAQAA4Q8wCQYFKw4DAhoFAKB4MBgGCisG
+# AQQBgjcCAQwxCjAIoAKAAKECgAAwGQYJKoZIhvcNAQkDMQwGCisGAQQBgjcCAQQw
+# HAYKKwYBBAGCNwIBCzEOMAwGCisGAQQBgjcCARUwIwYJKoZIhvcNAQkEMRYEFJFm
+# eM3a5PQqV4ldpWsx01AdlsADMA0GCSqGSIb3DQEBAQUABIICAHuy5WwuWPtGTCwe
+# W4Xfp44qOyOBnY8ltZ7NQ5tz0yWgOChaBOUL3WcxxxUDyfkc+OWi/NK+h4dF1Cqw
+# 11CnJjxFVuKIiWWyiRU0koJRmbEfgWwWUkKU4xFYsoezn5Elq7S85pB/kad7o+/H
+# FcoLy9hNPJQP3Zp9ROs3XRMTVsSix1b7QkHkDUgY0Jozy+Zun7ET4rVO5nkRhTxh
+# 91Fx1xfRGk5xiiMp0XGpimiAyZ44WzsRypNu+txtr2qUmx5yVi4LLPJIIny4r+iv
+# aUE8s94g5xXLc5Uxtl6Z19htbFQCj/HxZlg6hciYeJDpwUhlYe7sPB0FmZPNq19/
+# eu977EmzclDY3XyP2exaZja5+rTipwYLkGhphaPvUWkuZyGTWsva+q6VvfjnwopR
+# xb/KYfXDtYITXB9DqZQMOiwHlebNeVjsMsldw2VRq07TER1soQmy1/KzvO9Xcz31
+# 50EadIOLoTudhfeC/eUF+pwqwb5OTt9P/azbjZoYN6Kfqb4P7ESAogsLcFboiVYO
+# +uICwmjU3bbqqRGku1aouSbUepF2jfZIQJYTPeDsljj4jbQ62sEi5wb2P9eTHVS7
+# DRvQ3i8Msa0CIt4vX46ksVEVljGKtMuLq7r2gaUmSxOJUVlBbJG6RkiWEFaYSn5G
+# aDWvO8166fnIOZfdZvWF7JTl9shw
+# SIG # End signature block
