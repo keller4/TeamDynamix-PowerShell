@@ -38,7 +38,7 @@ function Get-TDService
                 ValidateSet = $TDApplications.GetByAppClass('TDClient',$true).Name
                 HelpText    = 'Name of application'
                 IDParameter = 'AppID'
-                IDsMethod   = '$TDApplications.GetAll($WorkingEnvironment,$true)'
+                IDsMethod   = '$TDApplications.GetAll([string]$Environment,$true)'
             }
         )
         $DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
@@ -118,7 +118,7 @@ function Get-TDServiceOffering
                 ValidateSet = $TDApplications.GetByAppClass('TDClient',$true).Name
                 HelpText    = 'Name of application'
                 IDParameter = 'AppID'
-                IDsMethod   = '$TDApplications.GetAll($WorkingEnvironment,$true)'
+                IDsMethod   = '$TDApplications.GetAll([string]$Environment,$true)'
             }
             @{
                 Name        = 'ServiceName'
@@ -170,8 +170,8 @@ function Get-TDServiceOffering
 # SIG # Begin signature block
 # MIIOsQYJKoZIhvcNAQcCoIIOojCCDp4CAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUYkVSmRHmAXCt1Ja+jmbKgpiX
-# 34ugggsLMIIEnTCCA4WgAwIBAgITXAAAAASry1piY/gB3QAAAAAABDANBgkqhkiG
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQU6wY1uOMpv1doW61OSzEAxoDo
+# 0dCgggsLMIIEnTCCA4WgAwIBAgITXAAAAASry1piY/gB3QAAAAAABDANBgkqhkiG
 # 9w0BAQsFADAaMRgwFgYDVQQDEw9BU0MgUEtJIE9mZmxpbmUwHhcNMTcwNTA4MTcx
 # NDA5WhcNMjcwNTA4MTcyNDA5WjBYMRMwEQYKCZImiZPyLGQBGRYDZWR1MRowGAYK
 # CZImiZPyLGQBGRYKb2hpby1zdGF0ZTETMBEGCgmSJomT8ixkARkWA2FzYzEQMA4G
@@ -234,17 +234,17 @@ function Get-TDServiceOffering
 # 8ixkARkWCm9oaW8tc3RhdGUxEzARBgoJkiaJk/IsZAEZFgNhc2MxEDAOBgNVBAMT
 # B0FTQy1QS0kCE3oAAOEPnUrHvueZLKQAAQAA4Q8wCQYFKw4DAhoFAKB4MBgGCisG
 # AQQBgjcCAQwxCjAIoAKAAKECgAAwGQYJKoZIhvcNAQkDMQwGCisGAQQBgjcCAQQw
-# HAYKKwYBBAGCNwIBCzEOMAwGCisGAQQBgjcCARUwIwYJKoZIhvcNAQkEMRYEFGZJ
-# 8LWwX7EWyPtA+eg1TpeC3/iHMA0GCSqGSIb3DQEBAQUABIICABZs7PG1uhGqvROq
-# no8fmXi3adt0eyEgx9VFQXoxStE1SA0khnr55VEp9coIXMjQNXrWb8147cSKpu/z
-# 3WWPPMQHvursrjNYqtNRxQkJ1MnO/8nZkMqpx00D5mTljYxvlyit9cBvV+YA44jG
-# R3YL3RDUBpa38eVyKmH5Ewdg3tc1JO9DI4oeNPxjfEKUsdD4skgIrWoUpVs5cH3f
-# PbAg+LjlgMLA3lhJEDjZTmlxWLmWfevXo/H2FkgUxobjVYvV/QzZX3UgotJ9JKIj
-# lesoL87sfKqwIDxmXf64lO1Hx87/eHZ4mH21xuA1q9rzeeKF/yOa03PZPKp1BKa4
-# ww5XiCOo+r0QaQwazGPNUevRvVIzinym2yPmgYNW5akdd0mjVmEjZ18Epta1eyOu
-# m7gHp8GCe7xEecIjB89RaeqIoHvcLSn6FhvHh1K9ChcIMwI1OrfCeIduYipaSWnB
-# ZPaNU5y1JLgNWZLIbg5l0JraEHJd0y6PfV2v+5ON1nBXeFiXHXoLCBCGaCKFAifz
-# +1Ha49mQ0VEJEzE+3v5hskWpsZ8iHZv+LlGfU5BJibWl9jQDnhr9jSqVR/OztvZU
-# noOkzXQv/q2DJewTz8Y6Z8uu7UlHwO46Q5huKEmbwc8EfLSmtJH28/dr8SB/hJmQ
-# 5uJL+1oUE02De9QD2I7BDNh4sflN
+# HAYKKwYBBAGCNwIBCzEOMAwGCisGAQQBgjcCARUwIwYJKoZIhvcNAQkEMRYEFKbL
+# ffGzYw9wbYQIETknB4zCNVeYMA0GCSqGSIb3DQEBAQUABIICADbfRuwk4h6Y2Xhp
+# QC3ufdFU4nOT5Z4jm8IS8TP+Dd0N9gNzL2ljU5CHSLSLO30JjLbheFXhjamV8TuA
+# 7O+c97JlY988AvLE79tu5tHzQzpu15F7mkeNN2Cv9jt1/wgU4NILVxwtTMauSCRE
+# 0LkFUHfvHGFWZ0/p/XrnmAWVjv9GItbf5srqJc6KuJu/OODfdXzYXi78xavTVmd0
+# 8/2olChpRo7rSLSxlCMlLUUJLM1gOW+rku97G4kDFjtGLT9r/yd5agKRCYQBp9fO
+# XG/5htysFDTz36i69gR950Sw9UNmvAAe+VIp3qFK5Kz0jyuiPsjr7rEVNH3QKpB/
+# +4L37m5ze4kk00gpqdGu7oHD3u0Ai4mj8yY4EfAVOMSMdyxG4P5BmCXgVuhtThrM
+# k/6RHOEOhwxiCyIpKaXTs2rs/UpFnTr2D389k2daomfCyGNPSJAlS77uL4LmH3DM
+# iv12S64j1MmCvxH5I2uaRrwpdNbZRxWPRZmSM+oFNO7kaWiuNQ8jX4XQ1T33neQI
+# B6DrTveLEIll1yoLBndqdnJQc/tex8fB+2nFc6HDlDRUWnGzpniubtjH383hW05w
+# N0yQYLWwgU/hi6sUoiXGtLTv1CRNCFtvrZldl3CQG6yAxbSmXxYW/xWqTR6+Ji0a
+# Uimy3R1JUO+LTGW24pmVZcF+Pi+e
 # SIG # End signature block

@@ -525,7 +525,7 @@ function Get-TDTicket
                 ValidateSet = $TDApplications.GetByAppClass('TDTickets',$true).Name
                 HelpText    = 'Name of application'
                 IDParameter = 'AppID'
-                IDsMethod   = '$TDApplications.GetAll($WorkingEnvironment,$true)'
+                IDsMethod   = '$TDApplications.GetAll([string]$Environment,$true)'
             }
         )
         $DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
@@ -729,7 +729,7 @@ function Get-TDTicketStatus
                 ValidateSet = $TDApplications.GetByAppClass('TDTickets',$true).Name
                 HelpText    = 'Name of application'
                 IDParameter = 'AppID'
-                IDsMethod   = '$TDApplications.GetAll($WorkingEnvironment,$true)'
+                IDsMethod   = '$TDApplications.GetAll([string]$Environment,$true)'
             }
 		)
 		$DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
@@ -1350,7 +1350,7 @@ function Set-TDTicket
                 ValidateSet = $TDApplications.GetByAppClass('TDTickets',$true).Name
                 HelpText    = 'Name of application'
                 IDParameter = 'AppID'
-                IDsMethod   = '$TDApplications.GetAll($WorkingEnvironment,$true)'
+                IDsMethod   = '$TDApplications.GetAll([string]$Environment,$true)'
             }
         )
         $DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
@@ -1764,7 +1764,7 @@ function New-TDTicket
                 ValidateSet = $TDApplications.GetByAppClass('TDTickets',$true).Name
                 HelpText    = 'Name of application'
                 IDParameter = 'AppID'
-                IDsMethod   = '$TDApplications.GetAll($WorkingEnvironment,$true)'
+                IDsMethod   = '$TDApplications.GetAll([string]$Environment,$true)'
             }
         )
         $DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
@@ -2430,7 +2430,7 @@ function Update-TDTicket
                 ValidateSet = $TDApplications.GetByAppClass('TDTickets',$true).Name
                 HelpText    = 'Name of application'
                 IDParameter = 'AppID'
-                IDsMethod   = '$TDApplications.GetAll($WorkingEnvironment,$true)'
+                IDsMethod   = '$TDApplications.GetAll([string]$Environment,$true)'
             }
         )
         $DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
@@ -2656,7 +2656,7 @@ function New-TDBlackoutWindow
                 ValidateSet = $TDApplications.GetByAppClass('TDTickets',$true).Name
                 HelpText    = 'Name of application'
                 IDParameter = 'AppID'
-                IDsMethod   = '$TDApplications.GetAll($WorkingEnvironment,$true)'
+                IDsMethod   = '$TDApplications.GetAll([string]$Environment,$true)'
             }
         )
         $DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
@@ -2779,7 +2779,7 @@ function Set-TDBlackoutWindow
                 ValidateSet = $TDApplications.GetByAppClass('TDTickets',$true).Name
                 HelpText    = 'Name of application'
                 IDParameter = 'AppID'
-                IDsMethod   = '$TDApplications.GetAll($WorkingEnvironment,$true)'
+                IDsMethod   = '$TDApplications.GetAll([string]$Environment,$true)'
             }
         )
         $DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
@@ -3931,8 +3931,8 @@ function Set-TDTicketWorkflow
 # SIG # Begin signature block
 # MIIOsQYJKoZIhvcNAQcCoIIOojCCDp4CAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQU/TzbHJUdQBs+aYHNaOERZTZT
-# n2mgggsLMIIEnTCCA4WgAwIBAgITXAAAAASry1piY/gB3QAAAAAABDANBgkqhkiG
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQU+3KgSkv3nT2nPPSYnrh91/l/
+# eMegggsLMIIEnTCCA4WgAwIBAgITXAAAAASry1piY/gB3QAAAAAABDANBgkqhkiG
 # 9w0BAQsFADAaMRgwFgYDVQQDEw9BU0MgUEtJIE9mZmxpbmUwHhcNMTcwNTA4MTcx
 # NDA5WhcNMjcwNTA4MTcyNDA5WjBYMRMwEQYKCZImiZPyLGQBGRYDZWR1MRowGAYK
 # CZImiZPyLGQBGRYKb2hpby1zdGF0ZTETMBEGCgmSJomT8ixkARkWA2FzYzEQMA4G
@@ -3995,17 +3995,17 @@ function Set-TDTicketWorkflow
 # 8ixkARkWCm9oaW8tc3RhdGUxEzARBgoJkiaJk/IsZAEZFgNhc2MxEDAOBgNVBAMT
 # B0FTQy1QS0kCE3oAAOEPnUrHvueZLKQAAQAA4Q8wCQYFKw4DAhoFAKB4MBgGCisG
 # AQQBgjcCAQwxCjAIoAKAAKECgAAwGQYJKoZIhvcNAQkDMQwGCisGAQQBgjcCAQQw
-# HAYKKwYBBAGCNwIBCzEOMAwGCisGAQQBgjcCARUwIwYJKoZIhvcNAQkEMRYEFBjX
-# b+VzNRmcKomDhbvVY6FyyZQbMA0GCSqGSIb3DQEBAQUABIICAFlZbIqbdrjxi75l
-# edn1Bmc7cFkF8XLB4jXgiAGLkSrTZF6mVyotH7i1BRYSWe0fvpLFoZj2G7mE9wZC
-# +H/whRlWgI8Jb0yN+rEHnIXJENMpVBAnkHWG/pW2E9PVognKFqDjcCjlL0JFycA/
-# iOX1qKFkSPeIY0LUQY6kQPqNxWSfPkVdnyATSi+2z1YYYB6WR1RwsR/kZrMj3dkX
-# h5FNCmHVx1Cd0FL1NAOfDbLy6Cik4Tl+DAuszj3UBIw7dbAIWAMNH+2RVPd/IzBK
-# 58RTyHZhjiNf4c6YnMdgh1otKtqVzCOc3fKigIpaKpme7MheEhgipichtw5fZa4l
-# AK+jKV6mr8saw1inS9tfy8UOB5yDP97pl7e3MbpuP8g/d/yjs0y1e9LE68k+7ao8
-# WdGxeX9bg84jedO1vBZkRuLkoocGUSNeQfIp8d7zl91j5Ab3jrz2dXreGNOhSzQf
-# cJkiESBWn6LUsil+NIiHMFLN5hGMhl2FXqDq66R+G3nKMN6YIPuMuHz8w67io+Nq
-# SzCKRj5kUqJyyEUvRdmy3Nwr29FScdofBuGnY5AAWbheuUPWQHj7kkDud6oYeuK3
-# FgfUM3B72F8qWIaj017CubAnW81KBfXQZ41Exyy39LIConkq6qu0/7it/rssION0
-# W6917Pffr3ni0AnIEzfVPtv9PgpN
+# HAYKKwYBBAGCNwIBCzEOMAwGCisGAQQBgjcCARUwIwYJKoZIhvcNAQkEMRYEFPxD
+# ieyg/VF855dp1iLnKZMlTV9xMA0GCSqGSIb3DQEBAQUABIICAKmD/8LdY4BA6VOX
+# HLOhq/MNP6pyg1dQp2l2z6gKjOlLtufzHfxb5wUSrhFbMpQ96KIk+94PCY/d8sXO
+# zmrlAMhh/e/YTebr+e+XXfZzDIk3q+XLt7oUhUx9/KxTOV4diL9F4vrtTp73YzSH
+# eBJAFadg39DH+Ti/1B5q0hcntP7xT8dM0BEccaJe8DtDVLOytHokcZ+ceJ/6U7y4
+# qWlpMJrYHVb1b+OrME2nps6lYFQ5RIhkE8zQ2oLzCpAhxuAt+GQU5CsXXT94BmZk
+# VZpY7EP4frZ3yX9IrinMYAjuw3YX782Fc6SFekxKZa3vFKqT9hysvg8yxQhleRws
+# W3sCdZbi+sLd0NLw27klyc8+t4niqHF6vX/Vdp+mQGU2PrvJGW9AemQnyu/N7Vt0
+# mlfD+Gi+LvV84Vcs7R2lwGZ36mzy80B3HKZO2xtbUXj2vTAe5At29SAIMoC7KR+Q
+# 9yumRu39A/yErHzpvwVNLPBBwAYFE2OJMvMnpU+/fSWh4wPP1WzCcSrINPNt7MKl
+# Ip+JuCy3g14osHfk7G1Mnsi1onkPTKOBkLZ2lG/DPBVnVoPnXJzORNJn8Ak/Ep6P
+# kQii1/lgUsG/05VlV3bcNiOkF7WZYmqxGyvw8/6q6XGF8Ke1pndApxGkhZO7jltF
+# 4DfAf2wo2QAceXN+r2t2qkfDs7QN
 # SIG # End signature block

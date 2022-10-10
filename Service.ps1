@@ -374,11 +374,14 @@ function New-TDUserApplication
         $SecurityRole = $TDSecurityRoles.Get($SecurityRoleID,$AppID,$Environment)
         if ($SecurityRole)
         {
+            $AppInformation = $TDApplications.GetAll([string]$Environment) | Where-Object {$_.AppID -eq $SecurityRole.AppID}
             $UserApplication.SecurityRoleId   = $SecurityRoleId
             $UserApplication.IsAdministrator  = $IsAdministrator
             $UserApplication.ID               = $AppID
             $UserApplication.SecurityRoleName = $SecurityRole.Name
-            $UserApplication.Name             = ($TDApplications.GetAll($Environment) | Where-Object {$_.AppID -eq $SecurityRole.AppID}).Name
+            $UserApplication.Name             = $AppInformation.Name
+            $UserApplication.Description      = $AppInformation.Description
+            $UserApplication.SystemClass      = $AppInformation.AppClass
             return $UserApplication
         }
         else
@@ -2230,7 +2233,7 @@ function ConvertFrom-UserToTD
     Begin
     {
         Write-ActivityHistory "`n-----`nIn $($MyInvocation.MyCommand.Name)"
-        $SpecialUserProperties = @('BuildingNumber','RoomNumber','LocationSearch')
+        $SpecialUserProperties = @('BuildingNumber','RoomNumber','LocationSearch','UserRoleName')
         #  Set ID parameters from their corresponding Name (dynamic) parameters (in begin block if none are gathered from the pipeline, otherwise in process block)
         if ($DynamicParameterDictionary)
         {
@@ -2310,8 +2313,15 @@ function ConvertFrom-UserToTD
     }
     Process
     {
+
+        # Set the user role name to the dynamic value
+        $UserRoleName = $DynamicParameterDictionary.UserRoleName.Value
+
         # Create object to hold user data
         $UserData = [TD_UserInfo]::new()
+
+        # Clear DoNotUpdateNullOrEmptyProperties for each run
+        $DoNotUpdateNullOrEmptyProperties = @()
 
         # Try primary and supplemental connectors
         foreach ($ConnectorName in ('PrimaryConnector','SupplementalConnector'))
@@ -2410,6 +2420,22 @@ function ConvertFrom-UserToTD
                     {
                         Clear-Variable -Name $SpecialUserProperty -ErrorAction Ignore
                     }
+                }
+                # Collect properties set for DoNotUpdateNullOrEmpty to test to see if they are, in fact, null or empty
+                if ($Connector.Data.FieldMappings.DoNotUpdateNullOrEmpty)
+                {
+                    $DoNotUpdateNullOrEmptyProperties = $DoNotUpdateNullOrEmptyProperties += $Connector.Data.FieldMappings.DoNotUpdateNullOrEmpty
+                }
+            }
+        }
+        # Test properties set for DoNotUpdateNullOrEmpty and remove them if they are null or empty, once all connectors have been processed
+        if ($DoNotUpdateNullOrEmptyProperties)
+        {
+            foreach ($DoNotUpdateNullOrEmptyProperty in ($DoNotUpdateNullOrEmptyProperties | Select-Object -Unique))
+            {
+                if (($null -eq $UserData.$DoNotUpdateNullOrEmptyProperty) -or ($UserData.$DoNotUpdateNullOrEmptyProperty -eq ''))
+                {
+                    $UserData = $UserData | Select-Object -ExcludeProperty $DoNotUpdateNullOrEmptyProperty
                 }
             }
         }
@@ -2627,7 +2653,12 @@ function Invoke-RESTCall
                         }
                         else
                         {
-                            Write-ActivityHistory -MessageChannel Error -Message "API call failed. - $URI Method: $Method - $($ErrorResponse.Message)"
+                            # Catch error so it doesn't get returned and cause the processing to stop
+                            try
+                            {
+                                Write-ActivityHistory -MessageChannel Error -Message "API call failed. - $URI Method: $Method - $($ErrorResponse.Message)"
+                            }
+                            catch {}
                         }
                     }
                 }
@@ -2776,9 +2807,10 @@ function Update-Object
                 $InputObject.OrgApplications += $OrgApplication
             }
         }
-        # If OrgApplications is set to null, remove all OrgApplications
+        # OrgApplications is null - if explicitly set to null, remove all OrgApplications
         #  Must return an empty array to clear all items
-        else
+        #  Do not modify OrgApplications if it is not explicitly set
+        elseif ($BoundParameterList -contains 'OrgApplications')
         {
             $InputObject.OrgApplications = @()
         }
@@ -3420,7 +3452,27 @@ function Write-ActivityHistory
                    ParameterSetName='Error',
                    ValueFromPipelineByPropertyName=$true)]
         [switch]
-        $ThrowError
+        $ThrowError,
+
+        # Message
+        [Parameter(Mandatory=$false,
+                   ParameterSetName='Text',
+                   ValueFromPipelineByPropertyName=$true)]
+        [Parameter(Mandatory=$false,
+                   ParameterSetName='Error',
+                   ValueFromPipelineByPropertyName=$true)]
+        [string]
+        $LogWebhook,
+
+        # Message
+        [Parameter(Mandatory=$false,
+                   ParameterSetName='Text',
+                   ValueFromPipelineByPropertyName=$true)]
+        [Parameter(Mandatory=$false,
+                   ParameterSetName='Error',
+                   ValueFromPipelineByPropertyName=$true)]
+        [string]
+        $LogFile
     )
     Begin
     {
@@ -3436,6 +3488,52 @@ function Write-ActivityHistory
     }
     Process
     {
+        if ($LogFile -or $LogWebhook)
+        {
+            switch ($pscmdlet.ParameterSetName)
+            {
+                Text
+                {
+                    $LogText  = "Channel: $MessageChannel`r`n"
+                    $LogText += $Message
+                }
+                Error
+                {
+                    $LogText  = "Channel: Error`r`n"
+                    if ($ErrorRecord)
+                    {
+                        $LogText += "$($ErrorRecord.Type)`r`n"
+                        $LogText += "$($ErrorRecord.ErrorRecord.ScriptStackTrace)`r`n"
+                        $LogText += "$($ErrorRecord.Message)`r`n"
+                        $LogText += "Fatal error: $ThrowError"
+                    }
+                    if ($ErrorMessage)
+                    {
+                        $LogText += "$ErrorMessage`r`n"
+                        $LogText += "Fatal error: $ThrowError"
+                    }
+                }
+            }
+            if ($LogFile)
+            {
+                $LogText | Out-File -FilePath $LogFile -Append
+            }
+            if ($LogWebhook)
+            {
+                # Fix end of line for webhook output
+                $LogText = $LogText.Replace("`r`n",'<br>').Replace("`n",'<br>')
+
+                $Card = [PSCustomObject][Ordered]@{
+                    '@type'    = "MessageCard"
+                    '@context' = 'http://schema.org/extensions'
+                    summary    = "TeamDynamix API message"
+                    themeColor = '33FFFC'
+                    title      = "$MessageChannel channel message from automated TeamDynamix tool"
+                    text       = $LogText
+                }
+                Invoke-RESTCall -Uri $LogWebhook -ContentType 'application/json' -Method Post -Body (ConvertTo-Json $Card -Depth 10)
+            }
+        }
         switch ($pscmdlet.ParameterSetName)
         {
             Text
@@ -4393,60 +4491,63 @@ function Invoke-New {
         $IDsFromNamesUpdates = Get-IDsFromNames -DynamicParameterDictionary $DynamicParameterDictionary -DynamicParameterList $DynamicParameterList
         $IDsFromNamesUpdates | ForEach-Object {Set-Variable -Name $_.Name -Value $_.Value}
     }
-    # Test for Set or New
-    if ($RetrievalCommand)
+    if ($ObjectType)
     {
-        # Set
-        Write-ActivityHistory "Getting full TeamDynamix object record via $RetrievalCommand"
-        try
+        # Test for Set or New
+        if ($RetrievalCommand)
         {
-            $Object = Invoke-Expression "$RetrievalCommand -AuthenticationToken `$AuthenticationToken -Environment `$Environment -ErrorAction Stop"
-            if (-not $Object)
+            # Set
+            Write-ActivityHistory "Getting full TeamDynamix object record via $RetrievalCommand"
+            try
             {
-                Write-ActivityHistory -MessageChannel 'Error' -ThrowError -Message "Unable to find source object on TeamDynamix to modify."
+                $Object = Invoke-Expression "$RetrievalCommand -AuthenticationToken `$AuthenticationToken -Environment `$Environment -ErrorAction Stop"
+                if (-not $Object)
+                {
+                    Write-ActivityHistory -MessageChannel 'Error' -ThrowError -Message "Unable to find source object on TeamDynamix to modify."
+                }
+            }
+            catch
+            {
+                Write-ActivityHistory -ThrowError -ErrorRecord $_ -ErrorMessage "Unable to find source object on TeamDynamix to modify."
+            }
+            $ShouldProcessText1 = "$Endpoint - $($Object | Out-String)"
+            $ShouldProcessText2 = 'Update TeamDynamix item'
+        }
+        else
+        {
+            # New
+            #  Create object only if $ObjectType is present
+            if ($ObjectType)
+            {
+                $Object = Invoke-Expression "[$ObjectType]::new()"
+            }
+                $ShouldProcessText1 = $BoundParameters | Out-String
+                $ShouldProcessText2 = 'Add new TeamDynamix item'
+        }
+        Write-ActivityHistory 'Preparing object for update/creation.'
+        Update-Object -InputObject $Object -ParameterList $Params.Command -BoundParameterList $BoundParameters -IgnoreList $Params.Ignore -AuthenticationToken $AuthenticationToken -Environment $Environment
+        # Special cases for Set
+        if ($RetrievalCommand)
+        {
+            # Remove attributes specified for removal
+            if ($BoundParameters.Keys -contains 'RemoveAttributes')
+            {
+                foreach ($RemoveAttribute in $RemoveAttributes)
+                {
+                    $Object.RemoveCustomAttribute($RemoveAttribute)
+                }
             }
         }
-        catch
+        # Reformat object for upload to TD if needed, include proper date format
+        if (([System.AppDomain]::CurrentDomain.GetAssemblies()| Where-Object Location -eq $null).GetTypes().Name | Where-Object {$_ -eq "TD_$ObjectType"})
         {
-            Write-ActivityHistory -ThrowError -ErrorRecord $_ -ErrorMessage "Unable to find source object on TeamDynamix to modify."
+            $ObjectTD = Invoke-Expression "[TD_$ObjectType]::new(`$Object)"
         }
-        $ShouldProcessText1 = "$Endpoint - $($Object | Out-String)"
-        $ShouldProcessText2 = 'Update TeamDynamix item'
-    }
-    else
-    {
-        # New
-        #  Create object only if $ObjectType is present
-        if ($ObjectType)
+        else
         {
-            $Object = Invoke-Expression "[$ObjectType]::new()"
+            # No reformat needed
+            $ObjectTD = $Object
         }
-            $ShouldProcessText1 = $BoundParameters | Out-String
-            $ShouldProcessText2 = 'Add new TeamDynamix item'
-    }
-    Write-ActivityHistory 'Preparing object for update/creation.'
-    Update-Object -InputObject $Object -ParameterList $Params.Command -BoundParameterList $BoundParameters -IgnoreList $Params.Ignore -AuthenticationToken $AuthenticationToken -Environment $Environment
-    # Special cases for Set
-    if ($RetrievalCommand)
-    {
-        # Remove attributes specified for removal
-        if ($BoundParameters.Keys -contains 'RemoveAttributes')
-        {
-            foreach ($RemoveAttribute in $RemoveAttributes)
-            {
-                $Object.RemoveCustomAttribute($RemoveAttribute)
-            }
-        }
-    }
-    # Reformat object for upload to TD if needed, include proper date format
-    if (([System.AppDomain]::CurrentDomain.GetAssemblies()| Where-Object Location -eq $null).GetTypes().Name | Where-Object {$_ -eq "TD_$ObjectType"})
-    {
-        $ObjectTD = Invoke-Expression "[TD_$ObjectType]::new(`$Object)"
-    }
-    else
-    {
-        # No reformat needed
-        $ObjectTD = $Object
     }
     # Update TeamDynamix with Set/New data
     if ($pscmdlet.ShouldProcess($ShouldProcessText1, $ShouldProcessText2))
@@ -4471,8 +4572,8 @@ function Invoke-New {
         if ($Return)
         {
             $Return = Invoke-Expression "[$ObjectType]::new(`$Return)"
+            Write-ActivityHistory ($Return | Out-String)
         }
-        Write-ActivityHistory ($Return | Out-String)
         if ($Passthru)
         {
             Write-Output $Return
@@ -5260,12 +5361,34 @@ function Find-TDLocation
         Write-ActivityHistory "`nLeaving $($MyInvocation.MyCommand.Name)`n-----"
     }
 }
+
+<#
+.Synopsis
+    Get list of user roles.
+.DESCRIPTION
+    Return a list of user roles, with their configuration details.
+.EXAMPLE
+    C:\> Get-TDUserRole
+
+   Return a list of user roles.
+#>
+function Get-TDUserRole
+{
+    [CmdletBinding()]
+    Param
+    (
+
+    )
+
+    $UserRoles = $TDConfig.UserRoles | ForEach-Object {$_} | Select-Object -Property *
+    return $UserRoles
+}
 #endregion
 # SIG # Begin signature block
 # MIIOsQYJKoZIhvcNAQcCoIIOojCCDp4CAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUL9IpRD7BEb0p7yz0y3J1zb6P
-# V1ugggsLMIIEnTCCA4WgAwIBAgITXAAAAASry1piY/gB3QAAAAAABDANBgkqhkiG
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUVQI4PFOGNsvgoHp1On4ChBYn
+# bd+gggsLMIIEnTCCA4WgAwIBAgITXAAAAASry1piY/gB3QAAAAAABDANBgkqhkiG
 # 9w0BAQsFADAaMRgwFgYDVQQDEw9BU0MgUEtJIE9mZmxpbmUwHhcNMTcwNTA4MTcx
 # NDA5WhcNMjcwNTA4MTcyNDA5WjBYMRMwEQYKCZImiZPyLGQBGRYDZWR1MRowGAYK
 # CZImiZPyLGQBGRYKb2hpby1zdGF0ZTETMBEGCgmSJomT8ixkARkWA2FzYzEQMA4G
@@ -5328,17 +5451,17 @@ function Find-TDLocation
 # 8ixkARkWCm9oaW8tc3RhdGUxEzARBgoJkiaJk/IsZAEZFgNhc2MxEDAOBgNVBAMT
 # B0FTQy1QS0kCE3oAAOEPnUrHvueZLKQAAQAA4Q8wCQYFKw4DAhoFAKB4MBgGCisG
 # AQQBgjcCAQwxCjAIoAKAAKECgAAwGQYJKoZIhvcNAQkDMQwGCisGAQQBgjcCAQQw
-# HAYKKwYBBAGCNwIBCzEOMAwGCisGAQQBgjcCARUwIwYJKoZIhvcNAQkEMRYEFPnh
-# 3h6hLfN8y8TRAjXWZqgA+7YHMA0GCSqGSIb3DQEBAQUABIICAEfGGZElkvtGDI+/
-# CxFsU0d1FRDogqoSCzkDbjxRZtLxhFS3W/cr3pK7tYutIFhOTx4sXHtCsmAdj1dR
-# kCd4UxeR1Nu6Z5B+JFmYoyKMKpnGJMGwxzRPVcGjBue8I6FkMF9mveibbe0/bNtv
-# J+lJt7ICkGo37aEaVg2Lv3ZHYstpaiqFDJCOxi2fOzO721rGguZn8uoEN9VZa10H
-# 9x1UfQrQH+S1qWkacwiLzbZ5W2mvQqhbYuF9dL2evtTDedlbOcjYb1WbrXm3CEAZ
-# 1fzeGo+NqdgR85BuJRbIDCzpJu3kWVukqZFhXttKz4jTGovE0s9s0Wzr2k+tvYO3
-# IgQ881WzF8oSrkq6s5vZSAc1DZYbEaqWIbCkroc3hkvjJM/gurNo7e+jKT6b//OY
-# FQFhctHItAZwMgWGsHUY/4LxhhYG4Tpapqfm/2xdaOo2SuGQycYAST6MwDQx6XXY
-# V+v5g+1m976/Lx67/GbmHqVEW1TRh52vKj6qG0TEFSXJGf9Sti2Bz/cgnXBV/Wyc
-# MGVpLU0wIr8VY6tGx/34WsXjlpVhZDjKvkciUJo5Cul+wx8Lu0My5L7wTyrs1fos
-# UTlXdLsYp8MhBIztpthjuxJEeW4Cbwx02uNFTx3i0BfjdQdMatX+AVUU+e/PUmbU
-# 5/th2ukdgPv6RAOaL56k4F/0kXUP
+# HAYKKwYBBAGCNwIBCzEOMAwGCisGAQQBgjcCARUwIwYJKoZIhvcNAQkEMRYEFJfd
+# 4VmWYqFpg7XMxuthMFzTR726MA0GCSqGSIb3DQEBAQUABIICACW+8qero5jvIRFx
+# tgTEQWdOiswymoC0+7BIdeG0xnfxPUkExs09QR6j3H+gacXhWPy+CrSN74z2prZD
+# a9AJM4Cdb9aIi8WIREno+YW+x8kYFs7L4B79veRcsHWc7PDUOI8UhGR3KsXGtKlH
+# aVpO7Y9O9w49huiYdXbfK5gD9okQR/e41yqGbVIeqiI2NUH1yTy0wGMldLwisCYL
+# 9Oi8VT+9Zq3ty947Aa6KnjdSZUdoSRr/R+AvNOwa48eCSgovGYzU4zf4dWLralIb
+# BlZ+rfOqeNnRCwgCgIe1LMKI9iI4yH9Xn8saq4ju1odOyeDqTyOvHJvA1C2/IGJK
+# 0FgKzOqdwuVG9bkaAJTUaRfRRfCDl6Td+CgPyzQOIyqI2dSiKLEe7PNoy2pBKl7X
+# xCHiPA2u5//S8Lgdza6qoJPCcfQ3ROtaOnp75foH0kIzdmOPe9v03SJ4WuqZUaly
+# hf0eydBeDqDhprq9XiEB6v/N2EI30lTPyKUiCnSd80/AlRV2nG5NEzGKRo2Jqr4S
+# 98igVKJlaExSnoGnzDJBLvS2yF1iJ7LxU/KP7v00s5FhhC/UkBdE6ZlAAVf/mlaA
+# 3i4GjSwYvAnhkWHmmol/3FDom2Dw74O50h8nk9Uca0FqQHXQysCUKOqQA4s4bFZa
+# ix3MoBUubxuLpBcps4ptTF8YCP9X
 # SIG # End signature block

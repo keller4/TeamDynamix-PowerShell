@@ -11,7 +11,7 @@
     RootModule = 'TeamDynamix'
 
     # Version number of this module.
-    ModuleVersion = '2.5.3'
+    ModuleVersion = '2.6.7'
 
     # Supported PSEditions
     # CompatiblePSEditions = @()
@@ -163,6 +163,8 @@
         'Get-TDAssetResource'
         'Add-TDAssetResource'
         'Remove-TDAssetResource'
+        'Add-TDAssetArticle'
+        'Remove-TDAssetArticle'
         'Get-TDMaintenanceWindow'
         'New-TDMaintenanceWindow'
         'Set-TDMaintenanceWindow'
@@ -286,6 +288,7 @@
         'Restore-TDAssetErasedDataError'
         'Get-TDOpenTicketActivity'
         'Get-TDTicketActivityCounts'
+        'Get-TDUserRole'
         # Local OSU functions
         'Get-OSUDirectoryListing'
         'Get-TDAssetConsistency'
@@ -378,8 +381,8 @@
 # SIG # Begin signature block
 # MIIOsQYJKoZIhvcNAQcCoIIOojCCDp4CAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUlEXH5Lnft2sSqKGBqq3Hzudx
-# UQ+gggsLMIIEnTCCA4WgAwIBAgITXAAAAASry1piY/gB3QAAAAAABDANBgkqhkiG
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUv357ND+U9Tsh4W/8HxdBVLvo
+# Y+GgggsLMIIEnTCCA4WgAwIBAgITXAAAAASry1piY/gB3QAAAAAABDANBgkqhkiG
 # 9w0BAQsFADAaMRgwFgYDVQQDEw9BU0MgUEtJIE9mZmxpbmUwHhcNMTcwNTA4MTcx
 # NDA5WhcNMjcwNTA4MTcyNDA5WjBYMRMwEQYKCZImiZPyLGQBGRYDZWR1MRowGAYK
 # CZImiZPyLGQBGRYKb2hpby1zdGF0ZTETMBEGCgmSJomT8ixkARkWA2FzYzEQMA4G
@@ -442,18 +445,18 @@
 # 8ixkARkWCm9oaW8tc3RhdGUxEzARBgoJkiaJk/IsZAEZFgNhc2MxEDAOBgNVBAMT
 # B0FTQy1QS0kCE3oAAOEPnUrHvueZLKQAAQAA4Q8wCQYFKw4DAhoFAKB4MBgGCisG
 # AQQBgjcCAQwxCjAIoAKAAKECgAAwGQYJKoZIhvcNAQkDMQwGCisGAQQBgjcCAQQw
-# HAYKKwYBBAGCNwIBCzEOMAwGCisGAQQBgjcCARUwIwYJKoZIhvcNAQkEMRYEFD72
-# 96amgraCXjWBBQOhR65ZBoSsMA0GCSqGSIb3DQEBAQUABIICAKGfprloOzH6e8LL
-# PeTVvefaXHD2qUbS43bXCKA4iJPXZsgfPiOn4/bjGnEbTbaXZZbSFRY44W+cPNQP
-# aw39lA8uco4TnNr5iNG6m7C/xfKlHcJbzlYgzqVfc5rvGfyik9oja5b/dvY2IqQE
-# De9kRlC24QR9KjeVEc2yrj80w68F4EDfSKP12UQKfOrn9ulvXhlg7aW7CDZsijpb
-# 06awIWkFiHIZpYbR+RWEze1wYLaTKFL0dTXch6/XxK4LC4TQkLmIPsOtq0h2lceF
-# cHBOava8p+Z1usSmPFH7hFT9kOYUjKf01swfC5K2aXcZbSk9GhnwXXbI7BqOEc/F
-# a/ec4C809gag01SMcA+rwO9p33YTW1w+ERd+KW4pIBSS8p3iBbq79cXobVxRxW+D
-# tsLZK0UAGzRrUOOLezrtA6kTfWLw4STCc/sdvqlsz38TXPQYZ+fiIldQX8hw+em8
-# az7hrmghz+v1lImnNgUnu9xJ7ezWL3qqdqTrNNO7HvWdh2T0PMuBzoyRgfWzraQ/
-# f6aIkGzMbfLMe08KMqauxsDuI6ww3yVMMIYiWdv/4Ui9AerNTxMtsVVMtVt5iI9A
-# Zrfy3cgzC052AGs+Sy/XHWVaoaYaS3Frk1A+5Q05PRqF3qEBACuhySUy6dGlLDTb
-# rRBmNe27hCkRAQ/wOwaNRhLPgN85
+# HAYKKwYBBAGCNwIBCzEOMAwGCisGAQQBgjcCARUwIwYJKoZIhvcNAQkEMRYEFLM3
+# wK5jCRLYLhDwMWOQIapgws+qMA0GCSqGSIb3DQEBAQUABIICAAFWxlrz4MofW0Ng
+# lO49GM+9X1cn74juPAMNp8DT4Dk516i3TjY138dzn9L0UhL9h6jv3jBC1iTfTidD
+# faCNaxJeb5JR/Elj8DaXskzgQaIhw5Krhw1esmb0Lb8JEI4/OGa0oLz9TwF8c2On
+# t0V0VFVymv0aZQj6y9wHg6jQz7lHeh75tSLJPaNBs/LDb0O94Y2G1424f843orNG
+# buxggnW1zOqSR46KkvGII95oYxoj60Q3MybzgIslgoiPs/wOmO6W1P5psZxxF7GL
+# Kr619LUHlG+TVv3aQDmvSK5ov1Hi9dz7CNnaD4Pc+SyoedrmJAVVTaPcE3V03Rqi
+# TBZ7ckWYeJW00UP3FwiH6DY3Ap/dIaWBY/xIGvVOWBAW+Sf9q3P2IRnRAGizNSX8
+# Z7NQgCg/nz79olqgpF9GGEy+t3gMjMyirE3bmWC6R0M1ah2XSG6TxN1zBhNNr+Is
+# Z7+hhsB+Kivq1dhVc5H2GEwleVKejm5oOHIlXyEQ969fxQ17QuP95QdLQ8Bxr/ra
+# Fw4Mvp26FeEnXyVYEym06linQaJde/3fDIPA+C+kHGfHG/YJWKJsslpWw/qxqisX
+# /EUeYyPfvjygU/EbtTZorj4ROCG/W5TQRFdUVHbpJ8AydbwYna761a1qd68u2gDz
+# Oo3fi48NMa00A6wTEqHucVe0CCvU
 # SIG # End signature block
 
