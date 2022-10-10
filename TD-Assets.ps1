@@ -6,10 +6,14 @@ function Get-TDAsset
     Param
     (
         # Asset ID to retrieve from TeamDynamix
-        [Parameter(Mandatory=$false,
+        [Parameter(Mandatory=$true,
                    ValueFromPipeline=$true,
                    Position=0,
                    ParameterSetName='ID')]
+        [Parameter(Mandatory=$true,
+                   ValueFromPipeline=$true,
+                   Position=0,
+                   ParameterSetName='Article')]
         [int]
         $ID,
 
@@ -273,6 +277,12 @@ function Get-TDAsset
         [boolean]
         $OnlyParentAssets,
 
+        # Retrieve associated knowledgebase articles
+        [Parameter(Mandatory=$true,
+                   ParameterSetName='Article')]
+        [switch]
+        $Article,
+
         # Number of assets to return
         [Parameter(Mandatory=$false,
                    ParameterSetName='Search')]
@@ -375,7 +385,7 @@ function Get-TDAsset
                 ValidateSet = $TDApplications.GetByAppClass('TDAssets',$true).Name
                 HelpText    = 'Name of application'
                 IDParameter = 'AppID'
-                IDsMethod   = '$TDApplications.GetAll($Environment,$true)'
+                IDsMethod   = '$TDApplications.GetAll([string]$Environment,$true)'
             }
         )
         $DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
@@ -453,41 +463,55 @@ function Get-TDAsset
             }
         }
 
-        $InvokeParams = [pscustomobject]@{
-            # Configurable parameters
-            SearchType       = 'TeamDynamix_Api_Assets_AssetSearch'
-            ReturnType       = 'TeamDynamix_Api_Assets_Asset'
-            AllEndpoint      = $null
-            SearchEndpoint   = '$AppID/assets/search'
-            IDEndpoint       = '$AppID/assets/$ID'
-            AppID            = $AppID
-            DynamicParameterDictionary = $DynamicParameterDictionary
-            DynamicParameterList       = $DynamicParameterList
-            # Fixed parameters
-            ParameterSetName    = $pscmdlet.ParameterSetName
-            BoundParameters     = $MyInvocation.BoundParameters.Keys
-            Environment         = $Environment
-            AuthenticationToken = $AuthenticationToken
-        }
-        $Return = $InvokeParams | Invoke-Get
+        switch ($PSCmdlet.ParameterSetName)
+        {
+            {$_ -in 'ID','Search'}
+            {
+                $InvokeParams = [pscustomobject]@{
+                # Configurable parameters
+                SearchType       = 'TeamDynamix_Api_Assets_AssetSearch'
+                ReturnType       = 'TeamDynamix_Api_Assets_Asset'
+                AllEndpoint      = $null
+                SearchEndpoint   = '$AppID/assets/search'
+                IDEndpoint       = '$AppID/assets/$ID'
+                AppID            = $AppID
+                DynamicParameterDictionary = $DynamicParameterDictionary
+                DynamicParameterList       = $DynamicParameterList
+                # Fixed parameters
+                ParameterSetName    = $pscmdlet.ParameterSetName
+                BoundParameters     = $MyInvocation.BoundParameters.Keys
+                Environment         = $Environment
+                AuthenticationToken = $AuthenticationToken
+                }
+                $Return = $InvokeParams | Invoke-Get
 
-        # Local modifications to return set
-        if ($Exact)
-        {
-            if (-not [string]::IsNullOrWhiteSpace($SearchText))
-            {
-                $Return = $Return | Where-Object Name -eq $SearchText
+                # Local modifications to return set
+                if ($Exact)
+                {
+                    if (-not [string]::IsNullOrWhiteSpace($SearchText))
+                    {
+                        $Return = $Return | Where-Object Name -eq $SearchText
+                    }
+                    if (-not [string]::IsNullOrWhiteSpace($SerialLike))
+                    {
+                        $Return = $Return | Where-Object SerialNumber -eq $SerialLike
+                    }
+                }
+                if ($Detail)
+                {
+                    if ($Return)
+                    {
+                        $Return = $Return.ID | Get-TDAsset -AuthenticationToken $AuthenticationToken -Environment $Environment
+                    }
+                }
             }
-            if (-not [string]::IsNullOrWhiteSpace($SerialLike))
+            'Article'
             {
-                $Return = $Return | Where-Object SerialNumber -eq $SerialLike
-            }
-        }
-        if ($Detail)
-        {
-            if ($Return)
-            {
-                $Return = $Return.ID | Get-TDAsset -AuthenticationToken $AuthenticationToken -Environment $Environment
+                $ContentType = 'application/json; charset=utf-8'
+                $BaseURI = Get-URI -Environment $Environment
+                Write-ActivityHistory "Retrieving TeamDynamix KnowledgeBase articles associated with ID $ID"
+                $Return = Invoke-RESTCall -Uri "$BaseURI/$AppID/assets/$ID/articles" -ContentType $ContentType -Method Get -Headers $AuthenticationToken
+                $Return = ($Return | ForEach-Object {[TeamDynamix_Api_KnowledgeBase_Article]::new($_)})
             }
         }
         return $Return
@@ -535,7 +559,7 @@ function Get-TDAssetResource
                 ValidateSet = $TDApplications.GetByAppClass('TDAssets',$true).Name
                 HelpText    = 'Name of application'
                 IDParameter = 'AppID'
-                IDsMethod   = '$TDApplications.GetAll($Environment,$true)'
+                IDsMethod   = '$TDApplications.GetAll([string]$Environment,$true)'
             }
         )
         $DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
@@ -786,7 +810,7 @@ function New-TDAsset
                 ValidateSet = $TDApplications.GetByAppClass('TDAssets',$true).Name
                 HelpText    = 'Name of application'
                 IDParameter = 'AppID'
-                IDsMethod   = '$TDApplications.GetAll($Environment,$true)'
+                IDsMethod   = '$TDApplications.GetAll([string]$Environment,$true)'
             }
         )
 		$DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
@@ -1192,7 +1216,7 @@ function Set-TDAsset
                 ValidateSet = $TDApplications.GetByAppClass('TDAssets',$true).Name
                 HelpText    = 'Name of application'
                 IDParameter = 'AppID'
-                IDsMethod   = '$TDApplications.GetAll($Environment,$true)'
+                IDsMethod   = '$TDApplications.GetAll([string]$Environment,$true)'
             }
 		)
 		$DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
@@ -1392,7 +1416,7 @@ function Get-TDAssetStatus
                 ValidateSet = $TDApplications.GetByAppClass('TDAssets',$true).Name
                 HelpText    = 'Name of application'
                 IDParameter = 'AppID'
-                IDsMethod   = '$TDApplications.GetAll($Environment,$true)'
+                IDsMethod   = '$TDApplications.GetAll([string]$Environment,$true)'
             }
         )
         $DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
@@ -1508,7 +1532,7 @@ function New-TDAssetStatus
                 ValidateSet = $TDApplications.GetByAppClass('TDAssets',$true).Name
                 HelpText    = 'Name of application'
                 IDParameter = 'AppID'
-                IDsMethod   = '$TDApplications.GetAll($Environment,$true)'
+                IDsMethod   = '$TDApplications.GetAll([string]$Environment,$true)'
             }
         )
         $DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
@@ -1612,7 +1636,7 @@ function Set-TDAssetStatus
                 ValidateSet = $TDApplications.GetByAppClass('TDAssets',$true).Name
                 HelpText    = 'Name of application'
                 IDParameter = 'AppID'
-                IDsMethod   = '$TDApplications.GetAll($Environment,$true)'
+                IDsMethod   = '$TDApplications.GetAll([string]$Environment,$true)'
             }
         )
         $DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
@@ -1706,7 +1730,7 @@ function Get-TDMaintenanceWindow
                 ValidateSet = $TDApplications.GetByAppClass('TDAssets',$true).Name
                 HelpText    = 'Name of application'
                 IDParameter = 'AppID'
-                IDsMethod   = '$TDApplications.GetAll($Environment,$true)'
+                IDsMethod   = '$TDApplications.GetAll([string]$Environment,$true)'
             }
         )
         $DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
@@ -1819,7 +1843,7 @@ function New-TDMaintenanceWindow
                 ValidateSet = $TDApplications.GetByAppClass('TDAssets',$true).Name
                 HelpText    = 'Name of application'
                 IDParameter = 'AppID'
-                IDsMethod   = '$TDApplications.GetAll($Environment,$true)'
+                IDsMethod   = '$TDApplications.GetAll([string]$Environment,$true)'
             }
         )
         $DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
@@ -1925,7 +1949,7 @@ function Set-TDMaintenanceWindow
                 ValidateSet = $TDApplications.GetByAppClass('TDAssets',$true).Name
                 HelpText    = 'Name of application'
                 IDParameter = 'AppID'
-                IDsMethod   = '$TDApplications.GetAll($Environment,$true)'
+                IDsMethod   = '$TDApplications.GetAll([string]$Environment,$true)'
             }
         )
         $DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
@@ -2049,7 +2073,7 @@ function Get-TDVendor
                 ValidateSet = $TDApplications.GetByAppClass('TDAssets',$true).Name
                 HelpText    = 'Name of application'
                 IDParameter = 'AppID'
-                IDsMethod   = '$TDApplications.GetAll($Environment,$true)'
+                IDsMethod   = '$TDApplications.GetAll([string]$Environment,$true)'
             }
         )
         $DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
@@ -2190,7 +2214,7 @@ function Get-TDProductModel
                 ValidateSet = $TDApplications.GetByAppClass('TDAssets',$true).Name
                 HelpText    = 'Name of application'
                 IDParameter = 'AppID'
-                IDsMethod   = '$TDApplications.GetAll($Environment,$true)'
+                IDsMethod   = '$TDApplications.GetAll([string]$Environment,$true)'
             }
 		)
 		$DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
@@ -2305,7 +2329,7 @@ function Add-TDAssetComment
                 ValidateSet = $TDApplications.GetByAppClass('TDAssets',$true).Name
                 HelpText    = 'Name of application'
                 IDParameter = 'AppID'
-                IDsMethod   = '$TDApplications.GetAll($Environment,$true)'
+                IDsMethod   = '$TDApplications.GetAll([string]$Environment,$true)'
             }
         )
         $DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
@@ -2377,7 +2401,7 @@ function Add-TDAssetComment
                 ValidateSet = $TDApplications.GetByAppClass('TDAssets',$true).Name
                 HelpText    = 'Name of application'
                 IDParameter = 'AppID'
-                IDsMethod   = '$TDApplications.GetAll($Environment,$true)'
+                IDsMethod   = '$TDApplications.GetAll([string]$Environment,$true)'
             }
         )
         $DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
@@ -2471,7 +2495,7 @@ function Add-TDAssetAttachment
                 ValidateSet = $TDApplications.GetByAppClass('TDAssets',$true).Name
                 HelpText    = 'Name of application'
                 IDParameter = 'AppID'
-                IDsMethod   = '$TDApplications.GetAll($WorkingEnvironment,$true)'
+                IDsMethod   = '$TDApplications.GetAll([string]$Environment,$true)'
             }
         )
         $DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
@@ -2528,14 +2552,14 @@ function Add-TDAssetResource
     [CmdletBinding()]
     Param
     (
-        # ID of asset to be added to ticket
+        # ID of asset to be added to resource
         [Parameter(Mandatory=$true,
                    ValueFromPipelineByPropertyName=$true,
                    Position=0)]
         [int]
         $ID,
 
-        # Ticket ID to which ticket will be added
+        # Resource ID to which asset will be added
         [Parameter(Mandatory=$true,
                    ValueFromPipelineByPropertyName=$true,
                    Position=1)]
@@ -2568,7 +2592,7 @@ function Add-TDAssetResource
                 ValidateSet = $TDApplications.GetByAppClass('TDAssets',$true).Name
                 HelpText    = 'Name of application'
                 IDParameter = 'AppID'
-                IDsMethod   = '$TDApplications.GetAll($Environment,$true)'
+                IDsMethod   = '$TDApplications.GetAll([string]$Environment,$true)'
             }
         )
         $DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
@@ -2616,7 +2640,7 @@ function Remove-TDAssetResource
         [int]
         $ID,
 
-        # Resource ID from which ticket will be removed
+        # Resource ID from which asset will be removed
         [Parameter(Mandatory=$true,
                    ValueFromPipelineByPropertyName=$true,
                    Position=1)]
@@ -2649,7 +2673,7 @@ function Remove-TDAssetResource
                 ValidateSet = $TDApplications.GetByAppClass('TDAssets',$true).Name
                 HelpText    = 'Name of application'
                 IDParameter = 'AppID'
-                IDsMethod   = '$TDApplications.GetAll($Environment,$true)'
+                IDsMethod   = '$TDApplications.GetAll([string]$Environment,$true)'
             }
         )
         $DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
@@ -2666,6 +2690,168 @@ function Remove-TDAssetResource
             # Configurable parameters
             ObjectType = $null
             Endpoint   = '$AppID/assets/$ID/users/$ResourceID'
+            Method     = 'Delete'
+            AppID      = $AppID
+            DynamicParameterDictionary = $DynamicParameterDictionary
+            DynamicParameterList       = $DynamicParameterList
+            # Fixed parameters
+            ParameterSetName    = $pscmdlet.ParameterSetName
+            BoundParameters     = $MyInvocation.BoundParameters.Keys
+            Environment         = $Environment
+            AuthenticationToken = $AuthenticationToken
+        }
+        $Return = $InvokeParams | Invoke-New
+        return $Return
+    }
+    end
+    {
+        Write-ActivityHistory "`nLeaving $($MyInvocation.MyCommand.Name)`n-----"
+    }
+}
+
+function Add-TDAssetArticle
+{
+    [CmdletBinding()]
+    Param
+    (
+        # ID of asset to be added to article
+        [Parameter(Mandatory=$true,
+                   ValueFromPipelineByPropertyName=$true,
+                   Position=0)]
+        [int]
+        $ID,
+
+        # Article ID to which asset will be added
+        [Parameter(Mandatory=$true,
+                   ValueFromPipelineByPropertyName=$true,
+                   Position=1)]
+        [string]
+        $ArticleID,
+
+        # Set ID of application for asset
+        [Parameter(Mandatory=$false,
+                   ValueFromPipelineByPropertyName=$true)]
+        [int]
+        $AppID = $AssetCIAppID,
+
+        # TeamDynamix authentication token
+        [Parameter(Mandatory=$false)]
+        [hashtable]
+        $AuthenticationToken = $TDAuthentication,
+
+        # TeamDynamix working environment
+        [Parameter(Mandatory=$false)]
+        [EnvironmentChoices]
+        $Environment = $WorkingEnvironment
+    )
+    DynamicParam
+    {
+        #List dynamic parameters
+        $DynamicParameterList = @(
+            @{
+                Name        = 'AppName'
+                Type        = 'string'
+                ValidateSet = $TDApplications.GetByAppClass('TDAssets',$true).Name
+                HelpText    = 'Name of application'
+                IDParameter = 'AppID'
+                IDsMethod   = '$TDApplications.GetAll([string]$Environment,$true)'
+            }
+        )
+        $DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
+        return $DynamicParameterDictionary
+    }
+
+    Begin
+    {
+        Write-ActivityHistory "`n-----`nIn $($MyInvocation.MyCommand.Name)"
+    }
+    Process
+    {
+        $InvokeParams = [pscustomobject]@{
+            # Configurable parameters
+            ObjectType = $null
+            Endpoint   = '$AppID/assets/$ID/articles/$ArticleID'
+            Method     = 'Post'
+            AppID      = $AppID
+            DynamicParameterDictionary = $DynamicParameterDictionary
+            DynamicParameterList       = $DynamicParameterList
+            # Fixed parameters
+            ParameterSetName    = $pscmdlet.ParameterSetName
+            BoundParameters     = $MyInvocation.BoundParameters.Keys
+            Environment         = $Environment
+            AuthenticationToken = $AuthenticationToken
+        }
+        $Return = $InvokeParams | Invoke-New
+        return $Return
+    }
+    end
+    {
+        Write-ActivityHistory "`nLeaving $($MyInvocation.MyCommand.Name)`n-----"
+    }
+}
+
+function Remove-TDAssetArticle
+{
+    [CmdletBinding()]
+    Param
+    (
+        # ID of asset to be removed from article
+        [Parameter(Mandatory=$true,
+                   ValueFromPipelineByPropertyName=$true,
+                   Position=0)]
+        [int]
+        $ID,
+
+        # Article ID from which asset will be removed
+        [Parameter(Mandatory=$true,
+                   ValueFromPipelineByPropertyName=$true,
+                   Position=1)]
+        [string]
+        $ArticleID,
+
+        # Set ID of application for asset
+        [Parameter(Mandatory=$false,
+                   ValueFromPipelineByPropertyName=$true)]
+        [int]
+        $AppID = $AssetCIAppID,
+
+        # TeamDynamix authentication token
+        [Parameter(Mandatory=$false)]
+        [hashtable]
+        $AuthenticationToken = $TDAuthentication,
+
+        # TeamDynamix working environment
+        [Parameter(Mandatory=$false)]
+        [EnvironmentChoices]
+        $Environment = $WorkingEnvironment
+    )
+    DynamicParam
+    {
+        #List dynamic parameters
+        $DynamicParameterList = @(
+            @{
+                Name        = 'AppName'
+                Type        = 'string'
+                ValidateSet = $TDApplications.GetByAppClass('TDAssets',$true).Name
+                HelpText    = 'Name of application'
+                IDParameter = 'AppID'
+                IDsMethod   = '$TDApplications.GetAll([string]$Environment,$true)'
+            }
+        )
+        $DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
+        return $DynamicParameterDictionary
+    }
+
+    Begin
+    {
+        Write-ActivityHistory "`n-----`nIn $($MyInvocation.MyCommand.Name)"
+    }
+    Process
+    {
+        $InvokeParams = [pscustomobject]@{
+            # Configurable parameters
+            ObjectType = $null
+            Endpoint   = '$AppID/assets/$ID/articles/$ArticleID'
             Method     = 'Delete'
             AppID      = $AppID
             DynamicParameterDictionary = $DynamicParameterDictionary
@@ -2727,7 +2913,7 @@ function Get-TDCustomAttribute
                 ValidateSet = $TDApplications.GetByAppClass('TDAssets',$true).Name
                 HelpText    = 'Name of application'
                 IDParameter = 'AppID'
-                IDsMethod   = '$TDApplications.GetAll($Environment,$true)'
+                IDsMethod   = '$TDApplications.GetAll([string]$Environment,$true)'
             }
         )
         $DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
@@ -3130,7 +3316,7 @@ function Get-TDConfigurationItemType
                 ValidateSet = $TDApplications.GetByAppClass('TDAssets',$true).Name
                 HelpText    = 'Name of application'
                 IDParameter = 'AppID'
-                IDsMethod   = '$TDApplications.GetAll($Environment,$true)'
+                IDsMethod   = '$TDApplications.GetAll([string]$Environment,$true)'
             }
 		)
 		$DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
@@ -3229,7 +3415,7 @@ function New-TDConfigurationItemType
                 ValidateSet = $TDApplications.GetByAppClass('TDAssets',$true).Name
                 HelpText    = 'Name of application'
                 IDParameter = 'AppID'
-                IDsMethod   = '$TDApplications.GetAll($Environment,$true)'
+                IDsMethod   = '$TDApplications.GetAll([string]$Environment,$true)'
             }
 		)
 		$DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
@@ -3315,7 +3501,7 @@ function Set-TDConfigurationItemType
                 ValidateSet = $TDApplications.GetByAppClass('TDAssets',$true).Name
                 HelpText    = 'Name of application'
                 IDParameter = 'AppID'
-                IDsMethod   = '$TDApplications.GetAll($Environment,$true)'
+                IDsMethod   = '$TDApplications.GetAll([string]$Environment,$true)'
             }
 		)
 		$DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
@@ -3434,7 +3620,7 @@ function Get-TDConfigurationItem
                 ValidateSet = $TDApplications.GetByAppClass('TDAssets',$true).Name
                 HelpText    = 'Name of application'
                 IDParameter = 'AppID'
-                IDsMethod   = '$TDApplications.GetAll($Environment,$true)'
+                IDsMethod   = '$TDApplications.GetAll([string]$Environment,$true)'
             }
 		)
 		$DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
@@ -3623,7 +3809,7 @@ function New-TDConfigurationItem
                 ValidateSet = $TDApplications.GetByAppClass('TDAssets',$true).Name
                 HelpText    = 'Name of application'
                 IDParameter = 'AppID'
-                IDsMethod   = '$TDApplications.GetAll($Environment,$true)'
+                IDsMethod   = '$TDApplications.GetAll([string]$Environment,$true)'
             }
 		)
 		$DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
@@ -3784,7 +3970,7 @@ function Set-TDConfigurationItem
 				ValidateSet = $TDApplications.GetByAppClass('TDAssets',$true).Name
 				HelpText    = 'Name of application'
                 IDParameter = 'AppID'
-                IDsMethod   = '$TDApplications.GetAll($Environment,$true)'
+                IDsMethod   = '$TDApplications.GetAll([string]$Environment,$true)'
 			}
 		)
 		$DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
@@ -3851,7 +4037,7 @@ function Get-TDConfigurationRelationshipType
                 ValidateSet = $TDApplications.GetByAppClass('TDAssets',$true).Name
                 HelpText    = 'Name of application'
                 IDParameter = 'AppID'
-                IDsMethod   = '$TDApplications.GetAll($Environment,$true)'
+                IDsMethod   = '$TDApplications.GetAll([string]$Environment,$true)'
             }
 		)
 		$DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
@@ -3926,7 +4112,7 @@ function Get-TDConfigurationItemRelationship
                 ValidateSet = $TDApplications.GetByAppClass('TDAssets',$true).Name
                 HelpText    = 'Name of application'
                 IDParameter = 'AppID'
-                IDsMethod   = '$TDApplications.GetAll($Environment,$true)'
+                IDsMethod   = '$TDApplications.GetAll([string]$Environment,$true)'
             }
 		)
 		$DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
@@ -4009,7 +4195,7 @@ function Remove-TDConfigurationItemRelationship
                 ValidateSet = $TDApplications.GetByAppClass('TDAssets',$true).Name
                 HelpText    = 'Name of application'
                 IDParameter = 'AppID'
-                IDsMethod   = '$TDApplications.GetAll($Environment,$true)'
+                IDsMethod   = '$TDApplications.GetAll([string]$Environment,$true)'
             }
 		)
 		$DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
@@ -4091,7 +4277,7 @@ function Add-TDConfigurationItemAttachment
                 ValidateSet = $TDApplications.GetByAppClass('TDAssets',$true).Name
                 HelpText    = 'Name of application'
                 IDParameter = 'AppID'
-                IDsMethod   = '$TDApplications.GetAll($Environment,$true)'
+                IDsMethod   = '$TDApplications.GetAll([string]$Environment,$true)'
             }
 		)
 		$DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
@@ -4209,7 +4395,7 @@ function Add-TDConfigurationItemRelationship
                 ValidateSet = $TDApplications.GetByAppClass('TDAssets',$true).Name
                 HelpText    = 'Name of application'
                 IDParameter = 'AppID'
-                IDsMethod   = '$TDApplications.GetAll($Environment,$true)'
+                IDsMethod   = '$TDApplications.GetAll([string]$Environment,$true)'
             }
 		)
 		$DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
@@ -4335,7 +4521,7 @@ function New-TDProductModel
 				ValidateSet = $TDApplications.GetByAppClass('TDAssets',$true).Name
 				HelpText    = 'Name of application'
                 IDParameter = 'AppID'
-                IDsMethod   = '$TDApplications.GetAll($Environment,$true)'
+                IDsMethod   = '$TDApplications.GetAll([string]$Environment,$true)'
 			}
 		)
 		$DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
@@ -4466,7 +4652,7 @@ function Set-TDProductModel
 				ValidateSet = $TDApplications.GetByAppClass('TDAssets',$true).Name
 				HelpText    = 'Name of application'
                 IDParameter = 'AppID'
-                IDsMethod   = '$TDApplications.GetAll($Environment,$true)'
+                IDsMethod   = '$TDApplications.GetAll([string]$Environment,$true)'
 			}
 		)
 		$DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
@@ -4567,7 +4753,7 @@ function Get-TDProductType
 				ValidateSet = $TDApplications.GetByAppClass('TDAssets',$true).Name
 				HelpText    = 'Name of application'
                 IDParameter = 'AppID'
-                IDsMethod   = '$TDApplications.GetAll($Environment,$true)'
+                IDsMethod   = '$TDApplications.GetAll([string]$Environment,$true)'
 			}
 			@{
 				Name        = 'ParentProductTypeName'
@@ -4764,7 +4950,7 @@ function New-TDProductType
 				ValidateSet = $TDApplications.GetByAppClass('TDAssets',$true).Name
 				HelpText    = 'Name of application'
                 IDParameter = 'AppID'
-                IDsMethod   = '$TDApplications.GetAll($Environment,$true)'
+                IDsMethod   = '$TDApplications.GetAll([string]$Environment,$true)'
 			}
 			@{
 				Name        = 'ParentName'
@@ -4882,7 +5068,7 @@ function Set-TDProductType
 				ValidateSet = $TDApplications.GetByAppClass('TDAssets',$true).Name
 				HelpText    = 'Name of application'
                 IDParameter = 'AppID'
-                IDsMethod   = '$TDApplications.GetAll($Environment,$true)'
+                IDsMethod   = '$TDApplications.GetAll([string]$Environment,$true)'
 			}
 			@{
 				Name        = 'ParentName'
@@ -5057,7 +5243,7 @@ function New-TDVendor
 				ValidateSet = $TDApplications.GetByAppClass('TDAssets',$true).Name
 				HelpText    = 'Name of application'
                 IDParameter = 'AppID'
-                IDsMethod   = '$TDApplications.GetAll($Environment,$true)'
+                IDsMethod   = '$TDApplications.GetAll([string]$Environment,$true)'
 			}
 		)
 		$DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
@@ -5214,7 +5400,7 @@ function Set-TDVendor
 				ValidateSet = $TDApplications.GetByAppClass('TDAssets',$true).Name
 				HelpText    = 'Name of application'
                 IDParameter = 'AppID'
-                IDsMethod   = '$TDApplications.GetAll($Environment,$true)'
+                IDsMethod   = '$TDApplications.GetAll([string]$Environment,$true)'
 			}
 		)
 		$DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
@@ -5281,7 +5467,7 @@ function Get-TDConfigurationItemForm
 				ValidateSet = $TDApplications.GetByAppClass('TDAssets',$true).Name
 				HelpText    = 'Name of application'
                 IDParameter = 'AppID'
-                IDsMethod   = '$TDApplications.GetAll($Environment,$true)'
+                IDsMethod   = '$TDApplications.GetAll([string]$Environment,$true)'
 			}
 		)
 		$DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
@@ -5381,7 +5567,7 @@ function New-TDConfigurationRelationshipType
                 ValidateSet = $TDApplications.GetByAppClass('TDAssets',$true).Name
                 HelpText    = 'Name of application'
                 IDParameter = 'AppID'
-                IDsMethod   = '$TDApplications.GetAll($Environment,$true)'
+                IDsMethod   = '$TDApplications.GetAll([string]$Environment,$true)'
             }
 		)
 		$DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
@@ -5479,7 +5665,7 @@ function Set-TDConfigurationRelationshipType
                 ValidateSet = $TDApplications.GetByAppClass('TDAssets',$true).Name
                 HelpText    = 'Name of application'
                 IDParameter = 'AppID'
-                IDsMethod   = '$TDApplications.GetAll($Environment,$true)'
+                IDsMethod   = '$TDApplications.GetAll([string]$Environment,$true)'
             }
 		)
 		$DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
@@ -5514,8 +5700,8 @@ function Set-TDConfigurationRelationshipType
 # SIG # Begin signature block
 # MIIOsQYJKoZIhvcNAQcCoIIOojCCDp4CAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUEXcYLDxNwCFsWk3Miebi4ZHj
-# 5HKgggsLMIIEnTCCA4WgAwIBAgITXAAAAASry1piY/gB3QAAAAAABDANBgkqhkiG
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUq7NfOFLglLCH76gjLaETFE5U
+# +WWgggsLMIIEnTCCA4WgAwIBAgITXAAAAASry1piY/gB3QAAAAAABDANBgkqhkiG
 # 9w0BAQsFADAaMRgwFgYDVQQDEw9BU0MgUEtJIE9mZmxpbmUwHhcNMTcwNTA4MTcx
 # NDA5WhcNMjcwNTA4MTcyNDA5WjBYMRMwEQYKCZImiZPyLGQBGRYDZWR1MRowGAYK
 # CZImiZPyLGQBGRYKb2hpby1zdGF0ZTETMBEGCgmSJomT8ixkARkWA2FzYzEQMA4G
@@ -5578,17 +5764,17 @@ function Set-TDConfigurationRelationshipType
 # 8ixkARkWCm9oaW8tc3RhdGUxEzARBgoJkiaJk/IsZAEZFgNhc2MxEDAOBgNVBAMT
 # B0FTQy1QS0kCE3oAAOEPnUrHvueZLKQAAQAA4Q8wCQYFKw4DAhoFAKB4MBgGCisG
 # AQQBgjcCAQwxCjAIoAKAAKECgAAwGQYJKoZIhvcNAQkDMQwGCisGAQQBgjcCAQQw
-# HAYKKwYBBAGCNwIBCzEOMAwGCisGAQQBgjcCARUwIwYJKoZIhvcNAQkEMRYEFNo+
-# W6boINmBDh+nUdEtsZXxD5S3MA0GCSqGSIb3DQEBAQUABIICABUp+iPX6lh6HyBn
-# DZHKewpAfX3lmEDOWiSfUigoMioMDHX2NSKpoqTEKW4Rl4z6cd6k0fNQGjOBLcif
-# 5Y5U4LculP99Rdrf/50yL/TRNObj3SrpyvqE/98GgV53o60MmG3Fmb86EPJJKU9E
-# e3J14EfGcWf0PRKHHlI+DuDPjfUjjCTVBUoxbqNdBUaXuV3tuysfRx/ZPixIlKH8
-# FaPK5//eBDB69Y/GHgQ0vVLmOQoXjhHctvuVBxFNa9hIAek1sOUWvSakdOGdxBEf
-# 6dHIyPurmQ40CSuTqzMj/jgv8O8TOzoD1YXw9Gun+EB8pQ/oqAeMmGEZuntv8L4c
-# SeXNVCe9JineUc3E397WKhcKR9g/9PHkCcu4sK7z4LdjwF34lwl48r536yXhxHnb
-# wzgxLkEViFlRKwPw3SmI98lmc3LcSPoufWLxpNdrAEI0d3E6JFTwZOjteaZGwy2p
-# GF8Qs6s67n3fftsJqamKlcWT3bf1sTFYo+wdaiUJB214NyePy6k0bq4VdHXz4PKr
-# pSsTkG68ezx3l19uKo6Q1nKR9zeuZToUVnnYTVDEbDGdXuHOmQCnZAVA/MqFCOcq
-# OEh1I2sLqoiY52Q39mm5Kobdi+MWG1em4oLEqvZSds7k0Wyhf0U61GbYT8qxHek4
-# kwnxX+XQxozHKxWPl0wzRHj0IXqs
+# HAYKKwYBBAGCNwIBCzEOMAwGCisGAQQBgjcCARUwIwYJKoZIhvcNAQkEMRYEFEEX
+# tnHk337V0DpOIT1oElH3pThpMA0GCSqGSIb3DQEBAQUABIICAFM01mgJzXznI6p9
+# v02omCgaJIn2cb8tXjzD4l3vQY2fimD+58D0KU5t4NXiOw/tOV9TovnEUchbDQBh
+# tqoFsj1O3P36mc1gqiFaGPC1piut+bFgNGhkw0gmU5KDMMM9mKl1W3ZLkmwJuYdx
+# fZZpXIPKeXQkgyNilacxMG/p4JbH29I4AneED6NzrOLLWNR9pseakb0HqWXy/XWE
+# n81zI0vdZNwh0fkKURNZMZhYYPIxPkiuqMOzgjwWcYOPPeW1FE62BrDVFQYwCIjc
+# lqcZbvVsNyA7UOxuhCTQzCvYYjTY7/xHv/HWpohcoNwDWM9qpPmukVye36ullzzS
+# JZQtRfPURomBjbU+R2wGuBHjMvVUv1lBFhtneUeahCe+bAtq9XeMO5LMHxEstGSm
+# BhTttK4gW43snRJI8hEa/J5RPz7cbatTTxcF42dGCCwB08lWfg+eHbnBmLt9tuYH
+# 7MkKMn77n3q0ZR1b758bSt9vRogwyPRf8+ejBsQ6kL90c68h0/sNq6h5UzC3wbgQ
+# 2YYipIsIkNG/3/anSxvpQ0oZE0avILtTk93SSmqeCB1XmRszd9cgV3J976a79kj7
+# Tz4K6gjrQjaD1lTv15SRZn5ubuwMgfE9iocuMCcyCzbNG0tvQQZ+n1RSzXte+Sgb
+# rJ9ZHbE0cbkBs+oSY9iSkICz6avV
 # SIG # End signature block

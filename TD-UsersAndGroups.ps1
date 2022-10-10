@@ -482,7 +482,7 @@ function Get-TDUser
                 HelpText         = 'Return users who have been granted access to the application'
                 ParameterSetName = 'Search'
                 IDParameter      = 'AppID'
-                IDsMethod        = '$TDApplications.GetAll($WorkingEnvironment,$true)'
+                IDsMethod        = '$TDApplications.GetAll([string]$Environment,$true)'
             }
             @{
                 Name             = 'AccountNames'
@@ -876,7 +876,7 @@ function New-TDDepartment
             $Return = Invoke-RESTCall -Uri "$BaseURI/accounts" -ContentType $ContentType -Method Post -Headers $AuthenticationToken -Body (ConvertTo-Json $TDDepartment -Depth 10)
             if ($Return)
             {
-                $Return = [TeamDynamix_Api_Accounts_Account]::new($_)
+                $Return = [TeamDynamix_Api_Accounts_Account]::new($Return)
             }
             return $Return
         }
@@ -1270,7 +1270,7 @@ function New-TDGroup
             $Return = Invoke-RESTCall -Uri "$BaseURI/groups" -ContentType $ContentType -Method Post -Headers $AuthenticationToken -Body (ConvertTo-Json $TDGroup -Depth 10)
             if ($Return)
             {
-                $Return = [TeamDynamix_Api_Users_Group]::new($_)
+                $Return = [TeamDynamix_Api_Users_Group]::new($Return)
             }
             return $Return
         }
@@ -1994,6 +1994,18 @@ function New-TDUser
         [TeamDynamix_Api_Users_UserType]
         $TypeID = 'User',
 
+        # The UID of the desktop to assign to the new user.
+        [Parameter(Mandatory=$false,
+                   ValueFromPipelineByPropertyName=$true)]
+        [guid]
+        $DesktopID,
+
+        # Whether or not to link the desktop to the template.
+        [Parameter(Mandatory=$false,
+                   ValueFromPipelineByPropertyName=$true)]
+        [boolean]
+        $LinkDesktop,
+
         # Is user account active
         [Parameter(Mandatory=$false,
                    ValueFromPipelineByPropertyName=$true)]
@@ -2102,6 +2114,12 @@ function New-TDUser
         [switch]
         $Passthru,
 
+        # Exclude users if this statement evaluates to true - only applies to inactive users that already exist
+        [Parameter(Mandatory=$false,
+                   ValueFromPipelineByPropertyName=$true)]
+        [string]
+        $ExcludeOnMatch,
+
         # TeamDynamix authentication token
         [Parameter(Mandatory=$false)]
         [hashtable]
@@ -2112,6 +2130,21 @@ function New-TDUser
         [EnvironmentChoices]
         $Environment = $WorkingEnvironment
     )
+    DynamicParam
+    {
+        #List dynamic parameters
+        $DynamicParameterList = @(
+            @{
+                Name             = 'UserRoleName'
+                Mandatory        = $false
+                Type             = 'string'
+                ValidateSet      = $TDConfig.UserRoles.Name
+                HelpText         = 'User role name'
+            }
+        )
+        $DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
+        return $DynamicParameterDictionary
+    }
 
     Begin
     {
@@ -2125,7 +2158,7 @@ function New-TDUser
         # Manage parameters
         #  Identify local parameters to be ignored
         #   Ignore LocationID and LocationRoomID because TeamDynamix_Api_Users_NewUser doesn't support it - set location after user is created
-        $LocalIgnoreParameters = @('LocationID','LocationRoomID')
+        $LocalIgnoreParameters = @('LocationID','LocationRoomID','UserRoleName')
     }
     Process
     {
@@ -2137,12 +2170,13 @@ function New-TDUser
         }
         $NewTDUser = [TeamDynamix_Api_Users_NewUser]::new()
         Update-Object -InputObject $NewTDUser -ParameterList (Get-Command $MyInvocation.MyCommand.Name).Parameters.Keys -BoundParameterList $MyInvocation.BoundParameters.Keys -IgnoreList ($LocalIgnoreParameters + $GlobalIgnoreParameters) -AuthenticationToken $AuthenticationToken -Environment $Environment
-        $ExistUser = $false
+        $TDUser = $false
         # Check to see if user exists
         # Include both active and inactive users.
-        $ExistUser = Get-TDUser -UserName $Username -IsActive $null -AuthenticationToken $AuthenticationToken -Environment $Environment
-        if (-not $ExistUser)
+        $TDUser = Get-TDUser -UserName $Username -IsActive $null -AuthenticationToken $AuthenticationToken -Environment $Environment
+        if (-not $TDUser)
         {
+            # User does not exist
             if ($pscmdlet.ShouldProcess($Username, 'Create new TeamDynamix user'))
             {
                 Write-ActivityHistory 'New user'
@@ -2168,7 +2202,15 @@ function New-TDUser
                     }
                     if ($FixRequired)
                     {
-                        $Return = $Return | Set-TDUser -OverrideEnterpriseRole -AuthenticationToken $AuthenticationToken -Environment $Environment -Passthru
+                        # Have Set-TDUser handle user role update
+                        if ($UserRoleName)
+                        {
+                            $Return = $Return | Set-TDUser -UserRoleName $UserRoleName -OverrideEnterpriseRole -AuthenticationToken $AuthenticationToken -Environment $Environment -Passthru
+                        }
+                        else
+                        {
+                            $Return = $Return | Set-TDUser -OverrideEnterpriseRole -AuthenticationToken $AuthenticationToken -Environment $Environment -Passthru
+                        }
                     }
                 }
                 if ($Passthru)
@@ -2177,14 +2219,15 @@ function New-TDUser
                 }
             }
         }
-        elseif (-not $ExistUser.IsActive)
+        elseif (-not $TDUser.IsActive)
         {
+            # User exists, but is inactive (disabled) - modify
             if ($pscmdlet.ShouldProcess($Username, 'Activate and update inactive TeamDynamix user'))
             {
                 Write-ActivityHistory 'Reactivate user'
                 #Ensure user is active
                 $NewTDUser.IsActive = $true
-                $Return = $NewTDUser | Set-TDUser -Passthru -AuthenticationToken $AuthenticationToken -Environment $Environment -Confirm:$false
+                $Return = $NewTDUser | Set-TDUser -ExcludeOnMatch $ExcludeOnMatch -Passthru -AuthenticationToken $AuthenticationToken -Environment $Environment -Confirm:$false
                 if ($Passthru)
                 {
                     Write-Output $Return
@@ -2193,7 +2236,8 @@ function New-TDUser
         }
         else
         {
-            Write-ActivityHistory -MessageChannel 'Error' -Message "Active user $Username already exists in TeamDynamix"
+            # User exists and is active - do not modify
+            Write-ActivityHistory -MessageChannel 'Warning' -Message "Active user $Username already exists in TeamDynamix"
         }
     }
     end
@@ -2608,6 +2652,12 @@ function Set-TDUser
         [switch]
         $OverrideEnterpriseRole,
 
+        # Exclude users if this statement evaluates to true
+        [Parameter(Mandatory=$false,
+                   ValueFromPipelineByPropertyName=$true)]
+        [string]
+        $ExcludeOnMatch,
+
         # Return updated user as an object
         [Parameter(Mandatory=$false,
                    ValueFromPipelineByPropertyName=$true)]
@@ -2636,6 +2686,13 @@ function Set-TDUser
                 HelpText         = 'User security role name'
                 IDParameter      = 'SecurityRoleID'
                 IDsMethod        = '$TDSecurityRoles.GetAll($WorkingEnvironment,$true)'
+            }
+            @{
+                Name             = 'UserRoleName'
+                Mandatory        = $false
+                Type             = 'string'
+                ValidateSet      = $TDConfig.UserRoles.Name
+                HelpText         = 'User role name'
             }
             @{
                 Name             = 'DefaultAccountName'
@@ -2691,7 +2748,7 @@ function Set-TDUser
         $LocalIgnoreParameters = @('Username')
         #  Extract relevant list of parameters from the current command
         $ChangeParameters = (Get-Command $MyInvocation.MyCommand.Name).Parameters.Keys | Where-Object {(($_ -notin $LocalIgnoreParameters) -and ($_ -notin $GlobalIgnoreParameters))}
-        $LocalIgnoreParameters += @('RemoveAttributes','RemoveOrgApplications','ClearOrgApplications','OverrideEnterpriseRole','SecurityRoleName','DefaultAccountName','GroupNames','LocationName','TimeZoneName')
+        $LocalIgnoreParameters += @('RemoveAttributes','RemoveOrgApplications','ClearOrgApplications','OverrideEnterpriseRole','SecurityRoleName','UserRoleName','DefaultAccountName','GroupNames','LocationName','TimeZoneName')
     }
     Process
     {
@@ -2748,95 +2805,110 @@ function Set-TDUser
             {
                 Write-ActivityHistory -MessageChannel 'Error' -ThrowError -Message "Unable to find user ID, $UID"
             }
-            if ((-not $TDUser.IsActive) -and (-not $Isactive)) # Warn on case where user is inactive and will remain inactive
+            # Exclude users based on runtime match
+            if (Invoke-Expression $ExcludeOnMatch)
             {
-                Write-ActivityHistory -MessageChannel 'Warning' -Message "Inactive user, $($TDUser.UserName), updated. User remains inactive."
+                # User excluded
+                Write-ActivityHistory -MessageChannel 'Warning' -Message "User excluded from update: $($TDUser.UserName)."
             }
-            if ($TDUser.SecurityRoleName -like 'Enterprise*')
+            else
             {
-                # Protect security role, applications, and org applications for users holding an enterprise role, unless OverrideEnterpriseRole is set
-                if (-not $OverrideEnterpriseRole)
+                # User not excluded, process normally
+                if ((-not $TDUser.IsActive) -and (-not $Isactive)) # Warn on case where user is inactive and will remain inactive
                 {
-                    $SecurityRoleID  = $TDUser.SecurityRoleID
-                    $Applications    = $TDUser.Applications
-                    $OrgApplications = $TDUser.OrgApplications
-                    Write-ActivityHistory -MessageChannel 'Warning' -Message "Enterprise user $($TDUser.Username) retains current security role. To change, use -OverrideEnterpriseRole."
+                    Write-ActivityHistory -MessageChannel 'Warning' -Message "Inactive user, $($TDUser.UserName), updated. User remains inactive."
                 }
-            }
-            Write-ActivityHistory 'Setting properties on user.'
-            Update-Object -InputObject $TDUser -ParameterList (Get-Command $MyInvocation.MyCommand.Name).Parameters.Keys -BoundParameterList $MyInvocation.BoundParameters.Keys -IgnoreList ($LocalIgnoreParameters + $GlobalIgnoreParameters) -AuthenticationToken $AuthenticationToken -Environment $Environment
-            # Blank room ID if changing location ID
-            #  LocationRoomID must be in the LocationID, which won't be true if the LocationID changes with no corresponding LocationRoomID update
-            if ($LocationID -and -not $LocationRoomID)
-            {
-                $TDUser.LocationRoomID = $null
-            }
-            # Remove attributes specified for removal
-            if ($RemoveAttributes)
-            {
-                foreach ($RemoveAttribute in $RemoveAttributes)
+                if ($TDUser.SecurityRoleName -like 'Enterprise*')
                 {
-                    $TDUser.RemoveCustomAttribute($RemoveAttribute)
-                }
-            }
-            # Remove org applications specified for removal
-            if ($RemoveOrgApplications)
-            {
-                foreach ($RemoveOrgApplication in $RemoveOrgApplications)
-                {
-                    $TDUser.RemoveOrgApplication($RemoveOrgApplication)
-                }
-            }
-            # Remove all org applications
-            if ($ClearOrgApplications)
-            {
-                foreach ($Name in $TDUser.OrgApplications.SecurityRoleName)
-                {
-                    $TDUser.RemoveOrgApplication($Name)
-                }
-            }
-            $TDUserTD = [TD_TeamDynamix_Api_Users_User]::new($TDUser)
-            if ($pscmdlet.ShouldProcess("$UID - $($TDUser.UserName)", 'Update user properties'))
-            {
-                Write-ActivityHistory "Updating TeamDynamix user $UID - $($TDUser.UserName)."
-                try
-                {
-                    $Return = Invoke-RESTCall -Uri "$BaseURI/people/$UID" -ContentType $ContentType -Method Post -Headers $AuthenticationToken -Body (ConvertTo-Json $TDUserTD -Depth 10) -ErrorAction Stop
-                }
-                catch
-                {
-                    # TeamDynamix will not allow a ReportsToUID that points to a disabled user
-                    #  If the existing record has a disabled ReportsToUID, it must be removed prior to pushing the changes
-                    if ($_.ErrorDetails.Message -like '*Invalid Reports To UID*')
+                    # Protect security role, applications, and org applications for users holding an enterprise role, unless OverrideEnterpriseRole is set
+                    if (-not $OverrideEnterpriseRole)
                     {
-                        $TDUserTD.ReportsToUID = ''
-                        Write-ActivityHistory 'Removed invalid "Reports To UID".'
-                        # Re-do the change
-                        $Return = Invoke-RESTCall -Uri "$BaseURI/people/$UID" -ContentType $ContentType -Method Post -Headers $AuthenticationToken -Body (ConvertTo-Json $TDUserTD -Depth 10)
-                    }
-                    # If room or location (building) is incorrect, an error will be returned
-                    #  Remove location/room information and continue
-                    elseif ($_.ErrorDetails.Message -like '*Invalid location/room*')
-                    {
-                        $TDUserTD.LocationID = ''
-                        $TDUserTD.LocationRoomID = ''
-                        Write-ActivityHistory 'Removed invalid location/room.'
-                        # Re-do the change
-                        $Return = Invoke-RESTCall -Uri "$BaseURI/people/$UID" -ContentType $ContentType -Method Post -Headers $AuthenticationToken -Body (ConvertTo-Json $TDUserTD -Depth 10)
-                    }
-                    else
-                    {
-                        Write-ActivityHistory -ErrorRecord $_
+                        $SecurityRoleID  = $TDUser.SecurityRoleID
+                        $Applications    = $TDUser.Applications
+                        $OrgApplications = $TDUser.OrgApplications
+                        Write-ActivityHistory -MessageChannel 'Warning' -Message "Enterprise user $($TDUser.Username) retains current security role. To change, use -OverrideEnterpriseRole."
                     }
                 }
-                if ($Return)
+                # Set user role
+                if ($UserRoleName)
                 {
-                    $Return = [TeamDynamix_Api_Users_User]::new($Return)
+                    $TDUser.SetUserRole($UserRoleName,$AuthenticationToken,$Environment)
                 }
-                Write-ActivityHistory ($Return | Out-String)
-                if ($Passthru)
+                Write-ActivityHistory 'Setting properties on user.'
+                Update-Object -InputObject $TDUser -ParameterList (Get-Command $MyInvocation.MyCommand.Name).Parameters.Keys -BoundParameterList $MyInvocation.BoundParameters.Keys -IgnoreList ($LocalIgnoreParameters + $GlobalIgnoreParameters) -AuthenticationToken $AuthenticationToken -Environment $Environment
+                # Blank room ID if changing location ID
+                #  LocationRoomID must be in the LocationID, which won't be true if the LocationID changes with no corresponding LocationRoomID update
+                if ($LocationID -and -not $LocationRoomID)
                 {
-                    Write-Output $Return
+                    $TDUser.LocationRoomID = $null
+                }
+                # Remove attributes specified for removal
+                if ($RemoveAttributes)
+                {
+                    foreach ($RemoveAttribute in $RemoveAttributes)
+                    {
+                        $TDUser.RemoveCustomAttribute($RemoveAttribute)
+                    }
+                }
+                # Remove org applications specified for removal
+                if ($RemoveOrgApplications)
+                {
+                    foreach ($RemoveOrgApplication in $RemoveOrgApplications)
+                    {
+                        $TDUser.RemoveOrgApplication($RemoveOrgApplication)
+                    }
+                }
+                # Remove all org applications
+                if ($ClearOrgApplications)
+                {
+                    foreach ($Name in $TDUser.OrgApplications.SecurityRoleName)
+                    {
+                        $TDUser.RemoveOrgApplication($Name)
+                    }
+                }
+                $TDUserTD = [TD_TeamDynamix_Api_Users_User]::new($TDUser)
+                if ($pscmdlet.ShouldProcess("$UID - $($TDUser.UserName)", 'Update user properties'))
+                {
+                    Write-ActivityHistory "Updating TeamDynamix user $UID - $($TDUser.UserName)."
+                    try
+                    {
+                        $Return = Invoke-RESTCall -Uri "$BaseURI/people/$UID" -ContentType $ContentType -Method Post -Headers $AuthenticationToken -Body (ConvertTo-Json $TDUserTD -Depth 10) -ErrorAction Stop
+                    }
+                    catch
+                    {
+                        # TeamDynamix will not allow a ReportsToUID that points to a disabled user
+                        #  If the existing record has a disabled ReportsToUID, it must be removed prior to pushing the changes
+                        if ($_.ErrorDetails.Message -like '*Invalid Reports To UID*')
+                        {
+                            $TDUserTD.ReportsToUID = ''
+                            Write-ActivityHistory 'Removed invalid "Reports To UID".'
+                            # Re-do the change
+                            $Return = Invoke-RESTCall -Uri "$BaseURI/people/$UID" -ContentType $ContentType -Method Post -Headers $AuthenticationToken -Body (ConvertTo-Json $TDUserTD -Depth 10)
+                        }
+                        # If room or location (building) is incorrect, an error will be returned
+                        #  Remove location/room information and continue
+                        elseif ($_.ErrorDetails.Message -like '*Invalid location/room*')
+                        {
+                            $TDUserTD.LocationID = ''
+                            $TDUserTD.LocationRoomID = ''
+                            Write-ActivityHistory 'Removed invalid location/room.'
+                            # Re-do the change
+                            $Return = Invoke-RESTCall -Uri "$BaseURI/people/$UID" -ContentType $ContentType -Method Post -Headers $AuthenticationToken -Body (ConvertTo-Json $TDUserTD -Depth 10)
+                        }
+                        else
+                        {
+                            Write-ActivityHistory -ErrorRecord $_
+                        }
+                    }
+                    if ($Return)
+                    {
+                        $Return = [TeamDynamix_Api_Users_User]::new($Return)
+                    }
+                    Write-ActivityHistory ($Return | Out-String)
+                    if ($Passthru)
+                    {
+                        Write-Output $Return
+                    }
                 }
             }
         }
@@ -2923,7 +2995,7 @@ function Disable-TDUser
                 return
             }
             Write-ActivityHistory "Disabling UID $UserID"
-            Invoke-RESTCall -Uri "$BaseURI/people/$UserID/isactive?status=$false" -ContentType $ContentType -Method Put -Headers $AuthenticationToken
+            Invoke-RESTCall -Uri "$BaseURI/people/$UserID/isactive?status=$false" -ContentType $ContentType -Method Put -Headers $AuthenticationToken | Out-Null # No return is needed for this function
             if ($Passthru)
             {
                 Write-Output (Get-TDUser -UID $UserID -AuthenticationToken $AuthenticationToken -Environment $Environment)
@@ -3013,7 +3085,7 @@ function Enable-TDUser
                 return
             }
             Write-ActivityHistory "Enabling UID $UserID"
-            Invoke-RESTCall -Uri "$BaseURI/people/$UserID/isactive?status=$true" -ContentType $ContentType -Method Put -Headers $AuthenticationToken
+            Invoke-RESTCall -Uri "$BaseURI/people/$UserID/isactive?status=$true" -ContentType $ContentType -Method Put -Headers $AuthenticationToken | Out-Null # No return is needed for this function
             if ($Passthru)
                 {
                     Write-Output (Get-TDUser -UID $UserID -AuthenticationToken $AuthenticationToken -Environment $Environment)
@@ -3261,7 +3333,7 @@ function Add-TDGroupApplication
                 ValidateSet      = $TDApplications.GetAll($WorkingEnvironment,$true).Name
                 HelpText         = 'Remove these applications from specified group'
                 IDParameter      = 'AppIDs'
-                IDsMethod        = '$TDApplications.GetAll($WorkingEnvironment,$true)'
+                IDsMethod        = '$TDApplications.GetAll([string]$Environment,$true)'
             }
         )
         $DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
@@ -3425,7 +3497,7 @@ function Remove-TDGroupApplication
                 ValidateSet      = $TDApplications.GetAll($WorkingEnvironment,$true).Name
                 HelpText         = 'Remove these applications from specified group'
                 IDParameter      = 'AppIDs'
-                IDsMethod        = '$TDApplications.GetAll($WorkingEnvironment,$true)'
+                IDsMethod        = '$TDApplications.GetAll([string]$Environment,$true)'
             }
         )
         $DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
@@ -3497,8 +3569,8 @@ function New-TDGroupApplication
 # SIG # Begin signature block
 # MIIOsQYJKoZIhvcNAQcCoIIOojCCDp4CAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUIkim2qLz+P9D7bJWc3zWhqfP
-# CRigggsLMIIEnTCCA4WgAwIBAgITXAAAAASry1piY/gB3QAAAAAABDANBgkqhkiG
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQU1kO1zPN3ieg5ym1WsN2K/u/E
+# Gy6gggsLMIIEnTCCA4WgAwIBAgITXAAAAASry1piY/gB3QAAAAAABDANBgkqhkiG
 # 9w0BAQsFADAaMRgwFgYDVQQDEw9BU0MgUEtJIE9mZmxpbmUwHhcNMTcwNTA4MTcx
 # NDA5WhcNMjcwNTA4MTcyNDA5WjBYMRMwEQYKCZImiZPyLGQBGRYDZWR1MRowGAYK
 # CZImiZPyLGQBGRYKb2hpby1zdGF0ZTETMBEGCgmSJomT8ixkARkWA2FzYzEQMA4G
@@ -3561,17 +3633,17 @@ function New-TDGroupApplication
 # 8ixkARkWCm9oaW8tc3RhdGUxEzARBgoJkiaJk/IsZAEZFgNhc2MxEDAOBgNVBAMT
 # B0FTQy1QS0kCE3oAAOEPnUrHvueZLKQAAQAA4Q8wCQYFKw4DAhoFAKB4MBgGCisG
 # AQQBgjcCAQwxCjAIoAKAAKECgAAwGQYJKoZIhvcNAQkDMQwGCisGAQQBgjcCAQQw
-# HAYKKwYBBAGCNwIBCzEOMAwGCisGAQQBgjcCARUwIwYJKoZIhvcNAQkEMRYEFOlF
-# cTBAfq9bMHkAZ3dqy+mVuuRRMA0GCSqGSIb3DQEBAQUABIICAHvI8by2JdLzJoPb
-# Qo6BhNq9B7BEWwyIibAClt5zRqmmZBR31BCHSJycqhwqe1xIqUaUCxvE0Q66JVoA
-# kEWx12NPqSp6JHIBqwFi+ZP3eSGlvl6Zdh8AzMFI1AJ3HiDwWCz00IkYkYK+79TI
-# 9OSVuUCE1ZRy9i0pzRN9zXylHNa2CMTd+4+TZBkTP2Og0u2F3l3Z1MPOt5aPZCea
-# yb1eV0DuhdOSVV/17QBQmSb1vgIzL/AmfIotyx4ekoh8Ou6ZZx/GZbwIG/UXngen
-# OtJAZFK+6dkiwF/zfQOYflrM+ahen06RAt0IP0fPgYtnzElsMVLnM5ksiThcvo/o
-# D4LLDql8J7inTzHDrIdFKiuiUk4Br8CHxr4kc8KRD4PE25zu4HFa/gr9T3NheEzo
-# uT+qgNJnEI7zfFBM38dRnCS4t2lVrdwz0dHBAJe1/bnFavco4+fP2qaSfWLNC8Mh
-# KueufjiQ4sxSMjVBthjTuL+Ba0QAx4mV18KGbrXKPKG2q/6b5IFR0EeujZGhbZBN
-# 7UEBCW1iw+igQWmniBbF5CjcltlRs2uQhW8mPxYv8DTtSMjXkT1CrK8mLpt8LM5o
-# 8DG9Tj3zKQwItAWW5sMUXHl7NOCzv/h9IUvc4xl1JcKNILzil9ybYxYdCm423N5j
-# 0jGFlfEc4byQzike0jqQmQKWvke3
+# HAYKKwYBBAGCNwIBCzEOMAwGCisGAQQBgjcCARUwIwYJKoZIhvcNAQkEMRYEFEn9
+# 6ecP8u//u+O2/URqoR7ggTGzMA0GCSqGSIb3DQEBAQUABIICAGzoG2+mdgpB8/6J
+# 0TUDwCkwJIFrQMXPVecxEPylf0oadiZWdcDPyJzEbF+n8UZeClX1qpuCAe55p6vM
+# GGAg2tJbZew3tzyhxi34CZ/ihMDuW0aNCW6hd+FwD+eJI2iS8Pz87fGAU2CS8sUc
+# +aYPXTdKLcX0moLQhbYyPCiCbKFwyxHaJ/+J568htiCWDvsEsUTRh1AK3LY63736
+# Ga6gNnUoncYxGcln/mFchSIzE24ZJh9nt8xnKDeB4SEDdiE45kzHbY0WObghfdXB
+# zzOck/BjP+vX4JeCixMdwinaQrG4MzI9sogp9gB42vJmoDLPwG1LGWvMzOuwQqoc
+# 6zlI01HXboqflAW6ND3B45rGaFdBFPWdsIDofFnYC8/gntyVNXs1k0agQP+asidF
+# tZwtiHK1LwhZRLKyhZmUqFYT3M4uhMqylmIMj3qc6e+bjIa0Fm7GeMGESva7Jhe+
+# paXmQkl7C2br71PLxU54Wj71i41oXzx3jOaq4UZgmlY+5/tlMrdUvWXX76m7+aTt
+# 9HUEV+yrzWgr/m6VtzF6u3h37GwIiCsx0/LNVE/OxA8Tn0/WW2YJKASPsQBOsT4O
+# 1p2g0g50U72B9BdahGErYnNQjnen+pfcIEIlxYbJJGX4E44l5vE70iatLt6/cCq6
+# YTHsJVUlNBuaL3IkKjIIG2a2ipNn
 # SIG # End signature block

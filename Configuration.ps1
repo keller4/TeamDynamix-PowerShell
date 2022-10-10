@@ -1,7 +1,7 @@
 function Update-ConfigurationFile {
     $Return = $false
     # Set current version of the configuration file, increment to module version when config file changes
-    $ConfigurationVersion = '2.5.3'
+    $ConfigurationVersion = '2.6.4'
     # If a config file exists, read it - if not, create a new one with default values
     if (Test-Path -Path $PSScriptRoot\Configuration.psd1 -PathType Leaf) {
         $CurrentSettings = Import-PowerShellDataFile $PSScriptRoot\Configuration.psd1
@@ -30,11 +30,14 @@ function Update-ConfigurationFile {
     ConfigurationVersion = 'XXXConfigurationVersionXXX'
     #region Global settings
         #region Required settings
-            # Log file directory (used for user and asset updates)
+            # Webhook URI (used for user and asset updates) - required for LoggingPreference = 'Webhook'
+            LogWebhookDefault = 'https://contoso.webhook.office.com/webhookb2/c627fdd6-560f-4433-b11f-65137eded5c4@cbe7cb90-079a-460a-9807-72654ead5c6c/IncomingWebhook/e8aa780542e34d47a46512e4ab7ed834/211489d0-4577-4a7e-9b46-b517fb9470f4'
+
+            # Log file directory (used for user and asset updates) - required for LoggingPreference = 'File'
             LogFileDirDefault = 'C:\Temp\TD'
 
             # Email address domain (the part after the @), used to set usernames and primary email address
-            DefaultEmailDomain = 'osu.edu'
+            DefaultEmailDomain = 'contoso.com'
 
             # User recognition regex pattern
             #  Using a regular expression, describe what a valid username looks like (the part before the @ in an email address)
@@ -47,8 +50,8 @@ function Update-ConfigurationFile {
             DefaultPortalApp    = 'Client Portal'
 
             # TeamDynamix URIs, used for API and portal
-            DefaultTDBaseURI        = 'https://osuasc.teamdynamix.com'
-            DefaultTDPreviewBaseURI = 'https://osuasc.teamdynamixpreview.com'
+            DefaultTDBaseURI        = 'https://contoso.teamdynamix.com'
+            DefaultTDPreviewBaseURI = 'https://contoso.teamdynamixpreview.com'
 
             # Default TeamDynamix authentication provider ID
             DefaultAuthenticationProviderID = 373
@@ -63,10 +66,10 @@ function Update-ConfigurationFile {
 
             # User directory information command
             #  Command should be written so it is possible to add the name to lookup to the end
-            DirectoryLookup = 'Get-OSUDirectoryListing -Properties * -Name'
+            DirectoryLookup = 'Get-DirectoryListing -Properties * -Name'
 
             # Alternate email address domain (the part after the @), used to set alternate email address
-            AlternateEmailDomain = 'buckeyemail.osu.edu'
+            AlternateEmailDomain = 'internal.contoso.com'
 
             # Activity reporting queue depth, select any value 1 or higher
             #  This is the number of recent activities to be reported when there is an error
@@ -85,14 +88,13 @@ function Update-ConfigurationFile {
             # Application admin specifies if the role users will have the ability to access the Admin area of that app via the application itself - click gear in the top-right corner
             UserRoles = @(
                 @{
-                    Name = 'Technician - Student'
+                    Name = 'ASC-Technician - Student'
                     Default = $false
-                    UserSecurityRole   = 'Technician - Student'
+                    UserSecurityRole   = 'ASC-Technician - Student'
                     UserFunctionalRole = 'Participant'
                     Applications = @(
                         'MyWork'
                         'TDAssets'
-                        'TDChat'
                         'TDCommunity'
                         'TDNext'
                         'TDPeople'
@@ -100,15 +102,15 @@ function Update-ConfigurationFile {
                     )
                     OrgApplications = @(
                         @{
-                            Name         = 'Client Portal'
-                            SecurityRole = 'Technician + Knowledge Base, Questions, Services, Ticket Requests'
+                            Name         = 'ASC-Client Portal'
+                            SecurityRole = 'ASC-Technician'
                         }
                         @{
-                            Name         = 'Tickets'
+                            Name         = 'ASC-Tickets'
                             SecurityRole = 'Ticketing - Tech Access'
                         }
                         @{
-                            Name         = 'Assets/CIs'
+                            Name         = 'ASC-Assets/CIs'
                             SecurityRole = 'Technician'
                         }
                     )
@@ -119,17 +121,15 @@ function Update-ConfigurationFile {
                         }
                         # elseif (other connector/condition) {other result}
 "@
-
                 }
                 @{
-                    Name = 'Technician'
+                    Name = 'EHE-Technician - Student'
                     Default = $false
-                    UserSecurityRole   = 'Technician'
+                    UserSecurityRole   = 'EHE-Technician - Student'
                     UserFunctionalRole = 'Participant'
                     Applications = @(
                         'MyWork'
                         'TDAssets'
-                        'TDChat'
                         'TDCommunity'
                         'TDNext'
                         'TDPeople'
@@ -137,15 +137,94 @@ function Update-ConfigurationFile {
                     )
                     OrgApplications = @(
                         @{
-                            Name         = 'Client Portal'
-                            SecurityRole = 'Technician + Knowledge Base, Questions, Services, Ticket Requests'
+                            Name         = 'EHE-Client Portal'
+                            SecurityRole = 'EHE-Student Tech'
                         }
                         @{
-                            Name         = 'Tickets'
+                            Name         = 'EHE-Tickets'
+                            SecurityRole = 'Service Desk Analyst - Ticket'
+                        }
+                    )
+                    Function = '$false'
+                }
+                @{
+                    Name = 'ATH-Technician - Student'
+                    Default = $false
+                    UserSecurityRole   = 'ATH-Technician - Student'
+                    UserFunctionalRole = 'Participant'
+                    Applications = @(
+                        'MyWork'
+                        'TDAssets'
+                        'TDCommunity'
+                        'TDNext'
+                        'TDPeople'
+                        'TDTickets'
+                    )
+                    OrgApplications = @(
+                        @{
+                            Name         = 'ATH-Client Portal'
+                            SecurityRole = 'ATH-Student Tech'
+                        }
+                        @{
+                            Name         = 'ATH-Tickets'
+                            SecurityRole = 'Service Desk Analyst - Ticket'
+                        }
+                        @{
+                            Name         = 'ATH-Assets/CIs'
+                            SecurityRole = 'Technician'
+                        }
+                    )
+                    Function = '$false'
+                }
+                @{
+                    Name = 'COP-Technician - Student'
+                    Default = $false
+                    UserSecurityRole   = 'COP-Technician - Student'
+                    UserFunctionalRole = 'Participant'
+                    Applications = @(
+                        'MyWork'
+                        'TDAssets'
+                        'TDCommunity'
+                        'TDNext'
+                        'TDPeople'
+                        'TDTickets'
+                    )
+                    OrgApplications = @(
+                        @{
+                            Name         = 'COP-Client Portal'
+                            SecurityRole = 'COP-Student Tech'
+                        }
+                        @{
+                            Name         = 'COP-Tickets'
+                            SecurityRole = 'Service Desk Analyst - Ticket'
+                        }
+                    )
+                    Function = '$false'
+                }
+                @{
+                    Name = 'ASC-Technician'
+                    Default = $false
+                    UserSecurityRole   = 'ASC-Technician'
+                    UserFunctionalRole = 'Participant'
+                    Applications = @(
+                        'MyWork'
+                        'TDAssets'
+                        'TDCommunity'
+                        'TDNext'
+                        'TDPeople'
+                        'TDTickets'
+                    )
+                    OrgApplications = @(
+                        @{
+                            Name         = 'ASC-Client Portal'
+                            SecurityRole = 'ASC-Technician'
+                        }
+                        @{
+                            Name         = 'ASC-Tickets'
                             SecurityRole = 'Ticketing - Tech Access'
                         }
                         @{
-                            Name         = 'Assets/CIs'
+                            Name         = 'ASC-Assets/CIs'
                             SecurityRole = 'Technician'
                         }
                     )
@@ -167,7 +246,86 @@ function Update-ConfigurationFile {
 "@
                 }
                 @{
-                    Name = 'Customer'
+                    Name = 'EHE-Technician'
+                    Default = $false
+                    UserSecurityRole   = 'EHE-Technician'
+                    UserFunctionalRole = 'Participant'
+                    Applications = @(
+                        'MyWork'
+                        'TDAssets'
+                        'TDCommunity'
+                        'TDNext'
+                        'TDPeople'
+                        'TDTickets'
+                    )
+                    OrgApplications = @(
+                        @{
+                            Name         = 'EHE-Client Portal'
+                            SecurityRole = 'EHE-Service Desk Analyst'
+                        }
+                        @{
+                            Name         = 'EHE-Tickets'
+                            SecurityRole = 'Service Desk Analyst - Ticket'
+                        }
+                    )
+                    Function = '$false'
+                }
+                @{
+                    Name = 'ATH-Technician'
+                    Default = $false
+                    UserSecurityRole   = 'ATH-Technician'
+                    UserFunctionalRole = 'Participant'
+                    Applications = @(
+                        'MyWork'
+                        'TDAssets'
+                        'TDCommunity'
+                        'TDNext'
+                        'TDPeople'
+                        'TDTickets'
+                    )
+                    OrgApplications = @(
+                        @{
+                            Name         = 'ATH-Client Portal'
+                            SecurityRole = 'ATH-Service Desk Analyst'
+                        }
+                        @{
+                            Name         = 'ATH-Tickets'
+                            SecurityRole = 'Service Desk Analyst - Ticket'
+                        }
+                        @{
+                            Name         = 'ATH-Assets/CIs'
+                            SecurityRole = 'Technician'
+                        }
+                    )
+                    Function = '$false'
+                }
+                @{
+                    Name = 'COP-Technician'
+                    Default = $false
+                    UserSecurityRole   = 'COP-Technician'
+                    UserFunctionalRole = 'Participant'
+                    Applications = @(
+                        'MyWork'
+                        'TDAssets'
+                        'TDCommunity'
+                        'TDNext'
+                        'TDPeople'
+                        'TDTickets'
+                    )
+                    OrgApplications = @(
+                        @{
+                            Name         = 'COP-Client Portal'
+                            SecurityRole = 'COP-Service Desk Analyst'
+                        }
+                        @{
+                            Name         = 'COP-Tickets'
+                            SecurityRole = 'Service Desk Analyst - Ticket'
+                        }
+                    )
+                    Function = '$false'
+                }
+                @{
+                    Name = 'ASC-Customer'
                     Default = $true
                     UserSecurityRole   = 'Customer'
                     UserFunctionalRole = 'Participant'
@@ -176,21 +334,68 @@ function Update-ConfigurationFile {
                     )
                     OrgApplications = @(
                         @{
-                            Name         = 'Client Portal'
-                            SecurityRole = 'Customer + Knowledge Base, Services, Ticket Requests'
+                            Name         = 'ASC-Client Portal'
+                            SecurityRole = 'ASC-Customer'
                         }
                     )
                     Function = '$true'
                 }
                 @{
-                    Name = 'Enterprise Admin'
+                    Name = 'EHE-Customer'
+                    Default = $false
+                    UserSecurityRole   = 'Customer'
+                    UserFunctionalRole = 'Participant'
+                    Applications = @(
+                        'TDClient'
+                    )
+                    OrgApplications = @(
+                        @{
+                            Name         = 'EHE-Client Portal'
+                            SecurityRole = 'EHE-Client'
+                        }
+                    )
+                    Function = '$true'
+                }
+                @{
+                    Name = 'ATH-Customer'
+                    Default = $false
+                    UserSecurityRole   = 'Customer'
+                    UserFunctionalRole = 'Participant'
+                    Applications = @(
+                        'TDClient'
+                    )
+                    OrgApplications = @(
+                        @{
+                            Name         = 'ATH-Client Portal'
+                            SecurityRole = 'ATH-Client'
+                        }
+                    )
+                    Function = '$true'
+                }
+                @{
+                    Name = 'COP-Customer'
+                    Default = $false
+                    UserSecurityRole   = 'Customer'
+                    UserFunctionalRole = 'Participant'
+                    Applications = @(
+                        'TDClient'
+                    )
+                    OrgApplications = @(
+                        @{
+                            Name         = 'COP-Client Portal'
+                            SecurityRole = 'COP-Client'
+                        }
+                    )
+                    Function = '$true'
+                }
+                @{
+                    Name = 'ASC-Enterprise Admin'
                     Default = $false
                     UserSecurityRole   = 'Enterprise - Full Access'
                     UserFunctionalRole = 'Participant'
                     Applications = @(
                         'MyWork'
                         'TDAssets'
-                        'TDChat'
                         'TDCommunity'
                         'TDNext'
                         'TDPeople'
@@ -203,17 +408,118 @@ function Update-ConfigurationFile {
                     )
                     OrgApplications = @(
                         @{
-                            Name         = 'Client Portal'
-                            SecurityRole = 'Enterprise - Full Access + Knowledge Base, Project Requests, Projects, Questions, Services, Ticket Requests'
+                            Name         = 'ASC-Client Portal'
+                            SecurityRole = 'ASC-Enterprise - Full Access'
                             AppAdmin     = $true
                         }
                         @{
-                            Name         = 'Tickets'
+                            Name         = 'ASC-Tickets'
                             SecurityRole = 'Ticketing - All Access'
                             AppAdmin     = $true
                         }
                         @{
-                            Name         = 'Assets/CIs'
+                            Name         = 'ASC-Assets/CIs'
+                            SecurityRole = 'Enterprise - Full Access'
+                            AppAdmin     = $true
+                        }
+                    )
+                    Function = '$false'
+                }
+                @{
+                    Name = 'EHE-Enterprise Admin'
+                    Default = $false
+                    UserSecurityRole   = 'Enterprise - Full Access'
+                    UserFunctionalRole = 'Participant'
+                    Applications = @(
+                        'MyWork'
+                        'TDAssets'
+                        'TDCommunity'
+                        'TDNext'
+                        'TDPeople'
+                        'TDTickets'
+                        'TDAnalysis'
+                        'TDFileCabinet'
+                        'TDPortfolios'
+                        'TDProjects'
+                        'TDTimeExpense'
+                    )
+                    OrgApplications = @(
+                        @{
+                            Name         = 'EHE-Client Portal'
+                            SecurityRole = 'EHE-Service Desk Analyst'
+                            AppAdmin     = $true
+                        }
+                        @{
+                            Name         = 'EHE-Tickets'
+                            SecurityRole = 'Enterprise - Full Access'
+                            AppAdmin     = $true
+                        }
+                    )
+                    Function = '$false'
+                }
+                @{
+                    Name = 'ATH-Enterprise Admin'
+                    Default = $false
+                    UserSecurityRole   = 'Enterprise - Full Access'
+                    UserFunctionalRole = 'Participant'
+                    Applications = @(
+                        'MyWork'
+                        'TDAssets'
+                        'TDCommunity'
+                        'TDNext'
+                        'TDPeople'
+                        'TDTickets'
+                        'TDAnalysis'
+                        'TDFileCabinet'
+                        'TDPortfolios'
+                        'TDProjects'
+                        'TDTimeExpense'
+                    )
+                    OrgApplications = @(
+                        @{
+                            Name         = 'ATH-Client Portal'
+                            SecurityRole = 'ATH-Service Desk Analyst'
+                            AppAdmin     = $true
+                        }
+                        @{
+                            Name         = 'ATH-Tickets'
+                            SecurityRole = 'Enterprise - Full Access'
+                            AppAdmin     = $true
+                        }
+                        @{
+                            Name         = 'ATH-Assets/CIs'
+                            SecurityRole = 'Enterprise - Full Access'
+                            AppAdmin     = $true
+                        }
+                    )
+                    Function = '$false'
+                }
+                @{
+                    Name = 'COP-Enterprise Admin'
+                    Default = $false
+                    UserSecurityRole   = 'Enterprise - Full Access'
+                    UserFunctionalRole = 'Participant'
+                    Applications = @(
+                        'MyWork'
+                        'TDAssets'
+                        'TDCommunity'
+                        'TDNext'
+                        'TDPeople'
+                        'TDTickets'
+                        'TDAnalysis'
+                        'TDFileCabinet'
+                        'TDPortfolios'
+                        'TDProjects'
+                        'TDTimeExpense'
+                    )
+                    OrgApplications = @(
+                        @{
+                            Name         = 'COP-Client Portal'
+                            SecurityRole = 'COP-Service Desk Analyst'
+                            AppAdmin     = $true
+                        }
+                        @{
+                            Name         = 'COP-Tickets'
                             SecurityRole = 'Enterprise - Full Access'
                             AppAdmin     = $true
                         }
@@ -233,35 +539,16 @@ function Update-ConfigurationFile {
                     )
                     OrgApplications = @(
                         @{
-                            Name         = 'Client Portal'
-                            SecurityRole = 'Customer'
+                            Name         = 'ASC-Client Portal'
+                            SecurityRole = 'ASC-Service'
                         }
                         @{
-                            Name         = 'Assets/CIs'
+                            Name         = 'ASC-Assets/CIs'
                             SecurityRole = 'Service Read-Only'
                         }
-                    )
-                    Function = '$false'
-                }
-                @{
-                    Name = 'Project Manager'
-                    Default = $false
-                    UserSecurityRole   = 'Project Manager'
-                    UserFunctionalRole = 'Participant'
-                    Applications = @(
-                        'MyWork'
-                        'TDAnalysis'
-                        'TDFileCabinet'
-                        'TDNext'
-                        'TDPortfolios'
-                        'TDProjects'
-                        'TDTicketRequests'
-                        'TDTimeExpense'
-                    )
-                    OrgApplications = @(
                         @{
-                            Name         = 'Client Portal'
-                            SecurityRole = 'Customer + Knowledge Base, Projects, Services, Ticket Requests'
+                            Name         = 'ATH-Assets/CIs'
+                            SecurityRole = 'Service Read-Only'
                         }
                     )
                     Function = '$false'
@@ -276,7 +563,7 @@ function Update-ConfigurationFile {
             @{
                 # Required
                 #  Name of application, used to refer to its settings
-                Name = 'Assets/CIs'
+                Name = 'ASC-Assets/CIs'
                 # Optional
                 DefaultSecurityRole = 'Technician'
                 #  All asset report (omits invalid assets), used to enumerate assets for consistency reports
@@ -291,7 +578,7 @@ function Update-ConfigurationFile {
             @{
                 # Required
                 #  Name of application, used to refer to its settings
-                Name = 'Tickets'
+                Name = 'ASC-Tickets'
                 # Optional
                 DefaultSecurityRole = 'Ticketing - Tech Access'
             }
@@ -302,9 +589,9 @@ function Update-ConfigurationFile {
             @{
                 # Required
                 #  Name of application, used to refer to its settings
-                Name = 'Client Portal'
+                Name = 'ASC-Client Portal'
                 # Optional
-                DefaultSecurityRole = 'Technician + Knowledge Base, Questions, Services, Ticket Requests'
+                DefaultSecurityRole = 'ASC-Technician'
                 #  Default desktop UID
                 DefaultDesktop = '88389253-090a-4bfb-a5b7-ec8f9e27d555'
             }
@@ -365,12 +652,13 @@ function Update-ConfigurationFile {
         #   $ConnectorCredential to refer to the credential for the current connector
         #  Field mapping logic and code will be executed as written, expecting a string output
         #   Use Here-String for multi-line code blocks in field mapping logic
+        #  DoNotUpdateNullOrEmpty indicates attributes from the AttributesMap that should not be updated when null or empty
         DataConnectors = @(
             #region Asset connectors
             @{
                 # Configuration Manager connector requires that the Config Manager PowerShell cmdlets are installed on the machine running the query
                 Name         = 'ASCConfigurationManager'
-                Application  = 'Assets/CIs'
+                Application  = 'ASC-Assets/CIs'
                 Type         = 'Primary'
                 Class        = 'Asset'
                 Subclass     = 'MECM'
@@ -436,7 +724,7 @@ function Update-ConfigurationFile {
             @{
                 # Configuration Manager connector requires that the Config Manager PowerShell cmdlets are installed on the machine running the query
                 Name         = 'OCIOConfigurationManager'
-                Application  = 'Assets/CIs'
+                Application  = 'ASC-Assets/CIs'
                 Type         = 'Primary'
                 Class        = 'Asset'
                 Subclass     = 'MECM'
@@ -501,7 +789,7 @@ function Update-ConfigurationFile {
             }
             @{
                 Name         = 'OCIOJamf'
-                Application  = 'Assets/CIs'
+                Application  = 'ASC-Assets/CIs'
                 Type         = 'Primary'
                 Class        = 'Asset'
                 Subclass     = 'JamfDesktop'
@@ -553,7 +841,7 @@ function Update-ConfigurationFile {
             }
             @{
                 Name         = 'OCIOJamfMobile'
-                Application  = 'Assets/CIs'
+                Application  = 'ASC-Assets/CIs'
                 Type         = 'Primary'
                 Class        = 'Asset'
                 Subclass     = 'JamfMobile'
@@ -592,7 +880,7 @@ function Update-ConfigurationFile {
             }
             @{
                 Name         = 'ASCJamf'
-                Application  = 'Assets/CIs'
+                Application  = 'ASC-Assets/CIs'
                 Type         = 'Primary'
                 Class        = 'Asset'
                 Subclass     = 'JamfDesktop'
@@ -644,7 +932,7 @@ function Update-ConfigurationFile {
             }
             @{
                 Name         = 'ASCJamfMobile'
-                Application  = 'Assets/CIs'
+                Application  = 'ASC-Assets/CIs'
                 Type         = 'Primary'
                 Class        = 'Asset'
                 Subclass     = 'JamfMobile'
@@ -683,7 +971,7 @@ function Update-ConfigurationFile {
             }
             @{
                 Name         = 'Satellite'
-                Application  = 'Assets/CIs'
+                Application  = 'ASC-Assets/CIs'
                 Type         = 'Primary'
                 Class        = 'Asset'
                 Subclass     = 'Satellite'
@@ -748,7 +1036,7 @@ function Update-ConfigurationFile {
             }
             @{
                 Name         = 'Puppet'
-                Application  = 'Assets/CIs'
+                Application  = 'ASC-Assets/CIs'
                 Type         = 'Primary'
                 Class        = 'Asset'
                 Subclass     = 'Puppet'
@@ -819,7 +1107,7 @@ function Update-ConfigurationFile {
             }
             @{
                 Name         = 'Active Directory Assets'
-                Application  = 'Assets/CIs'
+                Application  = 'ASC-Assets/CIs'
                 Type         = 'Supplemental'
                 Class        = 'Asset'
                 Subclass     = 'ActiveDirectory'
@@ -911,6 +1199,8 @@ function Update-ConfigurationFile {
                         }
                         CustomAttributesMap = @{
                         }
+                        DoNotUpdateNullOrEmpty = @(
+                        )
                     }
                 }
             }
@@ -925,7 +1215,7 @@ function Update-ConfigurationFile {
                 AuthRequired = 'PeopleAPI'
                 # Additional info required for the connector
                 Data = @{
-                    SetUserRole = $false
+                    SetUserRole = $true
                     FieldMappings = @{
                         AttributesMap = @{
                             DefaultAccountID = @"
@@ -1019,6 +1309,9 @@ function Update-ConfigurationFile {
                         }
                         CustomAttributesMap = @{
                         }
+                        DoNotUpdateNullOrEmpty = @(
+                            'AlternateEmail'
+                        )
                     }
                 }
             }
@@ -1050,6 +1343,9 @@ function Update-ConfigurationFile {
                         }
                         CustomAttributesMap = @{
                         }
+                        DoNotUpdateNullOrEmpty = @(
+                            'AlternateEmail'
+                        )
                     }
                 }
             }
@@ -1073,69 +1369,12 @@ function Update-ConfigurationFile {
         )
     #endregion
 }
-'@
 
-    # Regular expression is built from spaces ahead of the setting name, spaces, an equal-sign, spaces, the setting value, then spaces
-    #  The part before the setting name
-    $SearchPrepend = '(?m)^\s*'
-    #  The part after the setting name (contains the setting value)
-    $SearchAppend  = '\s*=\s*(?<Setting>.*?)\s*$'
-
-    # Check to see if the config file is missing or old - needs to be updated/created
-    if ($CurrentSettings.ConfigurationVersion -ne $ConfigurationVersion) {
-        # Check to see if there were settings to import from the existing file
-        if ($CurrentSettings) {
-            # Step through each setting
-            foreach ($Setting in $DefaultSettings) {
-                # Construct the regular expression as described above
-                $Regex = "$SearchPrepend$Setting$SearchAppend"
-                if ($CurrentSettings.$Setting) {
-                    # Clear previous matches
-                    Clear-Variable Matches -ErrorAction Ignore -Confirm:$false
-                    # Search the default configuration for the setting name
-                    $DefaultConfiguration -match $Regex | Out-Null
-                    # The entire line is captured in $Matches[0], which we'll adjust and put back in place
-                    $DefaultLine = $Matches[0]
-                    # Check to see how to format (strings need quotes)
-                    switch ($CurrentSettings.$Setting.GetType().Name)
-                    {
-                        Int32  {$CurrentSettingsString =   "$($CurrentSettings.$Setting)"}
-                        String {$CurrentSettingsString = "`'$($CurrentSettings.$Setting)`'"}
-                    }
-                    # Replace the default setting in the line, captured in $Matches.Setting, with the setting from the current config file
-                    $UpdatedLine = $DefaultLine.Replace($Matches.Setting, $CurrentSettingsString)
-                    # Swap the old line in the default configuration for the new one
-                    $DefaultConfiguration = $DefaultConfiguration.Replace($DefaultLine, $UpdatedLine)
-                }
-            }
-            # Keep a copy of the old configuration file
-            Move-Item $PSScriptRoot\Configuration.psd1 $PSScriptRoot\Configuration.old -Force
-        }
-        # Configuration has been rebuilt from the default, now add configuration version number in the same way settings were updated
-        # Construct the regular expression for ConfigVersion as described above
-        $Regex = "$($SearchPrepend)ConfigurationVersion$SearchAppend"
-        # Clear previous matches
-        Clear-Variable Matches -ErrorAction Ignore -Confirm:$false
-        # Search the default configuration for the setting name
-        $DefaultConfiguration -match $Regex | Out-Null
-        # The entire line is captured in $Matches[0], which we'll adjust and put back in place
-        $DefaultLine = $Matches[0]
-        # Replace the placeholder setting in the line with the version number
-        $UpdatedLine = $DefaultLine.Replace('XXXConfigurationVersionXXX', $ConfigurationVersion)
-        # Swap the old line in the default configuration for the new one
-        $DefaultConfiguration = $DefaultConfiguration.Replace($DefaultLine, $UpdatedLine)
-
-        # Write new configuration file
-        $DefaultConfiguration | Out-File $PSScriptRoot\Configuration.psd1
-        $Return = $true
-    }
-    return $Return
-}
 # SIG # Begin signature block
 # MIIOsQYJKoZIhvcNAQcCoIIOojCCDp4CAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUdCzUZJ3J/htXE/pYFepCFSuk
-# BHqgggsLMIIEnTCCA4WgAwIBAgITXAAAAASry1piY/gB3QAAAAAABDANBgkqhkiG
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUlFm5qVUHf1GTj1YMJgnRJnAj
+# 9WGgggsLMIIEnTCCA4WgAwIBAgITXAAAAASry1piY/gB3QAAAAAABDANBgkqhkiG
 # 9w0BAQsFADAaMRgwFgYDVQQDEw9BU0MgUEtJIE9mZmxpbmUwHhcNMTcwNTA4MTcx
 # NDA5WhcNMjcwNTA4MTcyNDA5WjBYMRMwEQYKCZImiZPyLGQBGRYDZWR1MRowGAYK
 # CZImiZPyLGQBGRYKb2hpby1zdGF0ZTETMBEGCgmSJomT8ixkARkWA2FzYzEQMA4G
@@ -1198,17 +1437,156 @@ function Update-ConfigurationFile {
 # 8ixkARkWCm9oaW8tc3RhdGUxEzARBgoJkiaJk/IsZAEZFgNhc2MxEDAOBgNVBAMT
 # B0FTQy1QS0kCE3oAAOEPnUrHvueZLKQAAQAA4Q8wCQYFKw4DAhoFAKB4MBgGCisG
 # AQQBgjcCAQwxCjAIoAKAAKECgAAwGQYJKoZIhvcNAQkDMQwGCisGAQQBgjcCAQQw
-# HAYKKwYBBAGCNwIBCzEOMAwGCisGAQQBgjcCARUwIwYJKoZIhvcNAQkEMRYEFDrQ
-# uGU4PNj5P26rfgAn3hO/lQ0rMA0GCSqGSIb3DQEBAQUABIICAGEk3NCPxEE0WDYs
-# vio/oqY0D02BsHJrDZgXzsdM8FRly70EVKAlfFSYmQe8FxOxrEFVupkrwSQGojs1
-# 35/IQ6bH9ztaQOtYtORBMkKKDYomz85GMFuKQDkWb26mvcO6cQDTcdRx0ZLAdX1E
-# +JN+D2l4wy4b1tZDx6w//VjUl5bB9/Cvn7BnMnS4EUeFZ9NCyGRCFfDM7i6o5VR0
-# qBdn+ydUGrwmaUPO0G2jZ1QZfh8lj3htgs4yMV3J6ixqcebUWG9WoAOMZ8g4NKEz
-# mde8kXiQnGI2DZC+Db/uzeL+0Q2lknHRrtm/MG03Qn1SMyO3oCTMWFM4SqBeF6WM
-# Lu+RLskPxkOxjjshQJ5s/MAA4vfySVzi3NqC0CxSaRKSNy+aNNhutaV2sAJLbT3q
-# i/iEerXPikEqTZZ3UfaZaP44IWpE+oRQqvezpVlEd1RU5lM2MAy6ggJm79xLvYAI
-# G5mNnV2T6uwojnvSmr8by8acL7a/dV5mzuZwarskl6ME4SnhgXvH3V500QTw/E4W
-# UsnIti08eQGt5kBoU2wOc2YRfWt3SodFyVNVzWUTVyt/cNAvWW3GziTJKYRotyMZ
-# a6crc/WXsFuVTekIFGiPnFcR4PcsZI09QxrGmOSVj+gpLyjUl8rT/hA4wOv25HrH
-# 9JN8EGFTWJyH5K73AJyCrs8z6v+1
+# HAYKKwYBBAGCNwIBCzEOMAwGCisGAQQBgjcCARUwIwYJKoZIhvcNAQkEMRYEFEYX
+# j3BMMOiExW+UN8+xGYOzdyCRMA0GCSqGSIb3DQEBAQUABIICAMBAKdZe+mfAr11h
+# 5YaVi+af3LqzIykjtgiDnKbsHi04A3E5vrdp2k6ARMG3QaVgtGTiGNYwYZ/qG0jJ
+# IcaSVut+NqQrDphVtQEUUI9BaEsTHMcmbEV0p/e0yNLmduCuxi3e9hueE+0ZPjDa
+# Xb8d0vcEjWDWQYX+o0IkzG/7wQxrly5Z2i9qbnvEslL21YdautZ0/xMFJ0gZi8/D
+# AZiAvgup+54Hi4a9CVn9bf/Brol5eHhmogfqoGtJviwGrI9O6du6b0n7VlhKPgUw
+# /CzxUWHLmrdIr9Lc+uD2ZRo+NOtuw79WTEBkjZ/H5LDH1+1zn3S8Nsq0k61m0JPW
+# xmH3PJFOOzz0Ou3pp4MqJ/a916Jct44UqQOs81CiG81rQF40BM9h1v6R0q1hTnqc
+# MC84BWH5V7w2NdX7vHbEXf02CAPcM68Pv8zCtkBq3Ke+bK5n/nJo5J1apLfBlY/g
+# FENrPnt9dDJZjTdd0pzr6H72bJoK58GFP380pxl0pS3ko5ztQtbVzGTJsi2qwncJ
+# 5TlnfiqrdWPWY+BryHoRreklNn7jjjMia1aG0UwsG8WDr/j6PfWQ0qUS9Nnzgd9/
+# BnV6ejges8gk1MbWqL8txkFHt3Gz+EN1jsA47WpJnJUqRZSeHBIpeZ/p3kdxNyhV
+# KjYvB4C5Lv93KRZpDOfpQ3TxrNkT
+# SIG # End signature block
+'@
+
+    # Regular expression is built from spaces ahead of the setting name, spaces, an equal-sign, spaces, the setting value, then spaces
+    #  The part before the setting name
+    $SearchPrepend = '(?m)^\s*'
+    #  The part after the setting name (contains the setting value)
+    $SearchAppend  = '\s*=\s*(?<Setting>.*?)\s*$'
+
+    # Check to see if the config file is missing or old - needs to be updated/created
+    if ($CurrentSettings.ConfigurationVersion -ne $ConfigurationVersion) {
+        # Check to see if there were settings to import from the existing file
+        if ($CurrentSettings) {
+            # Step through each setting
+            foreach ($Setting in $DefaultSettings) {
+                # Construct the regular expression as described above
+                $Regex = "$SearchPrepend$Setting$SearchAppend"
+                if ($CurrentSettings.$Setting) {
+                    # Clear previous matches
+                    Clear-Variable Matches -ErrorAction Ignore -Confirm:$false
+                    # Search the default configuration for the setting name
+                    $DefaultConfiguration -match $Regex | Out-Null
+                    # The entire line is captured in $Matches[0], which we'll adjust and put back in place
+                    $DefaultLine = $Matches[0]
+                    # Check to see how to format (strings need quotes)
+                    switch ($CurrentSettings.$Setting.GetType().Name)
+                    {
+                        Int32  {$CurrentSettingsString =   "$($CurrentSettings.$Setting)"}
+                        String {$CurrentSettingsString = "`'$($CurrentSettings.$Setting)`'"}
+                    }
+                    # Replace the default setting in the line, captured in $Matches.Setting, with the setting from the current config file
+                    $UpdatedLine = $DefaultLine.Replace($Matches.Setting, $CurrentSettingsString)
+                    # Swap the old line in the default configuration for the new one
+                    $DefaultConfiguration = $DefaultConfiguration.Replace($DefaultLine, $UpdatedLine)
+                }
+            }
+            # Keep a copy of the old configuration file
+            Move-Item $PSScriptRoot\Configuration.psd1 $PSScriptRoot\Configuration.old -Force
+        }
+        # Configuration has been rebuilt from the default, now add configuration version number in the same way settings were updated
+        # Construct the regular expression for ConfigVersion as described above
+        $Regex = "$($SearchPrepend)ConfigurationVersion$SearchAppend"
+        # Clear previous matches
+        Clear-Variable Matches -ErrorAction Ignore -Confirm:$false
+        # Search the default configuration for the setting name
+        $DefaultConfiguration -match $Regex | Out-Null
+        # The entire line is captured in $Matches[0], which we'll adjust and put back in place
+        $DefaultLine = $Matches[0]
+        # Replace the placeholder setting in the line with the version number
+        $UpdatedLine = $DefaultLine.Replace('XXXConfigurationVersionXXX', $ConfigurationVersion)
+        # Swap the old line in the default configuration for the new one
+        $DefaultConfiguration = $DefaultConfiguration.Replace($DefaultLine, $UpdatedLine)
+
+        # Write new configuration file
+        $DefaultConfiguration | Out-File $PSScriptRoot\Configuration.psd1
+        $Return = $true
+    }
+    return $Return
+}
+# SIG # Begin signature block
+# MIIOsQYJKoZIhvcNAQcCoIIOojCCDp4CAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
+# gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUD/bNo0Tgi/TGEVK95LNap5By
+# p1ugggsLMIIEnTCCA4WgAwIBAgITXAAAAASry1piY/gB3QAAAAAABDANBgkqhkiG
+# 9w0BAQsFADAaMRgwFgYDVQQDEw9BU0MgUEtJIE9mZmxpbmUwHhcNMTcwNTA4MTcx
+# NDA5WhcNMjcwNTA4MTcyNDA5WjBYMRMwEQYKCZImiZPyLGQBGRYDZWR1MRowGAYK
+# CZImiZPyLGQBGRYKb2hpby1zdGF0ZTETMBEGCgmSJomT8ixkARkWA2FzYzEQMA4G
+# A1UEAxMHQVNDLVBLSTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAOF4
+# 1t2KTcMPjn/gtqYCaWsRjqTvsL0AjDvZDeTUqc4rABZw5rbZFLMRKeuFMmCKeCEb
+# wtNDSv2GVCvZnRJuUPVowSyT1+0rHNYnzyTrJDiZTm/WzurPOSlaqGuJovb2mJLk
+# 4351McVNwN7T9io8Tpi4pov1kFfJqHH7MY6H4Sa/6xuy2Al0/8+c3QubJc1Fl4Ew
+# XJGMLIvmYIkik1pRr3eT52JP2uu7yyyU+JMRwhvbMEnhuhVGwi5aKTg1G3z6AoOn
+# bdWl+AMfxwaNtl0Hhz4NWQIgo/ieiXUqC1DZqKj4vauBlSLxE66CSJnLDD3IMmss
+# NJlFi2Q0NAw4HulTpLsCAwEAAaOCAZwwggGYMBAGCSsGAQQBgjcVAQQDAgEBMCMG
+# CSsGAQQBgjcVAgQWBBTeaCQAfNtGUFhb0QBZ02IBaUIJzTAdBgNVHQ4EFgQULgSe
+# hPTwfxn4sIe7oPMkGIyw97YwgZIGA1UdIASBijCBhzCBhAYGKwYBBAFkMHowOgYI
+# KwYBBQUHAgIwLh4sAEwAZQBnAGEAbAAgAFAAbwBsAGkAYwB5ACAAUwB0AGEAdABl
+# AG0AZQBuAHQwPAYIKwYBBQUHAgEWMGh0dHA6Ly9jZXJ0ZW5yb2xsLmFzYy5vaGlv
+# LXN0YXRlLmVkdS9wa2kvY3BzLnR4dDAZBgkrBgEEAYI3FAIEDB4KAFMAdQBiAEMA
+# QTALBgNVHQ8EBAMCAYYwDwYDVR0TAQH/BAUwAwEB/zAfBgNVHSMEGDAWgBSmmXUH
+# 2YrKB5bSFEUMk0oNSezdUTBRBgNVHR8ESjBIMEagRKBChkBodHRwOi8vY2VydGVu
+# cm9sbC5hc2Mub2hpby1zdGF0ZS5lZHUvcGtpL0FTQyUyMFBLSSUyME9mZmxpbmUu
+# Y3JsMA0GCSqGSIb3DQEBCwUAA4IBAQAifGwk/QoUSRvJ/ecvyk6MymoQgZByKSsn
+# 1BNkJ3R7RjUE75/1cFVhRylPH3ADe8wRzjwJF1BgJsa1p2TCVHpIoxOWV4EwWwqU
+# k3ufAGfxhMd7D5AAxOon0UKUIgcW9LCq+R7GfcbBsFxc9IL6GQVRTISTOkfzsqqP
+# 4tUe5joCIGfO2qcx2uhnavVF+4nq2OrQEMqM/gOWD+YhmMh/QrlpMOOSBdhpKBk4
+# lF2/3+dqD0dVuX7/s6xnUoYwDyp1rw/ExOy6kT8dNSVIjXVXEd2/bhqD6UqYYly4
+# KrwQTTbeHQif7Q8E0ecf+FOhrBmZCwYhXeSmnTPT7vMmfvU4aOEyMIIGZjCCBU6g
+# AwIBAgITegAA4Q+dSse+55kspAABAADhDzANBgkqhkiG9w0BAQsFADBYMRMwEQYK
+# CZImiZPyLGQBGRYDZWR1MRowGAYKCZImiZPyLGQBGRYKb2hpby1zdGF0ZTETMBEG
+# CgmSJomT8ixkARkWA2FzYzEQMA4GA1UEAxMHQVNDLVBLSTAeFw0yMjA0MTcxNDI5
+# MjFaFw0yMzA0MTcxNDI5MjFaMIGUMRMwEQYKCZImiZPyLGQBGRYDZWR1MRowGAYK
+# CZImiZPyLGQBGRYKb2hpby1zdGF0ZTETMBEGCgmSJomT8ixkARkWA2FzYzEXMBUG
+# A1UECxMOQWRtaW5pc3RyYXRvcnMxEjAQBgNVBAMTCWtlbGxlci40YTEfMB0GCSqG
+# SIb3DQEJARYQa2VsbGVyLjRAb3N1LmVkdTCCAiIwDQYJKoZIhvcNAQEBBQADggIP
+# ADCCAgoCggIBANJyDgYNySplxbw/CyHHvLSAa0IGnMKoelKIqh2uBz7eA8osQRiZ
+# 5+H9IZGSjjUz6o6xFdqLSL+zgzjVrqs/wXZDcHJyOvUSYLJXQ9/FipmOM0TNHMts
+# vUNrSqIu2kyEQnvkNX9bTcfziDpuzQW1KiK9M54EoERX61BIUgCrn3fUB5R/v12n
+# t+/aXI6cIm6fJDOCD/k5XQKyXC6BWcAmOZCCr2YRmFVyW/bHez9HXhBZ44WQBgJ8
+# jS53rBFxlSNmDiB1qn5O5xJMX/aoEf0GRgI89q99jmLrcDEk/YMfqq7Pr1atRh0P
+# Atk7C0f38aj9LNqJpZ9dH+gHqd2TMuXW2zu45RjX+sZ2J96xCl6SVrdSqVuDSCnq
+# AMtAIOzgoDjH+263xmuRiyi5iWVkYh5sIQJ0M/nVJWWfa4Fi9+qGRpUCaI4GtHy3
+# 23jlU8EFi+ebnPqNY1EdXzvhtF5FXnoguMH/oGnWsCm51JTB7WePShEJloL7i2OZ
+# 65QE8U8zuXCxDo3CJpl6fbpd+ntCSxBZnrRhnsxLoD5CMCOEfbvJEM6+hsYwgxEI
+# 5SBbM+AUbslp4HPWR6BNZIiLSHH3GoTpxs1DC3PajdeWlgigwb+2vsxjw55xQFvL
+# oMGRY8haLpzetIbj5XDkaPxuUCRRNuiTEPXOCYUMjh85yAU256c+e02FAgMBAAGj
+# ggHqMIIB5jA7BgkrBgEEAYI3FQcELjAsBiQrBgEEAYI3FQiHps4T49FzgumVIoT0
+# jhjIwUl6gofXTITr6w0CAWQCAQ0wEwYDVR0lBAwwCgYIKwYBBQUHAwMwCwYDVR0P
+# BAQDAgeAMBsGCSsGAQQBgjcVCgQOMAwwCgYIKwYBBQUHAwMwHQYDVR0OBBYEFIO5
+# hudGmrID2txhbFUlhuoo1tuaMB8GA1UdIwQYMBaAFC4EnoT08H8Z+LCHu6DzJBiM
+# sPe2MEUGA1UdHwQ+MDwwOqA4oDaGNGh0dHA6Ly9jZXJ0ZW5yb2xsLmFzYy5vaGlv
+# LXN0YXRlLmVkdS9wa2kvQVNDLVBLSS5jcmwwgacGCCsGAQUFBwEBBIGaMIGXMF0G
+# CCsGAQUFBzAChlFodHRwOi8vY2VydGVucm9sbC5hc2Mub2hpby1zdGF0ZS5lZHUv
+# cGtpL1BLSS1DQS5hc2Mub2hpby1zdGF0ZS5lZHVfQVNDLVBLSSgxKS5jcnQwNgYI
+# KwYBBQUHMAGGKmh0dHBzOi8vY2VydGVucm9sbC5hc2Mub2hpby1zdGF0ZS5lZHUv
+# b2NzcDA3BgNVHREEMDAuoCwGCisGAQQBgjcUAgOgHgwca2VsbGVyLjRhQGFzYy5v
+# aGlvLXN0YXRlLmVkdTANBgkqhkiG9w0BAQsFAAOCAQEAVbwyi6GWGTsBKQ4X51zF
+# AX6IOmtiBYxyklQa6GrZM1blyBbNVlTQKq09io6VJZrLFi161d0VgZlae1VWQYy9
+# EoGL2o5syNH/dyUyCTMSAAws5K3lNUwzqytD/LNXVqoR2o0kXpxa0ryCq6/3LQAm
+# h33AUNIdbfX6gJ96UKtv/GiwAt1yJPgdED45nf/c6iR/o5tQNRUVbrs/au4yLqQL
+# gfjhCzVnF36WnnLWQWCOGM96dq8evKMA/U5UuM8/8MQvV/CMUP0HCoTofmyrlPNb
+# 3xr2E175XhiKIwPuIL1otnNZB30+ZIYKxkZniS/sUbghzFAfNOytPowH0vni82FX
+# ZTGCAxAwggMMAgEBMG8wWDETMBEGCgmSJomT8ixkARkWA2VkdTEaMBgGCgmSJomT
+# 8ixkARkWCm9oaW8tc3RhdGUxEzARBgoJkiaJk/IsZAEZFgNhc2MxEDAOBgNVBAMT
+# B0FTQy1QS0kCE3oAAOEPnUrHvueZLKQAAQAA4Q8wCQYFKw4DAhoFAKB4MBgGCisG
+# AQQBgjcCAQwxCjAIoAKAAKECgAAwGQYJKoZIhvcNAQkDMQwGCisGAQQBgjcCAQQw
+# HAYKKwYBBAGCNwIBCzEOMAwGCisGAQQBgjcCARUwIwYJKoZIhvcNAQkEMRYEFDq7
+# PF5tNxIMC17v5eAkdOl05RGmMA0GCSqGSIb3DQEBAQUABIICAL+QJqCPJHp6o+mO
+# 1KYsRRs3Ccfd6o1X1favUoWuNKcoaEpnn0igruZ4Y13GsZRmnMjrypvrFUG4lFwT
+# qjLAOW5jw/T+iNRGwQDZdBAJQgPPTnuJk4WYjrC7Z7XHvbMQnL+2xSbeJepTs7nd
+# voYBjvg3crn5ykg+vruQav+NbYtYEwLZ7MFMaHnT99LXWD5q2hLh6sFs5C0pH2DO
+# iUs1ykrh4bBmGrkpsKsSdIF9Ahi0O/xcKLGpSfzJiSjj8ZjkbF6e1J+wdeYLQHoX
+# ogIptRVYfVPFsSyczH/K3KzWp/6vU/bwoOQg1HFDnpt82oj+AraxrqjD1qJ2qWYA
+# /Ln6lFPjYS/euNvuQwub46Irx2RnVETf9SgYfnfmb1mAAI+5bJOB+I6E4kpLj6zN
+# TT0MoOHBu3vOteIsVvongn3yBmaKCkzK5OchXjdmTkMrtr6Gq9yGjZme0iBcxwGO
+# Jw95iJd0XpT+gnxoMUBEZU7GqNMiWItgHgiyWuEvxplo2Slg1o5Y79k9DTf5jgk5
+# UGx9YEDoIJUhwxAZSpPJ97LBfqa8iyT3j1bD/Y2xGeYeG4dG/ZAl+IBZ7Nj3m6nZ
+# 0vvqO0F61ozWZcIdKdJFZU4MqjW9Wwcp3TLR/71mQ71GEM2FTPHulY6Q9UO0p0g1
+# fOiPF5FK2N1gJiSxJoHB1y2OFWdf
 # SIG # End signature block

@@ -2,6 +2,192 @@
 <helpItems schema="maml" xmlns="http://msh">
   <command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10" xmlns:MSHelp="http://msdn.microsoft.com/mshelp">
     <command:details>
+      <command:name>Add-TDAssetArticle</command:name>
+      <command:verb>Add</command:verb>
+      <command:noun>TDAssetArticle</command:noun>
+      <maml:description>
+        <maml:para>Adds a KB article to an asset in TeamDynamix</maml:para>
+      </maml:description>
+    </command:details>
+    <maml:description>
+      <maml:para>Adds a knowledge base article to an asset in TeamDynamix.</maml:para>
+    </maml:description>
+    <command:syntax>
+      <command:syntaxItem>
+        <maml:name>Add-TDAssetArticle</maml:name>
+        <command:parameter required="true" variableLength="true" globbing="false" pipelineInput="True (ByPropertyName)" position="1" aliases="none">
+          <maml:name>ID</maml:name>
+          <maml:description>
+            <maml:para>ID of asset to which the resource will be added.</maml:para>
+          </maml:description>
+          <command:parameterValue required="true" variableLength="false">Int32</command:parameterValue>
+          <dev:type>
+            <maml:name>Int32</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>0</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="true" variableLength="true" globbing="false" pipelineInput="True (ByPropertyName)" position="2" aliases="none">
+          <maml:name>ArticleID</maml:name>
+          <maml:description>
+            <maml:para>Article ID to be added to the asset.</maml:para>
+          </maml:description>
+          <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+          <dev:type>
+            <maml:name>String</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>None</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="True (ByPropertyName)" position="named" aliases="none">
+          <maml:name>AppID</maml:name>
+          <maml:description>
+            <maml:para>Application ID for the asset.</maml:para>
+          </maml:description>
+          <command:parameterValue required="true" variableLength="false">Int32</command:parameterValue>
+          <dev:type>
+            <maml:name>Int32</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>$AssetCIAppID</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+          <maml:name>AuthenticationToken</maml:name>
+          <maml:description>
+            <maml:para>Hashtable with one key: "Authorization" and value of "Bearer" followed by the JSON bearer web token. See Set-TDAuthentication.</maml:para>
+          </maml:description>
+          <command:parameterValue required="true" variableLength="false">Hashtable</command:parameterValue>
+          <dev:type>
+            <maml:name>Hashtable</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>$TDAuthentication</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+          <maml:name>Environment</maml:name>
+          <maml:description>
+            <maml:para>Execute the commands on the specified TeamDynamix site. Valid options are "Production", "Sandbox", and "Preview". Default is the site selected when the module was loaded.</maml:para>
+          </maml:description>
+          <command:parameterValueGroup>
+            <command:parameterValue required="false" command:variableLength="false">Production</command:parameterValue>
+            <command:parameterValue required="false" command:variableLength="false">Sandbox</command:parameterValue>
+            <command:parameterValue required="false" command:variableLength="false">Preview</command:parameterValue>
+          </command:parameterValueGroup>
+          <command:parameterValue required="true" variableLength="false">EnvironmentChoices</command:parameterValue>
+          <dev:type>
+            <maml:name>EnvironmentChoices</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>$WorkingEnvironment</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+          <maml:name>AppName</maml:name>
+          <maml:description>
+            <maml:para>Name of application</maml:para>
+          </maml:description>
+          <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+          <dev:type>
+            <maml:name>String</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>None</dev:defaultValue>
+        </command:parameter>
+      </command:syntaxItem>
+    </command:syntax>
+    <command:parameters>
+      <command:parameter required="true" variableLength="true" globbing="false" pipelineInput="True (ByPropertyName)" position="1" aliases="none">
+        <maml:name>ID</maml:name>
+        <maml:description>
+          <maml:para>ID of asset to which the resource will be added.</maml:para>
+        </maml:description>
+        <command:parameterValue required="true" variableLength="false">Int32</command:parameterValue>
+        <dev:type>
+          <maml:name>Int32</maml:name>
+          <maml:uri />
+        </dev:type>
+        <dev:defaultValue>0</dev:defaultValue>
+      </command:parameter>
+      <command:parameter required="true" variableLength="true" globbing="false" pipelineInput="True (ByPropertyName)" position="2" aliases="none">
+        <maml:name>ArticleID</maml:name>
+        <maml:description>
+          <maml:para>Article ID to be added to the asset.</maml:para>
+        </maml:description>
+        <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+        <dev:type>
+          <maml:name>String</maml:name>
+          <maml:uri />
+        </dev:type>
+        <dev:defaultValue>None</dev:defaultValue>
+      </command:parameter>
+      <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="True (ByPropertyName)" position="named" aliases="none">
+        <maml:name>AppID</maml:name>
+        <maml:description>
+          <maml:para>Application ID for the asset.</maml:para>
+        </maml:description>
+        <command:parameterValue required="true" variableLength="false">Int32</command:parameterValue>
+        <dev:type>
+          <maml:name>Int32</maml:name>
+          <maml:uri />
+        </dev:type>
+        <dev:defaultValue>$AssetCIAppID</dev:defaultValue>
+      </command:parameter>
+      <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+        <maml:name>AuthenticationToken</maml:name>
+        <maml:description>
+          <maml:para>Hashtable with one key: "Authorization" and value of "Bearer" followed by the JSON bearer web token. See Set-TDAuthentication.</maml:para>
+        </maml:description>
+        <command:parameterValue required="true" variableLength="false">Hashtable</command:parameterValue>
+        <dev:type>
+          <maml:name>Hashtable</maml:name>
+          <maml:uri />
+        </dev:type>
+        <dev:defaultValue>$TDAuthentication</dev:defaultValue>
+      </command:parameter>
+      <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+        <maml:name>Environment</maml:name>
+        <maml:description>
+          <maml:para>Execute the commands on the specified TeamDynamix site. Valid options are "Production", "Sandbox", and "Preview". Default is the site selected when the module was loaded.</maml:para>
+        </maml:description>
+        <command:parameterValue required="true" variableLength="false">EnvironmentChoices</command:parameterValue>
+        <dev:type>
+          <maml:name>EnvironmentChoices</maml:name>
+          <maml:uri />
+        </dev:type>
+        <dev:defaultValue>$WorkingEnvironment</dev:defaultValue>
+      </command:parameter>
+      <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+        <maml:name>AppName</maml:name>
+        <maml:description>
+          <maml:para>Name of application</maml:para>
+        </maml:description>
+        <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+        <dev:type>
+          <maml:name>String</maml:name>
+          <maml:uri />
+        </dev:type>
+        <dev:defaultValue>None</dev:defaultValue>
+      </command:parameter>
+    </command:parameters>
+    <command:inputTypes />
+    <command:returnValues />
+    <maml:alertSet>
+      <maml:alert>
+        <maml:para>Author: Brian Keller &lt;keller.4@osu.edu&gt;</maml:para>
+      </maml:alert>
+    </maml:alertSet>
+    <command:examples>
+      <command:example>
+        <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
+        <dev:code>Add-TDAssetArticle -ID 1055 -ArticleID 5039</dev:code>
+        <dev:remarks>
+          <maml:para>Adds KB article 5039 to asset ID 1055 in TeamDynamix.</maml:para>
+        </dev:remarks>
+      </command:example>
+    </command:examples>
+    <command:relatedLinks />
+  </command:command>
+  <command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10" xmlns:MSHelp="http://msdn.microsoft.com/mshelp">
+    <command:details>
       <command:name>Add-TDAssetAttachment</command:name>
       <command:verb>Add</command:verb>
       <command:noun>TDAssetAttachment</command:noun>
@@ -475,7 +661,7 @@
       </maml:description>
     </command:details>
     <maml:description>
-      <maml:para>Adds a resource (user or group) to an assetin TeamDynamix.</maml:para>
+      <maml:para>Adds a resource (user or group) to an asset in TeamDynamix.</maml:para>
     </maml:description>
     <command:syntax>
       <command:syntaxItem>
@@ -645,7 +831,7 @@
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
         <dev:code>Add-TDAssetResource -ID 1055 -ResourceID 5039</dev:code>
         <dev:remarks>
-          <maml:para>Adds resource 5039 to asset ID 1055in TeamDynamix.</maml:para>
+          <maml:para>Adds resource 5039 to asset ID 1055 in TeamDynamix.</maml:para>
         </dev:remarks>
       </command:example>
     </command:examples>
@@ -4179,7 +4365,14 @@ $AddUserToFunctionalRole | Remove-TDFunctionalRole</dev:code>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
         <dev:code>ConvertFrom-TDWebAPIToClass (Get-Content C:\TDText.txt -Raw) -ClassName TeamDynamix_Api_Test</dev:code>
         <dev:remarks>
-          <maml:para></maml:para>
+          <maml:para>Converts text from a file (originally drawn from TD's website) into a class description.</maml:para>
+        </dev:remarks>
+      </command:example>
+      <command:example>
+        <maml:title>-------------------------- EXAMPLE 2 --------------------------</maml:title>
+        <dev:code>ConvertFrom-TDWebAPIToClass -URL 'https://www.teamdynamix.com/TDWebApi/Home/type/TeamDynamix.Api.TestType' -ClassName TeamDynamix_Api_Test</dev:code>
+        <dev:remarks>
+          <maml:para>Converts text from a web page into a class description.</maml:para>
         </dev:remarks>
       </command:example>
     </command:examples>
@@ -4468,14 +4661,14 @@ $AddUserToFunctionalRole | Remove-TDFunctionalRole</dev:code>
         <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
         <dev:code>ConvertFrom-TDWebAPIToFunction -InputText (Get-Content C:\TDText.txt -Raw) -FunctionName Get-TestFunction</dev:code>
         <dev:remarks>
-          <maml:para>Converts text from a file (originally drawn from TD's website) into an enum description.</maml:para>
+          <maml:para>Converts text from a file (originally drawn from TD's website) into a PowerShell function.</maml:para>
         </dev:remarks>
       </command:example>
       <command:example>
         <maml:title>-------------------------- EXAMPLE 2 --------------------------</maml:title>
         <dev:code>ConvertFrom-TDWebAPIToFunction -URL 'https://www.teamdynamix.com/TDWebApi/Home/type/TeamDynamix.Api.TestType' -FunctionName Get-TestFunction</dev:code>
         <dev:remarks>
-          <maml:para>Converts text from a web page into an enum description.</maml:para>
+          <maml:para>Converts text from a web page into a PowerShell function.</maml:para>
         </dev:remarks>
       </command:example>
     </command:examples>
@@ -6026,12 +6219,12 @@ $AddUserToFunctionalRole | Remove-TDFunctionalRole</dev:code>
       </maml:description>
     </command:details>
     <maml:description>
-      <maml:para>Get an asset in TeamDynamix. Specify the asset ID number or search using the text of the asset tag, serial number, supplier name, product model name, or manufacturer name.</maml:para>
+      <maml:para>Get an asset in TeamDynamix. Specify the asset ID number or search using the text of the asset tag, serial number, supplier name, product model name, or manufacturer name. Alternatively, get knowledgebase articles associated with the specified ID number.</maml:para>
     </maml:description>
     <command:syntax>
       <command:syntaxItem>
         <maml:name>Get-TDAsset</maml:name>
-        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="True (ByValue)" position="1" aliases="none">
+        <command:parameter required="true" variableLength="true" globbing="false" pipelineInput="True (ByValue)" position="1" aliases="none">
           <maml:name>ID</maml:name>
           <maml:description>
             <maml:para>Asset ID to retrieve from TeamDynamix. Always returns full detail. No other search options return full detail without setting -Detail.</maml:para>
@@ -6042,6 +6235,205 @@ $AddUserToFunctionalRole | Remove-TDFunctionalRole</dev:code>
             <maml:uri />
           </dev:type>
           <dev:defaultValue>0</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+          <maml:name>AppID</maml:name>
+          <maml:description>
+            <maml:para>Application ID for the asset.</maml:para>
+          </maml:description>
+          <command:parameterValue required="true" variableLength="false">Int32</command:parameterValue>
+          <dev:type>
+            <maml:name>Int32</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>$AssetCIAppID</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+          <maml:name>AuthenticationToken</maml:name>
+          <maml:description>
+            <maml:para>Hashtable with one key: "Authorization" and value of "Bearer" followed by the JSON bearer web token. See Set-TDAuthentication.</maml:para>
+          </maml:description>
+          <command:parameterValue required="true" variableLength="false">Hashtable</command:parameterValue>
+          <dev:type>
+            <maml:name>Hashtable</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>$TDAuthentication</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+          <maml:name>Environment</maml:name>
+          <maml:description>
+            <maml:para>Execute the commands on the specified TeamDynamix site. Valid options are "Production", "Sandbox", and "Preview". Default is the site selected when the module was loaded.</maml:para>
+          </maml:description>
+          <command:parameterValueGroup>
+            <command:parameterValue required="false" command:variableLength="false">Production</command:parameterValue>
+            <command:parameterValue required="false" command:variableLength="false">Sandbox</command:parameterValue>
+            <command:parameterValue required="false" command:variableLength="false">Preview</command:parameterValue>
+          </command:parameterValueGroup>
+          <command:parameterValue required="true" variableLength="false">EnvironmentChoices</command:parameterValue>
+          <dev:type>
+            <maml:name>EnvironmentChoices</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>$WorkingEnvironment</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+          <maml:name>AppName</maml:name>
+          <maml:description>
+            <maml:para>Name of application</maml:para>
+          </maml:description>
+          <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+          <dev:type>
+            <maml:name>String</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>None</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+          <maml:name>ManufacturerNames</maml:name>
+          <maml:description>
+            <maml:para>Names of manufacturers</maml:para>
+          </maml:description>
+          <command:parameterValue required="true" variableLength="false">String[]</command:parameterValue>
+          <dev:type>
+            <maml:name>String[]</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>None</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+          <maml:name>OwningDepartmentNames</maml:name>
+          <maml:description>
+            <maml:para>Names of owning departments</maml:para>
+          </maml:description>
+          <command:parameterValue required="true" variableLength="false">String[]</command:parameterValue>
+          <dev:type>
+            <maml:name>String[]</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>None</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+          <maml:name>OwningDepartmentPastNames</maml:name>
+          <maml:description>
+            <maml:para>Names of past owning departments</maml:para>
+          </maml:description>
+          <command:parameterValue required="true" variableLength="false">String[]</command:parameterValue>
+          <dev:type>
+            <maml:name>String[]</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>None</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+          <maml:name>ProductModelNames</maml:name>
+          <maml:description>
+            <maml:para>Names of product models</maml:para>
+          </maml:description>
+          <command:parameterValue required="true" variableLength="false">String[]</command:parameterValue>
+          <dev:type>
+            <maml:name>String[]</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>None</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+          <maml:name>RequestingDepartmentNames</maml:name>
+          <maml:description>
+            <maml:para>Names of requesting departments</maml:para>
+          </maml:description>
+          <command:parameterValue required="true" variableLength="false">String[]</command:parameterValue>
+          <dev:type>
+            <maml:name>String[]</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>None</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+          <maml:name>SavedSearchName</maml:name>
+          <maml:description>
+            <maml:para>Names of saved search</maml:para>
+          </maml:description>
+          <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+          <dev:type>
+            <maml:name>String</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>None</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+          <maml:name>StatusNames</maml:name>
+          <maml:description>
+            <maml:para>Names of asset statuses</maml:para>
+          </maml:description>
+          <command:parameterValue required="true" variableLength="false">String[]</command:parameterValue>
+          <dev:type>
+            <maml:name>String[]</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>None</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+          <maml:name>StatusNamesPast</maml:name>
+          <maml:description>
+            <maml:para>Names of asset statuses</maml:para>
+          </maml:description>
+          <command:parameterValue required="true" variableLength="false">String[]</command:parameterValue>
+          <dev:type>
+            <maml:name>String[]</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>None</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+          <maml:name>SupplierNames</maml:name>
+          <maml:description>
+            <maml:para>Names of suppliers</maml:para>
+          </maml:description>
+          <command:parameterValue required="true" variableLength="false">String[]</command:parameterValue>
+          <dev:type>
+            <maml:name>String[]</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>None</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+          <maml:name>UsingDepartmentNames</maml:name>
+          <maml:description>
+            <maml:para>Names of using departments</maml:para>
+          </maml:description>
+          <command:parameterValue required="true" variableLength="false">String[]</command:parameterValue>
+          <dev:type>
+            <maml:name>String[]</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>None</dev:defaultValue>
+        </command:parameter>
+      </command:syntaxItem>
+      <command:syntaxItem>
+        <maml:name>Get-TDAsset</maml:name>
+        <command:parameter required="true" variableLength="true" globbing="false" pipelineInput="True (ByValue)" position="1" aliases="none">
+          <maml:name>ID</maml:name>
+          <maml:description>
+            <maml:para>Asset ID to retrieve from TeamDynamix. Always returns full detail. No other search options return full detail without setting -Detail.</maml:para>
+          </maml:description>
+          <command:parameterValue required="true" variableLength="false">Int32</command:parameterValue>
+          <dev:type>
+            <maml:name>Int32</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>0</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+          <maml:name>Article</maml:name>
+          <maml:description>
+            <maml:para>Returns knowledgebase articles associated with the specified asset.</maml:para>
+          </maml:description>
+          <dev:type>
+            <maml:name>SwitchParameter</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>False</dev:defaultValue>
         </command:parameter>
         <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
           <maml:name>AppID</maml:name>
@@ -6920,7 +7312,7 @@ $AddUserToFunctionalRole | Remove-TDFunctionalRole</dev:code>
       </command:syntaxItem>
     </command:syntax>
     <command:parameters>
-      <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="True (ByValue)" position="1" aliases="none">
+      <command:parameter required="true" variableLength="true" globbing="false" pipelineInput="True (ByValue)" position="1" aliases="none">
         <maml:name>ID</maml:name>
         <maml:description>
           <maml:para>Asset ID to retrieve from TeamDynamix. Always returns full detail. No other search options return full detail without setting -Detail.</maml:para>
@@ -7461,6 +7853,18 @@ $AddUserToFunctionalRole | Remove-TDFunctionalRole</dev:code>
         <dev:defaultValue>None</dev:defaultValue>
       </command:parameter>
       <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+        <maml:name>Article</maml:name>
+        <maml:description>
+          <maml:para>Returns knowledgebase articles associated with the specified asset.</maml:para>
+        </maml:description>
+        <command:parameterValue required="false" variableLength="false">SwitchParameter</command:parameterValue>
+        <dev:type>
+          <maml:name>SwitchParameter</maml:name>
+          <maml:uri />
+        </dev:type>
+        <dev:defaultValue>False</dev:defaultValue>
+      </command:parameter>
+      <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
         <maml:name>AppID</maml:name>
         <maml:description>
           <maml:para>Application ID for the asset.</maml:para>
@@ -7671,6 +8075,13 @@ Get-TDAsset -Attributes $TaG18Complete</dev:code>
         <dev:code>Get-TDAsset -SearchText 'Team5Laptop1' -Exact</dev:code>
         <dev:remarks>
           <maml:para>Retrieves only assets whose name matches "Team5Laptop1", if any, from TeamDynamix, with minimal detail.</maml:para>
+        </dev:remarks>
+      </command:example>
+      <command:example>
+        <maml:title>-------------------------- EXAMPLE 6 --------------------------</maml:title>
+        <dev:code>Get-TDAsset -ID 1752 -Article</dev:code>
+        <dev:remarks>
+          <maml:para>Retrieves knowledgebase articles associated with asset number 1752 from TeamDynamix.</maml:para>
         </dev:remarks>
       </command:example>
     </command:examples>
@@ -12803,7 +13214,7 @@ $Groups | Get-TDGroupMember</dev:code>
       </maml:description>
     </command:details>
     <maml:description>
-      <maml:para>Get a KnowledgeBase article in TeamDynamix. Specify the article ID number or search using the text of the article, the category ID, status, author ID, and whether or not the article is published or public.</maml:para>
+      <maml:para>Get a KnowledgeBase article in TeamDynamix. Specify the article ID number or search using the text of the article, the category ID, status, author ID, and whether or not the article is published or public. Alternatively, get assets associated with specified knowledge base article.</maml:para>
     </maml:description>
     <command:syntax>
       <command:syntaxItem>
@@ -12868,6 +13279,49 @@ $Groups | Get-TDGroupMember</dev:code>
           <maml:name>Related</maml:name>
           <maml:description>
             <maml:para>Set whether to include related articles.</maml:para>
+          </maml:description>
+          <dev:type>
+            <maml:name>SwitchParameter</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>False</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+          <maml:name>AuthenticationToken</maml:name>
+          <maml:description>
+            <maml:para>Hashtable with one key: "Authorization" and value of "Bearer" followed by the JSON bearer web token. See Set-TDAuthentication.</maml:para>
+          </maml:description>
+          <command:parameterValue required="true" variableLength="false">Hashtable</command:parameterValue>
+          <dev:type>
+            <maml:name>Hashtable</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>$TDAuthentication</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+          <maml:name>Environment</maml:name>
+          <maml:description>
+            <maml:para>Execute the commands on the specified TeamDynamix site. Valid options are "Production", "Sandbox", and "Preview". Default is the site selected when the module was loaded.</maml:para>
+          </maml:description>
+          <command:parameterValueGroup>
+            <command:parameterValue required="false" command:variableLength="false">Production</command:parameterValue>
+            <command:parameterValue required="false" command:variableLength="false">Sandbox</command:parameterValue>
+            <command:parameterValue required="false" command:variableLength="false">Preview</command:parameterValue>
+          </command:parameterValueGroup>
+          <command:parameterValue required="true" variableLength="false">EnvironmentChoices</command:parameterValue>
+          <dev:type>
+            <maml:name>EnvironmentChoices</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>$WorkingEnvironment</dev:defaultValue>
+        </command:parameter>
+      </command:syntaxItem>
+      <command:syntaxItem>
+        <maml:name>Get-TDKBArticle</maml:name>
+        <command:parameter required="true" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+          <maml:name>Asset</maml:name>
+          <maml:description>
+            <maml:para>Retrieve assets related to KB article.</maml:para>
           </maml:description>
           <dev:type>
             <maml:name>SwitchParameter</maml:name>
@@ -13112,6 +13566,18 @@ $Groups | Get-TDGroupMember</dev:code>
         </dev:type>
         <dev:defaultValue>False</dev:defaultValue>
       </command:parameter>
+      <command:parameter required="true" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+        <maml:name>Asset</maml:name>
+        <maml:description>
+          <maml:para>Retrieve assets related to KB article.</maml:para>
+        </maml:description>
+        <command:parameterValue required="false" variableLength="false">SwitchParameter</command:parameterValue>
+        <dev:type>
+          <maml:name>SwitchParameter</maml:name>
+          <maml:uri />
+        </dev:type>
+        <dev:defaultValue>False</dev:defaultValue>
+      </command:parameter>
       <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
         <maml:name>SearchText</maml:name>
         <maml:description>
@@ -13322,6 +13788,13 @@ $Groups | Get-TDGroupMember</dev:code>
         <dev:code>Get-TDKBArticle -ID 1752 -Related</dev:code>
         <dev:remarks>
           <maml:para>Retrieves articles related to article number 1752 from TeamDynamix.</maml:para>
+        </dev:remarks>
+      </command:example>
+      <command:example>
+        <maml:title>-------------------------- EXAMPLE 6 --------------------------</maml:title>
+        <dev:code>Get-TDKBArticle -ID 1752 -Asset</dev:code>
+        <dev:remarks>
+          <maml:para>Retrieves assets associated with KB article number 1752 from TeamDynamix.</maml:para>
         </dev:remarks>
       </command:example>
     </command:examples>
@@ -41100,9 +41573,21 @@ New-TDGroup -Name 'Psychobotany Support' -PlatformApplications @($GroupApplicati
           <dev:defaultValue>User</dev:defaultValue>
         </command:parameter>
         <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="True (ByPropertyName)" position="28" aliases="none">
-          <maml:name>IsActive</maml:name>
+          <maml:name>DesktopID</maml:name>
           <maml:description>
-            <maml:para>Specify whether the user is active or not. Default is active.</maml:para>
+            <maml:para>The UID of the desktop to assign to the new user.</maml:para>
+          </maml:description>
+          <command:parameterValue required="true" variableLength="false">Guid</command:parameterValue>
+          <dev:type>
+            <maml:name>Guid</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>True</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="True (ByPropertyName)" position="29" aliases="none">
+          <maml:name>LinkDesktop</maml:name>
+          <maml:description>
+            <maml:para>Whether or not to link the desktop to the template.</maml:para>
           </maml:description>
           <command:parameterValue required="true" variableLength="false">Boolean</command:parameterValue>
           <dev:type>
@@ -41110,18 +41595,6 @@ New-TDGroup -Name 'Psychobotany Support' -PlatformApplications @($GroupApplicati
             <maml:uri />
           </dev:type>
           <dev:defaultValue>True</dev:defaultValue>
-        </command:parameter>
-        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="True (ByPropertyName)" position="29" aliases="none">
-          <maml:name>IsConfidential</maml:name>
-          <maml:description>
-            <maml:para>Specify whether the user is confidential or not. Default is not confidential.</maml:para>
-          </maml:description>
-          <command:parameterValue required="true" variableLength="false">Boolean</command:parameterValue>
-          <dev:type>
-            <maml:name>Boolean</maml:name>
-            <maml:uri />
-          </dev:type>
-          <dev:defaultValue>False</dev:defaultValue>
         </command:parameter>
         <command:parameter required="true" variableLength="true" globbing="false" pipelineInput="True (ByPropertyName)" position="3" aliases="none">
           <maml:name>FirstName</maml:name>
@@ -41136,6 +41609,30 @@ New-TDGroup -Name 'Psychobotany Support' -PlatformApplications @($GroupApplicati
           <dev:defaultValue>None</dev:defaultValue>
         </command:parameter>
         <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="True (ByPropertyName)" position="30" aliases="none">
+          <maml:name>IsActive</maml:name>
+          <maml:description>
+            <maml:para>Specify whether the user is active or not. Default is active.</maml:para>
+          </maml:description>
+          <command:parameterValue required="true" variableLength="false">Boolean</command:parameterValue>
+          <dev:type>
+            <maml:name>Boolean</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>True</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="True (ByPropertyName)" position="31" aliases="none">
+          <maml:name>IsConfidential</maml:name>
+          <maml:description>
+            <maml:para>Specify whether the user is confidential or not. Default is not confidential.</maml:para>
+          </maml:description>
+          <command:parameterValue required="true" variableLength="false">Boolean</command:parameterValue>
+          <dev:type>
+            <maml:name>Boolean</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>False</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="True (ByPropertyName)" position="32" aliases="none">
           <maml:name>Attributes</maml:name>
           <maml:description>
             <maml:para>New custom attributes for user account. Replaces existing custom attributes. Specify as an array.</maml:para>
@@ -41147,7 +41644,7 @@ New-TDGroup -Name 'Psychobotany Support' -PlatformApplications @($GroupApplicati
           </dev:type>
           <dev:defaultValue>None</dev:defaultValue>
         </command:parameter>
-        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="31" aliases="none">
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="33" aliases="none">
           <maml:name>AuthenticationToken</maml:name>
           <maml:description>
             <maml:para>Hashtable with one key: "Authorization" and value of "Bearer" followed by the JSON bearer web token. See Set-TDAuthentication.</maml:para>
@@ -41159,7 +41656,7 @@ New-TDGroup -Name 'Psychobotany Support' -PlatformApplications @($GroupApplicati
           </dev:type>
           <dev:defaultValue>$TDAuthentication</dev:defaultValue>
         </command:parameter>
-        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="32" aliases="none">
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="34" aliases="none">
           <maml:name>Environment</maml:name>
           <maml:description>
             <maml:para>Execute the commands on the specified TeamDynamix site. Valid options are "Production", "Sandbox", and "Preview". Default is the site selected when the module was loaded.</maml:para>
@@ -41969,6 +42466,30 @@ New-TDGroup -Name 'Psychobotany Support' -PlatformApplications @($GroupApplicati
         <dev:defaultValue>User</dev:defaultValue>
       </command:parameter>
       <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="True (ByPropertyName)" position="28" aliases="none">
+        <maml:name>DesktopID</maml:name>
+        <maml:description>
+          <maml:para>The UID of the desktop to assign to the new user.</maml:para>
+        </maml:description>
+        <command:parameterValue required="true" variableLength="false">Guid</command:parameterValue>
+        <dev:type>
+          <maml:name>Guid</maml:name>
+          <maml:uri />
+        </dev:type>
+        <dev:defaultValue>True</dev:defaultValue>
+      </command:parameter>
+      <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="True (ByPropertyName)" position="29" aliases="none">
+        <maml:name>LinkDesktop</maml:name>
+        <maml:description>
+          <maml:para>Whether or not to link the desktop to the template.</maml:para>
+        </maml:description>
+        <command:parameterValue required="true" variableLength="false">Boolean</command:parameterValue>
+        <dev:type>
+          <maml:name>Boolean</maml:name>
+          <maml:uri />
+        </dev:type>
+        <dev:defaultValue>True</dev:defaultValue>
+      </command:parameter>
+      <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="True (ByPropertyName)" position="30" aliases="none">
         <maml:name>IsActive</maml:name>
         <maml:description>
           <maml:para>Specify whether the user is active or not. Default is active.</maml:para>
@@ -41980,7 +42501,7 @@ New-TDGroup -Name 'Psychobotany Support' -PlatformApplications @($GroupApplicati
         </dev:type>
         <dev:defaultValue>True</dev:defaultValue>
       </command:parameter>
-      <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="True (ByPropertyName)" position="29" aliases="none">
+      <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="True (ByPropertyName)" position="31" aliases="none">
         <maml:name>IsConfidential</maml:name>
         <maml:description>
           <maml:para>Specify whether the user is confidential or not. Default is not confidential.</maml:para>
@@ -41992,7 +42513,7 @@ New-TDGroup -Name 'Psychobotany Support' -PlatformApplications @($GroupApplicati
         </dev:type>
         <dev:defaultValue>False</dev:defaultValue>
       </command:parameter>
-      <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="True (ByPropertyName)" position="30" aliases="none">
+      <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="True (ByPropertyName)" position="32" aliases="none">
         <maml:name>Attributes</maml:name>
         <maml:description>
           <maml:para>New custom attributes for user account. Replaces existing custom attributes. Specify as an array.</maml:para>
@@ -42016,7 +42537,7 @@ New-TDGroup -Name 'Psychobotany Support' -PlatformApplications @($GroupApplicati
         </dev:type>
         <dev:defaultValue>False</dev:defaultValue>
       </command:parameter>
-      <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="31" aliases="none">
+      <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="33" aliases="none">
         <maml:name>AuthenticationToken</maml:name>
         <maml:description>
           <maml:para>Hashtable with one key: "Authorization" and value of "Bearer" followed by the JSON bearer web token. See Set-TDAuthentication.</maml:para>
@@ -42028,7 +42549,7 @@ New-TDGroup -Name 'Psychobotany Support' -PlatformApplications @($GroupApplicati
         </dev:type>
         <dev:defaultValue>$TDAuthentication</dev:defaultValue>
       </command:parameter>
-      <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="32" aliases="none">
+      <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="34" aliases="none">
         <maml:name>Environment</maml:name>
         <maml:description>
           <maml:para>Execute the commands on the specified TeamDynamix site. Valid options are "Production", "Sandbox", and "Preview". Default is the site selected when the module was loaded.</maml:para>
@@ -43173,6 +43694,192 @@ Set-TDUser -UID XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX -OrgApplications $UserApp</
         <dev:code>$ProductType | New-TDVendor</dev:code>
         <dev:remarks>
           <maml:para>Using an object, create a new vendor from the pipeline in TeamDynamix.</maml:para>
+        </dev:remarks>
+      </command:example>
+    </command:examples>
+    <command:relatedLinks />
+  </command:command>
+  <command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10" xmlns:MSHelp="http://msdn.microsoft.com/mshelp">
+    <command:details>
+      <command:name>Remove-TDAssetArticle</command:name>
+      <command:verb>Remove</command:verb>
+      <command:noun>TDAssetArticle</command:noun>
+      <maml:description>
+        <maml:para>Removes a KB article from an asset in TeamDynamix</maml:para>
+      </maml:description>
+    </command:details>
+    <maml:description>
+      <maml:para>Removes a knowledgebase article from an asset in TeamDynamix.</maml:para>
+    </maml:description>
+    <command:syntax>
+      <command:syntaxItem>
+        <maml:name>Remove-TDAssetArticle</maml:name>
+        <command:parameter required="true" variableLength="true" globbing="false" pipelineInput="True (ByPropertyName)" position="1" aliases="none">
+          <maml:name>ID</maml:name>
+          <maml:description>
+            <maml:para>ID of asset to be removed from the resource.</maml:para>
+          </maml:description>
+          <command:parameterValue required="true" variableLength="false">Int32</command:parameterValue>
+          <dev:type>
+            <maml:name>Int32</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>0</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="true" variableLength="true" globbing="false" pipelineInput="True (ByPropertyName)" position="2" aliases="none">
+          <maml:name>ArticleID</maml:name>
+          <maml:description>
+            <maml:para>Article ID from which the asset will be removed.</maml:para>
+          </maml:description>
+          <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+          <dev:type>
+            <maml:name>String</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>None</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="True (ByPropertyName)" position="named" aliases="none">
+          <maml:name>AppID</maml:name>
+          <maml:description>
+            <maml:para>Application ID for the asset.</maml:para>
+          </maml:description>
+          <command:parameterValue required="true" variableLength="false">Int32</command:parameterValue>
+          <dev:type>
+            <maml:name>Int32</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>$AssetCIAppID</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+          <maml:name>AuthenticationToken</maml:name>
+          <maml:description>
+            <maml:para>Hashtable with one key: "Authorization" and value of "Bearer" followed by the JSON bearer web token. See Set-TDAuthentication.</maml:para>
+          </maml:description>
+          <command:parameterValue required="true" variableLength="false">Hashtable</command:parameterValue>
+          <dev:type>
+            <maml:name>Hashtable</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>$TDAuthentication</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+          <maml:name>Environment</maml:name>
+          <maml:description>
+            <maml:para>Execute the commands on the specified TeamDynamix site. Valid options are "Production", "Sandbox", and "Preview". Default is the site selected when the module was loaded.</maml:para>
+          </maml:description>
+          <command:parameterValueGroup>
+            <command:parameterValue required="false" command:variableLength="false">Production</command:parameterValue>
+            <command:parameterValue required="false" command:variableLength="false">Sandbox</command:parameterValue>
+            <command:parameterValue required="false" command:variableLength="false">Preview</command:parameterValue>
+          </command:parameterValueGroup>
+          <command:parameterValue required="true" variableLength="false">EnvironmentChoices</command:parameterValue>
+          <dev:type>
+            <maml:name>EnvironmentChoices</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>$WorkingEnvironment</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+          <maml:name>AppName</maml:name>
+          <maml:description>
+            <maml:para>Name of application</maml:para>
+          </maml:description>
+          <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+          <dev:type>
+            <maml:name>String</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>None</dev:defaultValue>
+        </command:parameter>
+      </command:syntaxItem>
+    </command:syntax>
+    <command:parameters>
+      <command:parameter required="true" variableLength="true" globbing="false" pipelineInput="True (ByPropertyName)" position="1" aliases="none">
+        <maml:name>ID</maml:name>
+        <maml:description>
+          <maml:para>ID of asset to be removed from the resource.</maml:para>
+        </maml:description>
+        <command:parameterValue required="true" variableLength="false">Int32</command:parameterValue>
+        <dev:type>
+          <maml:name>Int32</maml:name>
+          <maml:uri />
+        </dev:type>
+        <dev:defaultValue>0</dev:defaultValue>
+      </command:parameter>
+      <command:parameter required="true" variableLength="true" globbing="false" pipelineInput="True (ByPropertyName)" position="2" aliases="none">
+        <maml:name>ArticleID</maml:name>
+        <maml:description>
+          <maml:para>Article ID from which the asset will be removed.</maml:para>
+        </maml:description>
+        <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+        <dev:type>
+          <maml:name>String</maml:name>
+          <maml:uri />
+        </dev:type>
+        <dev:defaultValue>None</dev:defaultValue>
+      </command:parameter>
+      <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="True (ByPropertyName)" position="named" aliases="none">
+        <maml:name>AppID</maml:name>
+        <maml:description>
+          <maml:para>Application ID for the asset.</maml:para>
+        </maml:description>
+        <command:parameterValue required="true" variableLength="false">Int32</command:parameterValue>
+        <dev:type>
+          <maml:name>Int32</maml:name>
+          <maml:uri />
+        </dev:type>
+        <dev:defaultValue>$AssetCIAppID</dev:defaultValue>
+      </command:parameter>
+      <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+        <maml:name>AuthenticationToken</maml:name>
+        <maml:description>
+          <maml:para>Hashtable with one key: "Authorization" and value of "Bearer" followed by the JSON bearer web token. See Set-TDAuthentication.</maml:para>
+        </maml:description>
+        <command:parameterValue required="true" variableLength="false">Hashtable</command:parameterValue>
+        <dev:type>
+          <maml:name>Hashtable</maml:name>
+          <maml:uri />
+        </dev:type>
+        <dev:defaultValue>$TDAuthentication</dev:defaultValue>
+      </command:parameter>
+      <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+        <maml:name>Environment</maml:name>
+        <maml:description>
+          <maml:para>Execute the commands on the specified TeamDynamix site. Valid options are "Production", "Sandbox", and "Preview". Default is the site selected when the module was loaded.</maml:para>
+        </maml:description>
+        <command:parameterValue required="true" variableLength="false">EnvironmentChoices</command:parameterValue>
+        <dev:type>
+          <maml:name>EnvironmentChoices</maml:name>
+          <maml:uri />
+        </dev:type>
+        <dev:defaultValue>$WorkingEnvironment</dev:defaultValue>
+      </command:parameter>
+      <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+        <maml:name>AppName</maml:name>
+        <maml:description>
+          <maml:para>Name of application</maml:para>
+        </maml:description>
+        <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+        <dev:type>
+          <maml:name>String</maml:name>
+          <maml:uri />
+        </dev:type>
+        <dev:defaultValue>None</dev:defaultValue>
+      </command:parameter>
+    </command:parameters>
+    <command:inputTypes />
+    <command:returnValues />
+    <maml:alertSet>
+      <maml:alert>
+        <maml:para>Author: Brian Keller &lt;keller.4@osu.edu&gt;</maml:para>
+      </maml:alert>
+    </maml:alertSet>
+    <command:examples>
+      <command:example>
+        <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
+        <dev:code>Remove-TDAssetArticle -ID 1055 -ArticleID 5039</dev:code>
+        <dev:remarks>
+          <maml:para>Removes asset ID 1055 from KB article ID 5039 in TeamDynamix.</maml:para>
         </dev:remarks>
       </command:example>
     </command:examples>

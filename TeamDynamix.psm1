@@ -2141,6 +2141,7 @@ class TeamDynamix_Api_Feed_FeedEntry
     [string]  $Comments
     [string[]]$Notify
     [boolean] $IsPrivate
+    [boolean] $IsRichHtml
 
     # Default constructor
     TeamDynamix_Api_Feed_FeedEntry ()
@@ -2167,7 +2168,8 @@ class TeamDynamix_Api_Feed_FeedEntry
     TeamDynamix_Api_Feed_FeedEntry(
         [string]  $Comments,
         [string[]]$Notify,
-        [boolean] $IsPrivate)
+        [boolean] $IsPrivate,
+        [boolean] $IsRichHtml)
     {
         foreach ($Parameter in ([TeamDynamix_Api_Feed_FeedEntry]::new() | Get-Member -MemberType Property))
         {
@@ -2348,6 +2350,7 @@ class TeamDynamix_Api_Feed_ItemUpdate
     [string]  $ItemTitle
     [string]  $ReferenceID
     [string]  $Body
+    [boolean] $IsRichHtml
     [TeamDynamix_Api_Feed_UpdateType]$UpdateType
     [string]  $NotifiedList
     [boolean] $IsPrivate
@@ -2402,6 +2405,7 @@ class TeamDynamix_Api_Feed_ItemUpdate
         [string]  $ItemTitle,
         [string]  $ReferenceID,
         [string]  $Body,
+        [boolean] $IsRichHtml,
         [TeamDynamix_Api_Feed_UpdateType]$UpdateType,
         [string]  $NotifiedList,
         [boolean] $IsPrivate,
@@ -2489,6 +2493,7 @@ class TeamDynamix_Api_Feed_ItemUpdateReply
 {
     [int]     $ID
     [string]  $Body
+    [boolean] $IsRichHtml
     [guid]    $CreatedUID
     [int]     $CreatedRefID
     [string]  $CreatedFullName
@@ -2522,6 +2527,7 @@ class TeamDynamix_Api_Feed_ItemUpdateReply
     TeamDynamix_Api_Feed_ItemUpdateReply(
         [int]     $ID,
         [string]  $Body,
+        [boolean] $IsRichHtml,
         [guid]    $CreatedUID,
         [int]     $CreatedRefID,
         [string]  $CreatedFullName,
@@ -3526,6 +3532,15 @@ class TeamDynamix_Api_Users_User
             $this.SecurityRoleName = $RoleData.UserSecurityRole
             $this.Applications     = $RoleData.Applications
             $this.OrgApplications  = Get-OrgAppsByRoleName -UserRoleName $UserRoleName -AuthenticationToken $TDAuthentication -Environment $Environment
+            # Check to see if a client portal OrgApplication has been assigned
+            #  Set the primary client portal ID to the new client portal
+            foreach ($OrgApplication in $this.OrgApplications)
+            {
+                if ($OrgApplication.ID -in $script:TDApplications.GetByType('Client Portal',$Environment).ID)
+                {
+                    $this.PrimaryClientPortalApplicationID = $OrgApplication.ID
+                }
+            }
         }
     }
 }
@@ -4288,6 +4303,7 @@ class TeamDynamix_Api_Users_NewUser
 {
     [string]  $Password
     [guid]    $DesktopID
+    [boolean] $LinkDesktop
     [boolean] $IsActive
     [boolean] $IsConfidential
     [string]  $UserName
@@ -4381,6 +4397,7 @@ class TeamDynamix_Api_Users_NewUser
     TeamDynamix_Api_Users_NewUser(
         [string]  $Password,
         [guid]    $DesktopID,
+        [boolean] $LinkDesktop,
         [boolean] $IsActive,
         [boolean] $IsConfidential,
         [string]  $UserName,
@@ -4466,6 +4483,7 @@ class TeamDynamix_Api_Users_NewUser
     TeamDynamix_Api_Users_NewUser(
         [string]  $Password,
         [guid]    $DesktopID,
+        [boolean] $LinkDesktop,
         [boolean] $IsActive,
         [boolean] $IsConfidential,
         [string]  $FirstName,
@@ -7330,6 +7348,7 @@ class TeamDynamix_Api_Tickets_Ticket
     [String]  $FormName
     [String]  $Title
     [String]  $Description
+    [boolean] $IsRichHtml
     [String]  $Uri
     [Int32]   $AccountID
     [String]  $AccountName
@@ -7468,6 +7487,7 @@ class TeamDynamix_Api_Tickets_Ticket
         [String]  $FormName,
         [String]  $Title,
         [String]  $Description,
+        [boolean] $IsRichHtml,
         [String]  $Uri,
         [Int32]   $AccountID,
         [String]  $AccountName,
@@ -9475,6 +9495,7 @@ class TeamDynamix_Api_Feed_TicketFeedEntry
     [String]  $Comments
     [String[]]$Notify
     [Boolean] $IsPrivate
+    [boolean] $IsRichHtml
 
     # Default constructor
     TeamDynamix_Api_Feed_TicketFeedEntry ()
@@ -9502,7 +9523,8 @@ class TeamDynamix_Api_Feed_TicketFeedEntry
         [System.Nullable[Int32]]$NewStatusID,
         [String]  $Comments,
         [String[]]$Notify,
-        [Boolean] $IsPrivate)
+        [Boolean] $IsPrivate,
+        [boolean] $IsRichHtml)
     {
         foreach ($Parameter in ([TeamDynamix_Api_Feed_TicketFeedEntry]::new() | Get-Member -MemberType Property))
         {
@@ -9896,6 +9918,7 @@ class TeamDynamix_Api_Feed_TicketTaskFeedEntry
     [String]  $Comments
     [String[]]$Notify
     [Boolean] $IsPrivate
+    [boolean] $IsRichHtml
 
     # Default constructor
     TeamDynamix_Api_Feed_TicketTaskFeedEntry ()
@@ -9923,7 +9946,8 @@ class TeamDynamix_Api_Feed_TicketTaskFeedEntry
         [System.Nullable[Int32]]$PercentComplete,
         [String]  $Comments,
         [String[]]$Notify,
-        [Boolean] $IsPrivate)
+        [Boolean] $IsPrivate,
+        [boolean] $IsRichHtml)
     {
         foreach ($Parameter in ([TeamDynamix_Api_Feed_TicketTaskFeedEntry]::new() | Get-Member -MemberType Property))
         {
@@ -13126,6 +13150,7 @@ class TeamDynamix_Api_Issues_RiskUpdate
     [String]  $Comments
     [TeamDynamix_Api_CustomAttributes_CustomAttribute[]]$Attributes
     [Boolean] $IsPrivate
+    [boolean] $IsRichHtml
 
     # Default constructor
     TeamDynamix_Api_Issues_RiskUpdate ()
@@ -13166,7 +13191,8 @@ class TeamDynamix_Api_Issues_RiskUpdate
         [String[]]$Notify,
         [String]  $Comments,
         [TeamDynamix_Api_CustomAttributes_CustomAttribute[]]$Attributes,
-        [Boolean] $IsPrivate)
+        [Boolean] $IsPrivate,
+        [boolean] $IsRichHtml)
     {
         foreach ($Parameter in ([TeamDynamix_Api_Issues_RiskUpdate]::new() | Get-Member -MemberType Property))
         {
@@ -13711,6 +13737,7 @@ class TeamDynamix_Api_Issues_IssueUpdate
     [String]  $Comments
     [TeamDynamix_Api_CustomAttributes_CustomAttribute[]]$Attributes
     [Boolean] $IsPrivate
+    [boolean] $IsRichHtml
 
     # Default constructor
     TeamDynamix_Api_Issues_IssueUpdate ()
@@ -13756,7 +13783,8 @@ class TeamDynamix_Api_Issues_IssueUpdate
         [String[]]$Notify,
         [String]  $Comments,
         [TeamDynamix_Api_CustomAttributes_CustomAttribute[]]$Attributes,
-        [Boolean] $IsPrivate)
+        [Boolean] $IsPrivate,
+        [boolean] $IsRichHtml)
     {
         foreach ($Parameter in ([TeamDynamix_Api_Issues_IssueUpdate]::new() | Get-Member -MemberType Property))
         {
@@ -14473,6 +14501,7 @@ class TD_UserInfo
     [guid]    $DesktopID
     [string[]]$Applications
     [TeamDynamix_Api_Apps_UserApplication[]]$OrgApplications
+    [int]     $PrimaryClientPortalApplicationID
 
     # Default constructor
     TD_UserInfo ()
@@ -14534,7 +14563,8 @@ class TD_UserInfo
         [string]  $SecurityRoleName,
         [guid]    $DesktopID,
         [string[]]$Applications,
-        [TeamDynamix_Api_Apps_UserApplication[]]$OrgApplications)
+        [TeamDynamix_Api_Apps_UserApplication[]]$OrgApplications,
+        [int]     $PrimaryClientPortalApplicationID)
     {
         foreach ($Parameter in ([TD_UserInfo]::new() | Get-Member -MemberType Property))
         {
@@ -14572,6 +14602,7 @@ class TD_UserInfo
             $this.SecurityRoleName = $RoleData.UserSecurityRole
             $this.Applications     = $RoleData.Applications
             $this.OrgApplications  = Get-OrgAppsByRoleName -UserRoleName $UserRoleName -AuthenticationToken $TDAuthentication -Environment $Environment
+            $this.PrimaryClientPortalApplicationID = ($this.OrgApplications | Where-Object SystemClass -eq TDClient | Select-Object -First 1).ID
         }
     }
     [void] SetSecurityRoleID (
@@ -17302,8 +17333,8 @@ Write-Progress -ID 100 -Completed -Activity 'Finishing'
 # SIG # Begin signature block
 # MIIOsQYJKoZIhvcNAQcCoIIOojCCDp4CAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQU4DodeiOo52AAerTywxDrGfnL
-# PVegggsLMIIEnTCCA4WgAwIBAgITXAAAAASry1piY/gB3QAAAAAABDANBgkqhkiG
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUBYUnFh01PvG9zoN98C3p06W9
+# GhOgggsLMIIEnTCCA4WgAwIBAgITXAAAAASry1piY/gB3QAAAAAABDANBgkqhkiG
 # 9w0BAQsFADAaMRgwFgYDVQQDEw9BU0MgUEtJIE9mZmxpbmUwHhcNMTcwNTA4MTcx
 # NDA5WhcNMjcwNTA4MTcyNDA5WjBYMRMwEQYKCZImiZPyLGQBGRYDZWR1MRowGAYK
 # CZImiZPyLGQBGRYKb2hpby1zdGF0ZTETMBEGCgmSJomT8ixkARkWA2FzYzEQMA4G
@@ -17366,17 +17397,17 @@ Write-Progress -ID 100 -Completed -Activity 'Finishing'
 # 8ixkARkWCm9oaW8tc3RhdGUxEzARBgoJkiaJk/IsZAEZFgNhc2MxEDAOBgNVBAMT
 # B0FTQy1QS0kCE3oAAOEPnUrHvueZLKQAAQAA4Q8wCQYFKw4DAhoFAKB4MBgGCisG
 # AQQBgjcCAQwxCjAIoAKAAKECgAAwGQYJKoZIhvcNAQkDMQwGCisGAQQBgjcCAQQw
-# HAYKKwYBBAGCNwIBCzEOMAwGCisGAQQBgjcCARUwIwYJKoZIhvcNAQkEMRYEFJFm
-# eM3a5PQqV4ldpWsx01AdlsADMA0GCSqGSIb3DQEBAQUABIICAHuy5WwuWPtGTCwe
-# W4Xfp44qOyOBnY8ltZ7NQ5tz0yWgOChaBOUL3WcxxxUDyfkc+OWi/NK+h4dF1Cqw
-# 11CnJjxFVuKIiWWyiRU0koJRmbEfgWwWUkKU4xFYsoezn5Elq7S85pB/kad7o+/H
-# FcoLy9hNPJQP3Zp9ROs3XRMTVsSix1b7QkHkDUgY0Jozy+Zun7ET4rVO5nkRhTxh
-# 91Fx1xfRGk5xiiMp0XGpimiAyZ44WzsRypNu+txtr2qUmx5yVi4LLPJIIny4r+iv
-# aUE8s94g5xXLc5Uxtl6Z19htbFQCj/HxZlg6hciYeJDpwUhlYe7sPB0FmZPNq19/
-# eu977EmzclDY3XyP2exaZja5+rTipwYLkGhphaPvUWkuZyGTWsva+q6VvfjnwopR
-# xb/KYfXDtYITXB9DqZQMOiwHlebNeVjsMsldw2VRq07TER1soQmy1/KzvO9Xcz31
-# 50EadIOLoTudhfeC/eUF+pwqwb5OTt9P/azbjZoYN6Kfqb4P7ESAogsLcFboiVYO
-# +uICwmjU3bbqqRGku1aouSbUepF2jfZIQJYTPeDsljj4jbQ62sEi5wb2P9eTHVS7
-# DRvQ3i8Msa0CIt4vX46ksVEVljGKtMuLq7r2gaUmSxOJUVlBbJG6RkiWEFaYSn5G
-# aDWvO8166fnIOZfdZvWF7JTl9shw
+# HAYKKwYBBAGCNwIBCzEOMAwGCisGAQQBgjcCARUwIwYJKoZIhvcNAQkEMRYEFHbs
+# 2srrJX3FbFba6y86oZ45q2T4MA0GCSqGSIb3DQEBAQUABIICAEkW1igJTdVXXaYd
+# U0Va9wR8VUb/OlaouNBAqAtKsQftKSBCvKI2UgFKg40NHaW93wzv8woLMVQjBoJA
+# 0NZHiAm2Etm9Pgh2vRZgkQUDtDy4XZTDUMWN+xqCBWzLVxJZ4rXQkYRSABEqqH0h
+# PFcvaFOcUK6Rc9J0AQ59gXiQVLsD/WwRh5aNJxIsd4V4uinlfWlRpLShOvWccdys
+# bHChQ5fFCGyxuiu/XBXA53ySaEyskVQ6MZ7fYres5Kt3ysqp1KA4eLhpItKbAQhd
+# bbZfpWCad8GpGt3tcssK+Z1QwuIUkZhMu9vMi1QizDZQ689jpRyIukqdb89pTDfi
+# Crkb/76NRz8jDjrpYwDXrVRFB2BWZeMq+Cf7MqmL+vrR+vlNhf8RVw+di7K6cNo8
+# lW2Bcv4OTe7usQbQjuQ1sA/Y086gq/5H/ecT9QtrM0vK1B3YHr7ktEdxX9WEpiPN
+# IQMDTY2MEpdIOVkFe6cm+YIUf1D29IcuxHdw1erkI8JDl3QvkRegiwKh0TGVkvUZ
+# 9rZmw+YdXLa4YnhsglPuSdjKv8YXQu7TzwvV1vI8B5GdhXonfi//j8ldM7PdauY2
+# 4pWqr1qhwegiwYdESbfVZRE59qq/OgRsbN9VrSK5Ugb1d+O0hKA7Bx/W9opZ99o2
+# P+R3Oxya6RegLABuuGxNfPpIVjFu
 # SIG # End signature block

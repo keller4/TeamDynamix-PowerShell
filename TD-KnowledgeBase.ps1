@@ -13,6 +13,9 @@ function Get-TDKBArticle
         [Parameter(Mandatory=$true,
                    Position=0,
                    ParameterSetName='Related')]
+        [Parameter(Mandatory=$true,
+                   Position=0,
+                   ParameterSetName='Asset')]
         [int]
         $ID,
 
@@ -21,6 +24,12 @@ function Get-TDKBArticle
                    ParameterSetName='Related')]
         [switch]
         $Related,
+
+        # Retrieve associated assets and configuration items
+        [Parameter(Mandatory=$true,
+                   ParameterSetName='Asset')]
+        [switch]
+        $Asset,
 
         # Search text
         [Parameter(Mandatory=$false,
@@ -88,6 +97,11 @@ function Get-TDKBArticle
         [switch]
         $Detail,
 
+        # Customer portal application ID
+        [Parameter(Mandatory=$false)]
+        [int]
+        $AppID = $ClientPortalID,
+
         # TeamDynamix authentication token
         [Parameter(Mandatory=$false)]
         [hashtable]
@@ -111,6 +125,14 @@ function Get-TDKBArticle
                 IDParameter      = 'CategoryID'
                 IDsMethod        = 'Get-TDKBCategory'
             }
+            @{
+                Name             = 'AppName'
+                Type             = 'string'
+                ValidateSet      = $TDApplications.GetByAppClass('TDClient',$true).Name
+                HelpText         = 'Name of application'
+                IDParameter      = 'AppID'
+                IDsMethod        = '$TDApplications.GetAll([string]$Environment,$true)'
+            }
         )
         $DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
         return $DynamicParameterDictionary
@@ -121,6 +143,8 @@ function Get-TDKBArticle
         Write-ActivityHistory "`n-----`nIn $($MyInvocation.MyCommand.Name)"
         $ContentType = 'application/json; charset=utf-8'
         $BaseURI = Get-URI -Environment $Environment
+        $IDsFromNamesUpdates = Get-IDsFromNames -DynamicParameterDictionary $DynamicParameterDictionary -DynamicParameterList $DynamicParameterList
+        $IDsFromNamesUpdates | ForEach-Object {Set-Variable -Name $_.Name -Value $_.Value}
         if (-not $AuthenticationToken)
         {
                 Write-ActivityHistory -MessageChannel 'Error' -ThrowError -Message 'Authentication required. Specify -AuthenticationToken value. See Get-Help Set-TDAuthentication for more assistance.'
@@ -140,26 +164,29 @@ function Get-TDKBArticle
                 if (-not $ID)
                 {
                     Write-ActivityHistory 'Retrieving all TeamDynamix KnowledgeBase articles'
-                    $Return = Invoke-RESTCall -Uri "$BaseURI/knowledgebase/search" -ContentType $ContentType -Method Post -Headers $AuthenticationToken -Body (ConvertTo-Json $KBSearch -Depth 10)
+                    $Return = Invoke-RESTCall -Uri "$BaseURI/$AppID/knowledgebase/search" -ContentType $ContentType -Method Post -Headers $AuthenticationToken -Body (ConvertTo-Json $KBSearch -Depth 10)
                 }
                 else
                 {
                     Write-ActivityHistory "Retrieving KnowledgeBase article $ID"
-                    $Return = Invoke-RESTCall -Uri "$BaseURI/knowledgebase/$ID" -ContentType $ContentType -Method Get -Headers $AuthenticationToken
+                    $Return = Invoke-RESTCall -Uri "$BaseURI/$AppID/knowledgebase/$ID" -ContentType $ContentType -Method Get -Headers $AuthenticationToken
                 }
             }
             'Search'
             {
-                # Set CategoryID if CategoryName is present
-                if ($DynamicParameterDictionary.CategoryName.Value) {$CategoryID = (Get-TDKBCategory -AuthenticationToken $AuthenticationToken -Environment $Environment | Where-Object Name -eq $DynamicParameterDictionary.CategoryName.Value).ID}
                 Update-Object -InputObject $KBSearch -ParameterList (Get-Command $MyInvocation.MyCommand.Name).Parameters.Keys -BoundParameterList $MyInvocation.BoundParameters.Keys -IgnoreList ($LocalIgnoreParameters + $GlobalIgnoreParameters) -AuthenticationToken $AuthenticationToken -Environment $Environment
                 Write-ActivityHistory 'Retrieving selected TeamDynamix KnowledgeBase articles'
-                $Return = Invoke-RESTCall -Uri "$BaseURI/knowledgebase/search" -ContentType $ContentType -Method Post -Headers $AuthenticationToken -Body (ConvertTo-Json $KBSearch -Depth 10)
+                $Return = Invoke-RESTCall -Uri "$BaseURI/$AppID/knowledgebase/search" -ContentType $ContentType -Method Post -Headers $AuthenticationToken -Body (ConvertTo-Json $KBSearch -Depth 10)
             }
             'Related'
             {
                 Write-ActivityHistory 'Retrieving related TeamDynamix KnowledgeBase articles'
-                $Return = Invoke-RESTCall -Uri "$BaseURI/knowledgebase/$ID/related" -ContentType $ContentType -Method Get -Headers $AuthenticationToken
+                $Return = Invoke-RESTCall -Uri "$BaseURI/$AppID/knowledgebase/$ID/related" -ContentType $ContentType -Method Get -Headers $AuthenticationToken
+            }
+            'Asset'
+            {
+                Write-ActivityHistory 'Retrieving associated assets and configuration items'
+                $Return = Invoke-RESTCall -Uri "$BaseURI/$AppID/knowledgebase/$ID/assetscis" -ContentType $ContentType -Method Get -Headers $AuthenticationToken
             }
         }
         if ($Detail)
@@ -326,6 +353,12 @@ function New-TDKBArticle
         [string[]]
         $Tags,
 
+        # Customer portal application ID
+        [Parameter(Mandatory=$false,
+                   ValueFromPipelineByPropertyName=$true)]
+        [int]
+        $AppID = $ClientPortalID,
+
         # TeamDynamix authentication token
         [Parameter(Mandatory=$false,
                    ParameterSetName='OwnerUid')]
@@ -342,12 +375,30 @@ function New-TDKBArticle
         [EnvironmentChoices]
         $Environment = $WorkingEnvironment
     )
+    DynamicParam
+    {
+        #List dynamic parameters
+        $DynamicParameterList = @(
+            @{
+                Name        = 'AppName'
+                Type        = 'string'
+                ValidateSet = $TDApplications.GetByAppClass('TDClient',$true).Name
+                HelpText    = 'Name of application'
+                IDParameter = 'AppID'
+                IDsMethod   = '$TDApplications.GetAll([string]$Environment,$true)'
+            }
+        )
+        $DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
+        return $DynamicParameterDictionary
+    }
 
     Begin
     {
         Write-ActivityHistory "`n-----`nIn $($MyInvocation.MyCommand.Name)"
         $ContentType = 'application/json; charset=utf-8'
         $BaseURI = Get-URI -Environment $Environment
+        $IDsFromNamesUpdates = Get-IDsFromNames -DynamicParameterDictionary $DynamicParameterDictionary -DynamicParameterList $DynamicParameterList
+        $IDsFromNamesUpdates | ForEach-Object {Set-Variable -Name $_.Name -Value $_.Value}
         if (-not $AuthenticationToken)
         {
                 Write-ActivityHistory -MessageChannel 'Error' -ThrowError -Message 'Authentication required. Specify -AuthenticationToken value. See Get-Help Set-TDAuthentication for more assistance.'
@@ -363,7 +414,7 @@ function New-TDKBArticle
         if ($pscmdlet.ShouldProcess(($KBArticle | Out-String), 'Creating KnowledgeBase article'))
         {
             Write-ActivityHistory 'Creating KnowledgeBase article'
-            $Return = Invoke-RESTCall -Uri "$BaseURI/knowledgebase" -ContentType $ContentType -Method Post -Headers $AuthenticationToken -Body (ConvertTo-Json $KBArticle -Depth 10)
+            $Return = Invoke-RESTCall -Uri "$BaseURI/$AppID/knowledgebase" -ContentType $ContentType -Method Post -Headers $AuthenticationToken -Body (ConvertTo-Json $KBArticle -Depth 10)
             if ($Return)
             {
                 return [TeamDynamix_Api_KnowledgeBase_Article]::new($Return)
@@ -384,6 +435,11 @@ function Remove-TDKBArticle
         [int]
         $ID,
 
+        # Customer portal application ID
+        [Parameter(Mandatory=$false)]
+        [int]
+        $AppID = $ClientPortalID,
+
         # TeamDynamix authentication token
         [Parameter(Mandatory=$false)]
         [hashtable]
@@ -394,12 +450,30 @@ function Remove-TDKBArticle
         [EnvironmentChoices]
         $Environment = $WorkingEnvironment
     )
+    DynamicParam
+    {
+        #List dynamic parameters
+        $DynamicParameterList = @(
+            @{
+                Name        = 'AppName'
+                Type        = 'string'
+                ValidateSet = $TDApplications.GetByAppClass('TDClient',$true).Name
+                HelpText    = 'Name of application'
+                IDParameter = 'AppID'
+                IDsMethod   = '$TDApplications.GetAll([string]$Environment,$true)'
+            }
+        )
+        $DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
+        return $DynamicParameterDictionary
+    }
 
     Begin
     {
         Write-ActivityHistory "`n-----`nIn $($MyInvocation.MyCommand.Name)"
         $ContentType = 'application/json; charset=utf-8'
         $BaseURI = Get-URI -Environment $Environment
+        $IDsFromNamesUpdates = Get-IDsFromNames -DynamicParameterDictionary $DynamicParameterDictionary -DynamicParameterList $DynamicParameterList
+        $IDsFromNamesUpdates | ForEach-Object {Set-Variable -Name $_.Name -Value $_.Value}
         if (-not $AuthenticationToken)
         {
                 Write-ActivityHistory -MessageChannel 'Error' -ThrowError -Message 'Authentication required. Specify -AuthenticationToken value. See Get-Help Set-TDAuthentication for more assistance.'
@@ -410,7 +484,7 @@ function Remove-TDKBArticle
         if ($pscmdlet.ShouldProcess("article ID: $ID", 'Delete TeamDynamix KnowledgeBase article'))
         {
             Write-ActivityHistory "Deleting TeamDynamix KnowledgeBase article: $ID"
-            $Return = Invoke-RESTCall -Uri "$BaseURI/knowledgebase/$ID" -ContentType $ContentType -Method Delete -Headers $AuthenticationToken
+            $Return = Invoke-RESTCall -Uri "$BaseURI/$AppID/knowledgebase/$ID" -ContentType $ContentType -Method Delete -Headers $AuthenticationToken
             return $Return
         }
     }
@@ -588,6 +662,12 @@ function Set-TDKBArticle
         [array]
         $Attributes,
 
+        # Customer portal application ID
+        [Parameter(Mandatory=$false,
+                   ValueFromPipelineByPropertyName=$true)]
+        [int]
+        $AppID = $ClientPortalID,
+
         # TeamDynamix authentication token
         [Parameter(Mandatory=$false,
                    ParameterSetName='OwnerUid')]
@@ -604,12 +684,30 @@ function Set-TDKBArticle
         [EnvironmentChoices]
         $Environment = $WorkingEnvironment
     )
+    DynamicParam
+    {
+        #List dynamic parameters
+        $DynamicParameterList = @(
+            @{
+                Name        = 'AppName'
+                Type        = 'string'
+                ValidateSet = $TDApplications.GetByAppClass('TDClient',$true).Name
+                HelpText    = 'Name of application'
+                IDParameter = 'AppID'
+                IDsMethod   = '$TDApplications.GetAll([string]$Environment,$true)'
+            }
+        )
+        $DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
+        return $DynamicParameterDictionary
+    }
 
     Begin
     {
         Write-ActivityHistory "`n-----`nIn $($MyInvocation.MyCommand.Name)"
         $ContentType = 'application/json; charset=utf-8'
         $BaseURI = Get-URI -Environment $Environment
+        $IDsFromNamesUpdates = Get-IDsFromNames -DynamicParameterDictionary $DynamicParameterDictionary -DynamicParameterList $DynamicParameterList
+        $IDsFromNamesUpdates | ForEach-Object {Set-Variable -Name $_.Name -Value $_.Value}
         if (-not $AuthenticationToken)
         {
                 Write-ActivityHistory -MessageChannel 'Error' -ThrowError -Message 'Authentication required. Specify -AuthenticationToken value. See Get-Help Set-TDAuthentication for more assistance.'
@@ -639,10 +737,10 @@ function Set-TDKBArticle
         Update-Object -InputObject $KBArticle -ParameterList (Get-Command $MyInvocation.MyCommand.Name).Parameters.Keys -BoundParameterList $MyInvocation.BoundParameters.Keys -IgnoreList ($LocalIgnoreParameters + $GlobalIgnoreParameters) -AuthenticationToken $AuthenticationToken -Environment $Environment
         # Reformat object for upload to TD, include proper date format
         $KBArticleTD = [TD_TeamDynamix_Api_KnowledgeBase_Article]::new($KBArticle)
-        if ($pscmdlet.ShouldProcess(($KBArticle | Out-String), 'Creating KnowledgeBase article'))
+        if ($pscmdlet.ShouldProcess(($KBArticle | Out-String), 'Updating KnowledgeBase article'))
         {
             Write-ActivityHistory 'Updating KnowledgeBase article'
-            $Return = Invoke-RESTCall -Uri "$BaseURI/knowledgebase/$ID" -ContentType $ContentType -Method Put -Headers $AuthenticationToken -Body (ConvertTo-Json $KBArticleTD -Depth 10)
+            $Return = Invoke-RESTCall -Uri "$BaseURI/$AppID/knowledgebase/$ID" -ContentType $ContentType -Method Put -Headers $AuthenticationToken -Body (ConvertTo-Json $KBArticleTD -Depth 10)
             if ($Return)
             {
                 return [TeamDynamix_Api_KnowledgeBase_Article]::new($Return)
@@ -669,6 +767,12 @@ function Add-TDKBAttachment
         [string]
         $FilePath,
 
+        # Customer portal application ID
+        [Parameter(Mandatory=$false,
+                   ValueFromPipelineByPropertyName=$true)]
+        [int]
+        $AppID = $ClientPortalID,
+
         # TeamDynamix authentication token
         [Parameter(Mandatory=$false)]
         [hashtable]
@@ -679,6 +783,22 @@ function Add-TDKBAttachment
         [EnvironmentChoices]
         $Environment = $WorkingEnvironment
     )
+    DynamicParam
+    {
+        #List dynamic parameters
+        $DynamicParameterList = @(
+            @{
+                Name        = 'AppName'
+                Type        = 'string'
+                ValidateSet = $TDApplications.GetByAppClass('TDClient',$true).Name
+                HelpText    = 'Name of application'
+                IDParameter = 'AppID'
+                IDsMethod   = '$TDApplications.GetAll([string]$Environment,$true)'
+            }
+        )
+        $DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
+        return $DynamicParameterDictionary
+    }
 
     Begin
     {
@@ -686,6 +806,8 @@ function Add-TDKBAttachment
         $BoundaryText = [System.Guid]::NewGuid().ToString()
         $ContentType = "multipart/formdata; boundary=$BoundaryText"
         $BaseURI = Get-URI -Environment $Environment
+        $IDsFromNamesUpdates = Get-IDsFromNames -DynamicParameterDictionary $DynamicParameterDictionary -DynamicParameterList $DynamicParameterList
+        $IDsFromNamesUpdates | ForEach-Object {Set-Variable -Name $_.Name -Value $_.Value}
         if (-not $AuthenticationToken)
         {
                 Write-ActivityHistory -MessageChannel 'Error' -ThrowError -Message 'Authentication required. Specify -AuthenticationToken value. See Get-Help Set-TDAuthentication for more assistance.'
@@ -714,7 +836,7 @@ function Add-TDKBAttachment
         if ($pscmdlet.ShouldProcess("article ID: $ID, attachment name: $FileName", 'Add attachment to TeamDynamix KnowledgeBase article'))
         {
             Write-ActivityHistory "Adding $FileName attachment to KB article $ID"
-            $Return = Invoke-RESTCall -Uri "$BaseURI/knowledgebase/$ID/attachments" -ContentType $ContentType -Method Post -Headers $AuthenticationToken -Body $Body
+            $Return = Invoke-RESTCall -Uri "$BaseURI/$AppID/knowledgebase/$ID/attachments" -ContentType $ContentType -Method Post -Headers $AuthenticationToken -Body $Body
             if ($Return)
             {
                 return [TeamDynamix_Api_Attachments_Attachment]::new($Return)
@@ -735,15 +857,21 @@ function Add-TDKBArticleRelationship
     (
         # KB article with relationship to be deleted
         [Parameter(Mandatory=$true,
-                   ValueFromPipeline=$true)]
+                   ValueFromPipelineByPropertyName=$true)]
         [int]
         $ID,
 
         # Related KB article
         [Parameter(Mandatory=$true,
-                   ValueFromPipeline=$true)]
+                   ValueFromPipelineByPropertyName=$true)]
         [int]
         $RelatedArticleID,
+
+        # Customer portal application ID
+        [Parameter(Mandatory=$false,
+                   ValueFromPipelineByPropertyName=$true)]
+        [int]
+        $AppID = $ClientPortalID,
 
         # TeamDynamix authentication token
         [Parameter(Mandatory=$false)]
@@ -755,12 +883,30 @@ function Add-TDKBArticleRelationship
         [EnvironmentChoices]
         $Environment = $WorkingEnvironment
     )
+    DynamicParam
+    {
+        #List dynamic parameters
+        $DynamicParameterList = @(
+            @{
+                Name        = 'AppName'
+                Type        = 'string'
+                ValidateSet = $TDApplications.GetByAppClass('TDClient',$true).Name
+                HelpText    = 'Name of application'
+                IDParameter = 'AppID'
+                IDsMethod   = '$TDApplications.GetAll([string]$Environment,$true)'
+            }
+        )
+        $DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
+        return $DynamicParameterDictionary
+    }
 
     Begin
     {
         Write-ActivityHistory "`n-----`nIn $($MyInvocation.MyCommand.Name)"
         $ContentType = 'application/json; charset=utf-8'
         $BaseURI = Get-URI -Environment $Environment
+        $IDsFromNamesUpdates = Get-IDsFromNames -DynamicParameterDictionary $DynamicParameterDictionary -DynamicParameterList $DynamicParameterList
+        $IDsFromNamesUpdates | ForEach-Object {Set-Variable -Name $_.Name -Value $_.Value}
         if (-not $AuthenticationToken)
         {
                 Write-ActivityHistory -MessageChannel 'Error' -ThrowError -Message 'Authentication required. Specify -AuthenticationToken value. See Get-Help Set-TDAuthentication for more assistance.'
@@ -771,7 +917,7 @@ function Add-TDKBArticleRelationship
         if ($pscmdlet.ShouldProcess("article ID: $ID and related article ID $RelatedArticleID", 'Add TeamDynamix KnowledgeBase article relationship between'))
         {
             Write-ActivityHistory "Deleting TeamDynamix KnowledgeBase article: $ID"
-            $Return = Invoke-RESTCall -Uri "$BaseURI/knowledgebase/$ID/related/$RelatedArticleID" -ContentType $ContentType -Method Post -Headers $AuthenticationToken
+            $Return = Invoke-RESTCall -Uri "$BaseURI/$AppID/knowledgebase/$ID/related/$RelatedArticleID" -ContentType $ContentType -Method Post -Headers $AuthenticationToken
             return $Return
         }
     }
@@ -789,15 +935,21 @@ function Remove-TDKBArticleRelationship
     (
         # KB article with relationship to be deleted
         [Parameter(Mandatory=$true,
-                   ValueFromPipeline=$true)]
+                   ValueFromPipelineByPropertyName=$true)]
         [int]
         $ID,
 
         # Related KB article
         [Parameter(Mandatory=$true,
-                   ValueFromPipeline=$true)]
+                   ValueFromPipelineByPropertyName=$true)]
         [int]
         $RelatedArticleID,
+
+        # Customer portal application ID
+        [Parameter(Mandatory=$false,
+                   ValueFromPipelineByPropertyName=$true)]
+        [int]
+        $AppID = $ClientPortalID,
 
         # TeamDynamix authentication token
         [Parameter(Mandatory=$false)]
@@ -809,12 +961,30 @@ function Remove-TDKBArticleRelationship
         [EnvironmentChoices]
         $Environment = $WorkingEnvironment
     )
+    DynamicParam
+    {
+        #List dynamic parameters
+        $DynamicParameterList = @(
+            @{
+                Name        = 'AppName'
+                Type        = 'string'
+                ValidateSet = $TDApplications.GetByAppClass('TDClient',$true).Name
+                HelpText    = 'Name of application'
+                IDParameter = 'AppID'
+                IDsMethod   = '$TDApplications.GetAll([string]$Environment,$true)'
+            }
+        )
+        $DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
+        return $DynamicParameterDictionary
+    }
 
     Begin
     {
         Write-ActivityHistory "`n-----`nIn $($MyInvocation.MyCommand.Name)"
         $ContentType = 'application/json; charset=utf-8'
         $BaseURI = Get-URI -Environment $Environment
+        $IDsFromNamesUpdates = Get-IDsFromNames -DynamicParameterDictionary $DynamicParameterDictionary -DynamicParameterList $DynamicParameterList
+        $IDsFromNamesUpdates | ForEach-Object {Set-Variable -Name $_.Name -Value $_.Value}
         if (-not $AuthenticationToken)
         {
                 Write-ActivityHistory -MessageChannel 'Error' -ThrowError -Message 'Authentication required. Specify -AuthenticationToken value. See Get-Help Set-TDAuthentication for more assistance.'
@@ -825,7 +995,7 @@ function Remove-TDKBArticleRelationship
         if ($pscmdlet.ShouldProcess("article ID: $ID and related article ID $RelatedArticleID", 'Delete TeamDynamix KnowledgeBase article relationship between'))
         {
             Write-ActivityHistory "Deleting TeamDynamix KnowledgeBase article: $ID"
-            $Return = Invoke-RESTCall -Uri "$BaseURI/knowledgebase/$ID/related/$RelatedArticleID" -ContentType $ContentType -Method Delete -Headers $AuthenticationToken
+            $Return = Invoke-RESTCall -Uri "$BaseURI/$AppID/knowledgebase/$ID/related/$RelatedArticleID" -ContentType $ContentType -Method Delete -Headers $AuthenticationToken
             return $Return
         }
     }
@@ -840,12 +1010,17 @@ function Get-TDKBCategory
     [CmdletBinding()]
     Param
     (
-        # Article ID to retrieve from TeamDynamix
+        # Knowledgebase category ID to retrieve from TeamDynamix
         [Parameter(Mandatory=$false,
                    ValueFromPipeline=$true,
                    Position=0)]
         [int]
         $ID,
+
+        # Customer portal application ID
+        [Parameter(Mandatory=$false)]
+        [int]
+        $AppID = $ClientPortalID,
 
         # TeamDynamix authentication token
         [Parameter(Mandatory=$false)]
@@ -857,12 +1032,30 @@ function Get-TDKBCategory
         [EnvironmentChoices]
         $Environment = $WorkingEnvironment
     )
+    DynamicParam
+    {
+        #List dynamic parameters
+        $DynamicParameterList = @(
+            @{
+                Name        = 'AppName'
+                Type        = 'string'
+                ValidateSet = $TDApplications.GetByAppClass('TDClient',$true).Name
+                HelpText    = 'Name of application'
+                IDParameter = 'AppID'
+                IDsMethod   = '$TDApplications.GetAll([string]$Environment,$true)'
+            }
+        )
+        $DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
+        return $DynamicParameterDictionary
+    }
 
     Begin
     {
         Write-ActivityHistory "`n-----`nIn $($MyInvocation.MyCommand.Name)"
         $ContentType = 'application/json; charset=utf-8'
         $BaseURI = Get-URI -Environment $Environment
+        $IDsFromNamesUpdates = Get-IDsFromNames -DynamicParameterDictionary $DynamicParameterDictionary -DynamicParameterList $DynamicParameterList
+        $IDsFromNamesUpdates | ForEach-Object {Set-Variable -Name $_.Name -Value $_.Value}
         if (-not $AuthenticationToken)
         {
                 Write-ActivityHistory -MessageChannel 'Error' -ThrowError -Message 'Authentication required. Specify -AuthenticationToken value. See Get-Help Set-TDAuthentication for more assistance.'
@@ -873,12 +1066,12 @@ function Get-TDKBCategory
         if (-not $ID)
         {
             Write-ActivityHistory 'Retrieving all TeamDynamix KnowledgeBase categories'
-            $Return = Invoke-RESTCall -Uri "$BaseURI/knowledgebase/categories" -ContentType $ContentType -Method Get -Headers $AuthenticationToken
+            $Return = Invoke-RESTCall -Uri "$BaseURI/$AppID/knowledgebase/categories" -ContentType $ContentType -Method Get -Headers $AuthenticationToken
         }
         else
         {
             Write-ActivityHistory "Retrieving KnowledgeBase category $ID"
-            $Return = Invoke-RESTCall -Uri "$BaseURI/knowledgebase/categories/$ID" -ContentType $ContentType -Method Get -Headers $AuthenticationToken
+            $Return = Invoke-RESTCall -Uri "$BaseURI/$AppID/knowledgebase/categories/$ID" -ContentType $ContentType -Method Get -Headers $AuthenticationToken
         }
         if ($Return)
         {
@@ -938,6 +1131,12 @@ function New-TDKBCategory
         [boolean]
         $InheritPermissions,
 
+        # Customer portal application ID
+        [Parameter(Mandatory=$false,
+                   ValueFromPipelineByPropertyName=$true)]
+        [int]
+        $AppID = $ClientPortalID,
+
         # TeamDynamix authentication token
         [Parameter(Mandatory=$false)]
         [hashtable]
@@ -948,12 +1147,30 @@ function New-TDKBCategory
         [EnvironmentChoices]
         $Environment = $WorkingEnvironment
     )
+    DynamicParam
+    {
+        #List dynamic parameters
+        $DynamicParameterList = @(
+            @{
+                Name        = 'AppName'
+                Type        = 'string'
+                ValidateSet = $TDApplications.GetByAppClass('TDClient',$true).Name
+                HelpText    = 'Name of application'
+                IDParameter = 'AppID'
+                IDsMethod   = '$TDApplications.GetAll([string]$Environment,$true)'
+            }
+        )
+        $DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
+        return $DynamicParameterDictionary
+    }
 
     Begin
     {
         Write-ActivityHistory "`n-----`nIn $($MyInvocation.MyCommand.Name)"
         $ContentType = 'application/json; charset=utf-8'
         $BaseURI = Get-URI -Environment $Environment
+        $IDsFromNamesUpdates = Get-IDsFromNames -DynamicParameterDictionary $DynamicParameterDictionary -DynamicParameterList $DynamicParameterList
+        $IDsFromNamesUpdates | ForEach-Object {Set-Variable -Name $_.Name -Value $_.Value}
         if (-not $AuthenticationToken)
         {
                 Write-ActivityHistory -MessageChannel 'Error' -ThrowError -Message 'Authentication required. Specify -AuthenticationToken value. See Get-Help Set-TDAuthentication for more assistance.'
@@ -969,7 +1186,7 @@ function New-TDKBCategory
         if ($pscmdlet.ShouldProcess(($KBCategory | Out-String), 'Creating KnowledgeBase category'))
         {
             Write-ActivityHistory 'Creating KnowledgeBase category'
-            $Return = Invoke-RESTCall -Uri "$BaseURI/knowledgebase/categories" -ContentType $ContentType -Method Post -Headers $AuthenticationToken -Body (ConvertTo-Json $KBCategory -Depth 10)
+            $Return = Invoke-RESTCall -Uri "$BaseURI/$AppID/knowledgebase/categories" -ContentType $ContentType -Method Post -Headers $AuthenticationToken -Body (ConvertTo-Json $KBCategory -Depth 10)
             if ($Return)
             {
                 return [TeamDynamix_Api_KnowledgeBase_ArticleCategory]::new($Return)
@@ -994,6 +1211,11 @@ function Remove-TDKBCategory
         [int]
         $ID,
 
+        # Customer portal application ID
+        [Parameter(Mandatory=$false)]
+        [int]
+        $AppID = $ClientPortalID,
+
         # TeamDynamix authentication token
         [Parameter(Mandatory=$false)]
         [hashtable]
@@ -1004,12 +1226,30 @@ function Remove-TDKBCategory
         [EnvironmentChoices]
         $Environment = $WorkingEnvironment
     )
+    DynamicParam
+    {
+        #List dynamic parameters
+        $DynamicParameterList = @(
+            @{
+                Name        = 'AppName'
+                Type        = 'string'
+                ValidateSet = $TDApplications.GetByAppClass('TDClient',$true).Name
+                HelpText    = 'Name of application'
+                IDParameter = 'AppID'
+                IDsMethod   = '$TDApplications.GetAll([string]$Environment,$true)'
+            }
+        )
+        $DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
+        return $DynamicParameterDictionary
+    }
 
     Begin
     {
         Write-ActivityHistory "`n-----`nIn $($MyInvocation.MyCommand.Name)"
         $ContentType = 'application/json; charset=utf-8'
         $BaseURI = Get-URI -Environment $Environment
+        $IDsFromNamesUpdates = Get-IDsFromNames -DynamicParameterDictionary $DynamicParameterDictionary -DynamicParameterList $DynamicParameterList
+        $IDsFromNamesUpdates | ForEach-Object {Set-Variable -Name $_.Name -Value $_.Value}
         if (-not $AuthenticationToken)
         {
                 Write-ActivityHistory -MessageChannel 'Error' -ThrowError -Message 'Authentication required. Specify -AuthenticationToken value. See Get-Help Set-TDAuthentication for more assistance.'
@@ -1020,7 +1260,7 @@ function Remove-TDKBCategory
         if ($pscmdlet.ShouldProcess("category ID: $ID", 'Delete TeamDynamix KnowledgeBase article category'))
         {
             Write-ActivityHistory "Deleting TeamDynamix KnowledgeBase article category: $ID"
-            $Return = Invoke-RESTCall -Uri "$BaseURI/knowledgebase/categories/$ID" -ContentType $ContentType -Method Delete -Headers $AuthenticationToken
+            $Return = Invoke-RESTCall -Uri "$BaseURI/$AppID/knowledgebase/categories/$ID" -ContentType $ContentType -Method Delete -Headers $AuthenticationToken
             return $Return
         }
     }
@@ -1083,6 +1323,12 @@ function Set-TDKBCategory
         [boolean]
         $InheritPermissions,
 
+        # Customer portal application ID
+        [Parameter(Mandatory=$false,
+                   ValueFromPipelineByPropertyName=$true)]
+        [int]
+        $AppID = $ClientPortalID,
+
         # TeamDynamix authentication token
         [Parameter(Mandatory=$false)]
         [hashtable]
@@ -1093,12 +1339,30 @@ function Set-TDKBCategory
         [EnvironmentChoices]
         $Environment = $WorkingEnvironment
     )
+    DynamicParam
+    {
+        #List dynamic parameters
+        $DynamicParameterList = @(
+            @{
+                Name        = 'AppName'
+                Type        = 'string'
+                ValidateSet = $TDApplications.GetByAppClass('TDClient',$true).Name
+                HelpText    = 'Name of application'
+                IDParameter = 'AppID'
+                IDsMethod   = '$TDApplications.GetAll([string]$Environment,$true)'
+            }
+        )
+        $DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
+        return $DynamicParameterDictionary
+    }
 
     Begin
     {
         Write-ActivityHistory "`n-----`nIn $($MyInvocation.MyCommand.Name)"
         $ContentType = 'application/json; charset=utf-8'
         $BaseURI = Get-URI -Environment $Environment
+        $IDsFromNamesUpdates = Get-IDsFromNames -DynamicParameterDictionary $DynamicParameterDictionary -DynamicParameterList $DynamicParameterList
+        $IDsFromNamesUpdates | ForEach-Object {Set-Variable -Name $_.Name -Value $_.Value}
         if (-not $AuthenticationToken)
         {
                 Write-ActivityHistory -MessageChannel 'Error' -ThrowError -Message 'Authentication required. Specify -AuthenticationToken value. See Get-Help Set-TDAuthentication for more assistance.'
@@ -1129,7 +1393,7 @@ function Set-TDKBCategory
         if ($pscmdlet.ShouldProcess(($KBCategory | Out-String), 'Creating KnowledgeBase article'))
         {
             Write-ActivityHistory 'Updating KnowledgeBase article'
-            $Return = Invoke-RESTCall -Uri "$BaseURI/knowledgebase/categories/$ID" -ContentType $ContentType -Method Put -Headers $AuthenticationToken -Body (ConvertTo-Json $KBCategory -Depth 10)
+            $Return = Invoke-RESTCall -Uri "$BaseURI/$AppID/knowledgebase/categories/$ID" -ContentType $ContentType -Method Put -Headers $AuthenticationToken -Body (ConvertTo-Json $KBCategory -Depth 10)
             if ($Return)
             {
                 return [TeamDynamix_Api_KnowledgeBase_ArticleCategory]::new($Return)
@@ -1144,8 +1408,8 @@ function Set-TDKBCategory
 # SIG # Begin signature block
 # MIIOsQYJKoZIhvcNAQcCoIIOojCCDp4CAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUJ8QMM4JqXJhSEbr24HR/fLqK
-# G5ugggsLMIIEnTCCA4WgAwIBAgITXAAAAASry1piY/gB3QAAAAAABDANBgkqhkiG
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUXIrbEGft8xy4LoNWx4No0rOv
+# tLegggsLMIIEnTCCA4WgAwIBAgITXAAAAASry1piY/gB3QAAAAAABDANBgkqhkiG
 # 9w0BAQsFADAaMRgwFgYDVQQDEw9BU0MgUEtJIE9mZmxpbmUwHhcNMTcwNTA4MTcx
 # NDA5WhcNMjcwNTA4MTcyNDA5WjBYMRMwEQYKCZImiZPyLGQBGRYDZWR1MRowGAYK
 # CZImiZPyLGQBGRYKb2hpby1zdGF0ZTETMBEGCgmSJomT8ixkARkWA2FzYzEQMA4G
@@ -1208,17 +1472,17 @@ function Set-TDKBCategory
 # 8ixkARkWCm9oaW8tc3RhdGUxEzARBgoJkiaJk/IsZAEZFgNhc2MxEDAOBgNVBAMT
 # B0FTQy1QS0kCE3oAAOEPnUrHvueZLKQAAQAA4Q8wCQYFKw4DAhoFAKB4MBgGCisG
 # AQQBgjcCAQwxCjAIoAKAAKECgAAwGQYJKoZIhvcNAQkDMQwGCisGAQQBgjcCAQQw
-# HAYKKwYBBAGCNwIBCzEOMAwGCisGAQQBgjcCARUwIwYJKoZIhvcNAQkEMRYEFC5W
-# woOTJnAxBSUvq0Bq7GKkUV45MA0GCSqGSIb3DQEBAQUABIICAJdKpEkxyQNdtqWT
-# e6fJ2RUppjGuIwnEtf5m1Duq+aYreIx1QnThuRzTYR4/hc6Mv10sYLNZlRv7n3n/
-# swAEIdtYJGiU4u2ttqwrEezth8YKy3Q8E2BH61UzwPTpWKDexU3QSP0fUMTFzZYF
-# nQqhG6dhqhwqkRmZR3Q3g/BfK65tCNnDfTu7ZOjEIgSyoBDPeCkaStF9uW8P67Ey
-# i+349At8ZziJzahPY842PERHAoNiV62p9VEs9DDyFo0vtl9aZH3kTJDDjM9sQF0k
-# oksqqe+6UpKJ1mvkm24fqxYqo+8pp9hCsqo6MgxpgvmydjXT5aa+qXMv0LZhwg0r
-# I6+XizFoIdey0Q/cg9xd3qs/y8yFCmmTheNj/66hJPwHIP10WXo5Vz1mXn70tI5h
-# xaY9jZ06qmvw/dCOlydzvLwPnjEMnPzlM3SaZf5AL//AwI+KubfRfDVG59RRU6kf
-# 7LxwRij7Vkukv5UyQCXzQHnn2J6Hz4YJFyqKJ+7IBEv23GRR0LxkDWF4lvgEeziJ
-# d6mfop70GvwPrO9y9BgBT3cJdiZq4wF2+OZE20B7iP9BhJl4JW7VYfHi4Mrba0M6
-# lrKIg5uFSQ8b9K+vDVcPZZPkAoCqq8G/Mz+IK2eLFtsbKPosR9xBqElTV3q5Ho+E
-# g8qpB9EN5q0w4Fc+AVdK8+OJG17u
+# HAYKKwYBBAGCNwIBCzEOMAwGCisGAQQBgjcCARUwIwYJKoZIhvcNAQkEMRYEFDGr
+# puHOru+GYI8pV+axmNbyN6nTMA0GCSqGSIb3DQEBAQUABIICADPgrXFCtOd3wPep
+# cp3luwFVsworzBE/RIXoGvFMemyg3nwiclVxNG95yWlSo1+WIh21vW5BxjHsO/1f
+# LVuH8F2yy+V7pjgiqVxlhNv67ChQR1MDm0ZwCFqW9uWlpeRZq9CtcLHQ0nNVfAAG
+# 3MlmWRALMPoC9UEHwo4waslJiVKu5MwhSylVOE1XeS2v3bqP0P95lk6fkg/gK2JN
+# yesxNh78ddEpvkap1wNyUF9uZfZihl5sacuxrjvKik1TgPkyU+vWhFQpV5l2JBzw
+# UpoPIIROjA3x6c1L+QvpypZPg17Y9Dx+nuuBa83so9Vp1dv+c26RPYD5ytKonLpd
+# Ud6rCB+mbyncSluvyiaqCprncPtt7BmtmjhyUqSMl1ts88LgD9pp0qBFzOr8BrJb
+# 57HBcTTOzsAdkxdhGgeJ+xJV6VD/adH3EKNWE7PVRrTjk+aOK3rEAnIBm/hSPLoU
+# j2riyIiBmeqNdgY+KKDWg1FBFPSIQc/8aNAHHsj7e+YiOziUKzyvEykWQUKsMNtf
+# mreGKuoPPSxlLyviq2U1dIyJsvtGbcdrrL03VWrbQv60IscGAHRFksA+Aiunlun1
+# GuzwUxHx9sJzMLkQ8SjZJudNGNE8o40zJST3vS336Sm5/NRFFlJMFYeJf4r6J2uu
+# gAPzl7OWNkSJdAhKhbH1+vTMTYwg
 # SIG # End signature block

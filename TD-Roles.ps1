@@ -302,7 +302,7 @@ function Get-TDSecurityRole
                 ValidateSet = $TDApplications.GetAll($WorkingEnvironment,$true).Name
                 HelpText    = 'Name of application'
                 IDParameter = 'AppID'
-                IDsMethod   = '$TDApplications.GetAll($WorkingEnvironment,$true)'
+                IDsMethod   = '$TDApplications.GetAll([string]$Environment,$true)'
             }
         )
         $DynamicParameterDictionary = New-DynamicParameterDictionary -ParameterList $DynamicParameterList
@@ -409,7 +409,7 @@ function New-TDSecurityRole
     Process
     {
         $NewRole = [TeamDynamix_Api_Roles_SecurityRole]::new()
-        Update-Object -InputObject $NewRole -ParameterList (Get-Command $MyInvocation.MyCommand.Name).Parameters.Keys -IgnoreList ([array]'UseDefaultPermissions' + $LocalIgnoreParameters + $GlobalIgnoreParameters) -AuthenticationToken $AuthenticationToken -Environment $Environment
+        Update-Object -InputObject $NewRole -ParameterList (Get-Command $MyInvocation.MyCommand.Name).Parameters.Keys -BoundParameterList $MyInvocation.BoundParameters.Keys -IgnoreList ([array]'UseDefaultPermissions' + $LocalIgnoreParameters + $GlobalIgnoreParameters) -AuthenticationToken $AuthenticationToken -Environment $Environment
         if ($pscmdlet.ShouldProcess($Name, 'Add new security role'))
         {
             Write-ActivityHistory "Adding new security role, $Name"
@@ -861,8 +861,8 @@ function Add-TDUserFunctionalRole
 # SIG # Begin signature block
 # MIIOsQYJKoZIhvcNAQcCoIIOojCCDp4CAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUEHsjESkKjaG3Sq+owvUy1e3+
-# 4oigggsLMIIEnTCCA4WgAwIBAgITXAAAAASry1piY/gB3QAAAAAABDANBgkqhkiG
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUep5kQp6Fc6z/txuiP3U2KjgG
+# RLOgggsLMIIEnTCCA4WgAwIBAgITXAAAAASry1piY/gB3QAAAAAABDANBgkqhkiG
 # 9w0BAQsFADAaMRgwFgYDVQQDEw9BU0MgUEtJIE9mZmxpbmUwHhcNMTcwNTA4MTcx
 # NDA5WhcNMjcwNTA4MTcyNDA5WjBYMRMwEQYKCZImiZPyLGQBGRYDZWR1MRowGAYK
 # CZImiZPyLGQBGRYKb2hpby1zdGF0ZTETMBEGCgmSJomT8ixkARkWA2FzYzEQMA4G
@@ -925,17 +925,17 @@ function Add-TDUserFunctionalRole
 # 8ixkARkWCm9oaW8tc3RhdGUxEzARBgoJkiaJk/IsZAEZFgNhc2MxEDAOBgNVBAMT
 # B0FTQy1QS0kCE3oAAOEPnUrHvueZLKQAAQAA4Q8wCQYFKw4DAhoFAKB4MBgGCisG
 # AQQBgjcCAQwxCjAIoAKAAKECgAAwGQYJKoZIhvcNAQkDMQwGCisGAQQBgjcCAQQw
-# HAYKKwYBBAGCNwIBCzEOMAwGCisGAQQBgjcCARUwIwYJKoZIhvcNAQkEMRYEFBQ7
-# p1CCLc6QHRmEqkqpprl/5i3+MA0GCSqGSIb3DQEBAQUABIICADmcFfMt8DmEhmzq
-# LBcAkhSK6oDRXmEBFqkQLk2uG3WeT3E1CC5knr+sejYvruwwPYa7KW57VNRV+h46
-# 47LuJ+k15Lj+DCGrqYZHTnhFJ+RLJxENiheDilU1KPRr0ZW1LIWwlHSHmhG4Q3k/
-# MuqdarO8zDz4+24b3rAMpEOFqgvtV/vuO26uFbh8hVQrXl1N/PFRn19iFobiiw7t
-# mKEOovxN8WbhnV4v7dswtYKC+xUlkiDXDtK62QGk1z9nwXfiHAGDFpQ5GP/nM9Bs
-# ybKKRc+r+bWXK3QZgRgT/WgTQDll1FSZIKjMnRrN9C0JOclu5rs8+u+N/RCiHxHq
-# qC97bKBlWyzgs6rAbjAT/CjwjXB4M0B60TP9kQLI2Swp28NN+JlDJYrwy9A5BVEA
-# AIv5G+OGNHgEenfyalLDlyik8ddDW7QYoFGAXA73c/8k6VCDfKm8PPRG1vG4ODTn
-# JtASqzOGlzlUFIZT21PTw9eaQPFpk3rlIfAl/ok9BC3fYpoJpNg5ORAF8Y00iQfl
-# 7Rv1OigkY8DH5kRz61XQTCNwa3UHKSFvo3XT0+nO4ao02gO614avXZP/D1TK9LdR
-# vFpu5GtoExZNYJDSahdvCAE1IEUAwJ8auoYFtx6RXfc53YS5wpNxsczo1VOy4qxq
-# YeMzqOd//Y0L1vr9j0wgcGn7hrpM
+# HAYKKwYBBAGCNwIBCzEOMAwGCisGAQQBgjcCARUwIwYJKoZIhvcNAQkEMRYEFDoC
+# Vd5arFPFlnQATCYCb0HGVpwlMA0GCSqGSIb3DQEBAQUABIICAIY97tZ6oSsQgRrZ
+# TWDtv8I4SUqiHBT2BbhqGptjzywuOHHXLYd3Ac0WxM+T87jdC2DYeHqZBIZPXbh4
+# /VAfvzH8g3c8DoFO5ZBHYeiNl/B9JrMfuLRGLI+LJLE9+er2T8O4dhHQ0Yxc/75c
+# yD+J3PqEgK0AIQ3RWK6/t+O7cZX+nPBhfJtnO03GgkFJ2inpKOEoOYQS0wJxJS51
+# QaMDPCic/jnUWJ80iMPTi9G9oijBj60zbli71ITyZioUudlj5/464LRCX7eLjwp4
+# ueAzCjAaXpRQ5O6KvVKo0krha+dkEprWwvxbRQq4TBKK/qjb3mDlwoWKt+8O1av2
+# +a/Jj8kWMIwBLsvEvAcYZeIYFB8E6sXrK2KzA4u9LbeBOuTKTlsj1eFilHJnIy2V
+# izcIzR5oqhj/izWwbkm4Rvne4It1wu+V+hCjv0Yu3kCE9AtWoBSYKj0qExWzUu7C
+# rzNFPHf54KHSWEtHrNVS1mo3tg2Z67SjJZUzchTC1tw82ub6FQD3Fr6QVprTrzNg
+# CCdKce2LVRrThhcbMdRujl6r+tqPcf05IeeE8DVaiDNRtLXylG5FIsY9JwVtog+z
+# ZomSoDNZStMG0/TPHd6CUfCjVt9+ib/FNdZfykgWI354Cd/1Mi81Zb4TZZAhKhKd
+# FJxwVvuync5sz6kjiwBAQYEm5CSJ
 # SIG # End signature block
