@@ -632,7 +632,7 @@ function ConvertFrom-TDWebAPIToClass
     [void] AddCustomAttribute (
         [string]   `$AttributeName,
         [string]   `$AttributeValue,
-        [int]      `$AppID
+        [int]      `$AppID,
         [hashtable]`$TDAuthentication,
         [EnvironmentChoices]`$Environment)
     {
@@ -736,15 +736,15 @@ function ConvertFrom-TDWebAPIToClass
         Write-Output '{'
         foreach ($Parameter in $ClassParameterMembers)
         {
-            Write-Output "`t$($Parameter.Type.PadRight($TypePadLength))`$$($Parameter.Name)"
+            Write-Output "    $($Parameter.Type.PadRight($TypePadLength))`$$($Parameter.Name)"
         }
         Write-Output ''
         Write-Output $ConstructorBlock1
         for ($i = 0; $i -lt ($ClassParameterMembers.Count - 1); $i++)
         {
-            Write-Output "`t`t$($ClassParameterMembers[$i].Type.PadRight($TypePadLength))`$$($ClassParameterMembers[$i].Name),"
+            Write-Output "`t$($ClassParameterMembers[$i].Type.PadRight($TypePadLength))`$$($ClassParameterMembers[$i].Name),"
         }
-        Write-Output "`t`t$($ClassParameterMembers[$i].Type.PadRight($TypePadLength))`$$($ClassParameterMembers[$i].Name))"
+        Write-Output "`t$($ClassParameterMembers[$i].Type.PadRight($TypePadLength))`$$($ClassParameterMembers[$i].Name))"
         Write-Output $ConstructorBlock2
         $EditableParameters = $ClassParameterMembers | Where-Object Editable -eq $true
         if ($EditableParameters)
@@ -752,29 +752,29 @@ function ConvertFrom-TDWebAPIToClass
             # Set parameter pad width
             $PadLength = ($EditableParameters.Name | Measure-Object -Maximum -Property Length).Maximum
             Write-Output ''
-            Write-Output "`t# Convenience constructor for editable parameters"
-            Write-Output "`t$ClassName("
+            Write-Output "    # Convenience constructor for editable parameters"
+            Write-Output "    $ClassName("
             for ($i = 0; $i -lt ($EditableParameters.Count - 1); $i++)
             {
                 if ($EditableParameters[$i].Editable)
                 {
-                    Write-Output "`t`t$($EditableParameters[$i].Type.PadRight($TypePadLength))`$$($EditableParameters[$i].Name),"
+                    Write-Output "`t$($EditableParameters[$i].Type.PadRight($TypePadLength))`$$($EditableParameters[$i].Name),"
                 }
             }
-            Write-Output "`t`t$($EditableParameters[$i].Type.PadRight($TypePadLength))`$$($EditableParameters[$i].Name))"
-            Write-Output "`t{"
+            Write-Output "`t$($EditableParameters[$i].Type.PadRight($TypePadLength))`$$($EditableParameters[$i].Name))"
+            Write-Output "    {"
             foreach ($Parameter in $EditableParameters)
             {
                 if ($Parameter.Type -notmatch 'datetime')
                 {
-                    Write-Output "`t`t`$this.$($Parameter.Name.PadRight($PadLength)) = `$$($Parameter.Name)"
+                    Write-Output "`t`$this.$($Parameter.Name.PadRight($PadLength)) = `$$($Parameter.Name)"
                 }
                 else
                 {
-                    Write-Output "`t`t`$this.$($Parameter.Name.PadRight($PadLength)) = `$$($Parameter.Name.PadRight($PadLength)) | Get-Date"
+                    Write-Output "`t`$this.$($Parameter.Name.PadRight($PadLength)) = `$$($Parameter.Name.PadRight($PadLength)) | Get-Date"
                 }
             }
-            Write-Output "`t}"
+            Write-Output "    }"
             if ($GenerateCustomAttributesMethods)
             {
                 Write-Output ''
@@ -804,7 +804,7 @@ function ConvertFrom-TDWebAPIToClass
             Write-Output '{'
             foreach ($Parameter in $ClassParameterMembers)
             {
-                Write-Output "`t$($Parameter.Type.PadRight($TypePadLength))`$$($Parameter.Name)"
+                Write-Output "    $($Parameter.Type.PadRight($TypePadLength))`$$($Parameter.Name)"
             }
             Write-Output ''
             Write-Output $ConstructorBlockTD_
@@ -1067,96 +1067,190 @@ function Compare-TDAPIDefinitions
     Param
     (
         # URL of API to compare
-        [Parameter(Mandatory=$true,
+        [Parameter(Mandatory=$false,
                    ValueFromPipeline=$true,
                    ParameterSetName='URL',
                    Position=0)]
         [uri]
         $APIURL,
 
+        # Class/enum name of API to compare
+        [Alias('EnumName')]
+        [Parameter(Mandatory=$false,
+                   ParameterSetName='ClassName')]
+        [string]
+        $ClassName,
+
         # Process all APIs
         [Parameter(Mandatory=$false,
                    ParameterSetName='All')]
         [switch]
-        $All
+        $All,
+
+        # Compare to local class definitions - default to compare Preview definitions to Production definitions
+        [Parameter(Mandatory=$false,
+                   ParameterSetName='URL')]
+        [Parameter(Mandatory=$false,
+                   ParameterSetName='All')]
+        [Parameter(Mandatory=$false,
+                   ParameterSetName='ClassName')]
+        [switch]
+        $CompareToLocalDefinitions
     )
 
     Process
     {
-        switch ($pscmdlet.ParameterSetName)
+        if ($APIURL -eq '')
         {
-            'All'
+            Compare-TDAPIDefinitions -All -CompareToLocalDefinitions:$CompareToLocalDefinitions
+        }
+        else
+        {
+            switch ($pscmdlet.ParameterSetName)
             {
-                # Get names of classes and enums in the module
-                $APINames = (Get-Module TeamDynamix).ImplementingAssembly.DefinedTypes | Where-Object {$_.IsPublic -eq $true -and $_.Name -notmatch '^TD_'} |Select-Object -ExpandProperty Name
-                # Remove local names
-                $APINames = $APINames | Where-Object {$_ -ne 'EnvironmentChoices' -and $_ -ne 'Object_Cache'}
-                # Fix names to match TeamDynamix types
-                $APINames = $APINames | ForEach-Object {$_.Replace('_','.')}
-                Write-ActivityHistory ($APINames | Out-String)
-                # Call this function for each class and enum
-                $APINames | ForEach-Object { "$($TDConfig.DefaultTDBaseURI)/TDWebApi/Home/type/$_" } | Compare-TDAPIDefinitions
-            }
-            'URL'
-            {
-                Write-ActivityHistory $APIURL
-                $APIURLChangedOrDeprecated = $false
-                # Adjust the URL to find the preview site
-                $PreviewAPIURL = $APIURL.ToString().Replace('teamdynamix.com/TDWebApi','teamdynamixpreview.com/TDWebApi')
-                try
+                'All'
                 {
-                    # Get info from the current site
-                    $CurrentDefinition = Get-URLTableData -URL $APIURL -ErrorAction Stop
+                    # Get names of classes and enums in the module
+                    $APINames = (Get-Module TeamDynamix).ImplementingAssembly.DefinedTypes | Where-Object {$_.IsPublic -eq $true -and $_.Name -notmatch '^TD_'} |Select-Object -ExpandProperty Name
+                    # Remove local names
+                    $APINames = $APINames | Where-Object {$_ -ne 'EnvironmentChoices' -and $_ -ne 'Object_Cache'}
+                    # Fix names to match TeamDynamix types
+                    $APINames = $APINames | ForEach-Object {$_.Replace('_','.')}
+                    Write-ActivityHistory ($APINames | Out-String)
+                    # Call this function for each class and enum
+                    $APINames | ForEach-Object { "$($TDConfig.DefaultTDBaseURI)/TDWebApi/Home/type/$_" } | Compare-TDAPIDefinitions -CompareToLocalDefinitions:$CompareToLocalDefinitions
                 }
-                catch
+                'ClassName'
                 {
-                    if ($_.Exception.Message -like '*Status code 404*')
+                    Write-ActivityHistory $ClassName
+                    # Call this function for the appropriate URL
+                    Compare-TDAPIDefinitions -APIURL "$($TDConfig.DefaultTDBaseURI)/TDWebApi/Home/type/$($ClassName.Replace('_','.'))" -CompareToLocalDefinitions:$CompareToLocalDefinitions
+                }
+                'URL'
+                {
+                    Write-ActivityHistory $APIURL
+                    $APIURLChangedOrDeprecated = $false
+                    # Get info from Production site
+                    try
                     {
-                        Write-ActivityHistory -MessageChannel 'Error' -Message "$APIURL returned 404 not found."
+                        $ProductionDefinition = Get-URLTableData -URL $APIURL -ErrorAction Stop
                     }
-                    elseif ($_.Exception.Message -like '*Status code 302*')
+                    catch
                     {
                         $APIURLChangedOrDeprecated = $true
+                        if ($_.Exception.Message -like '*Status code 404*')
+                        {
+                            Write-ActivityHistory -MessageChannel 'Error' -Message "$APIURL returned 404 not found."
+                        }
+                        elseif ($_.Exception.Message -like '*Status code 302*')
+                        {
+                            Write-ActivityHistory -MessageChannel 'Error' -Message "$APIURL returned 302 redirected."
+                        }
+                        else
+                        {
+                            Write-ActivityHistory -ErrorRecord $_ -ErrorMessage "Getting data for $APIURL."
+                        }
+                    }
+
+                    # Get info from Preview site, otherwise, get data from class definition
+                    if ($CompareToLocalDefinitions)
+                    {
+                        # Get data from class definition
+                        # Extract class name from $APIURL
+                        if ($APIURL.OriginalString.Trim() -match '/TDWebApi/Home/type/(?<ClassName>.*)$')
+                        {
+                            $ExtractedClassName = $Matches['ClassName']
+                            # Obtain names from class/enum
+                            switch (($ExtractedClassName.Replace('.','_') -as [type]).BaseType.ToString())
+                            {
+                                'System.Object'
+                                {
+                                    # Class object
+                                    $ClassDefinition = ($ExtractedClassName.Replace('.','_') -as [type])::new() | Get-Member -MemberType Property
+                                }
+                                'System.Enum'
+                                {
+                                    # Enum
+                                    $ClassDefinition = ($ExtractedClassName.Replace('.','_') -as [type]).GetEnumNames()
+                                }
+                            }
+                        }
+                        else
+                        {
+                            Write-ActivityHistory -Message "$($APIURL): No class name found." -MessageChannel Warning
+                        }
                     }
                     else
                     {
-                        Write-ActivityHistory -ErrorRecord $_ -ErrorMessage "Getting data for $APIURL."
+                        # Get data from Preview
+                        # Adjust the URL to the Preview site
+                        $PreviewAPIURL = $APIURL.ToString().Replace('teamdynamix.com/TDWebApi','teamdynamixpreview.com/TDWebApi')
+                        try
+                        {
+                            # Get info from Preview
+                            $PreviewDefinition = Get-URLTableData -URL $PreviewAPIURL -ErrorAction Stop
+                        }
+                        catch
+                        {
+                            $APIURLChangedOrDeprecated = $true
+                            if ($_.Exception.Message -like '*Status code 404*')
+                            {
+                                Write-ActivityHistory -MessageChannel 'Error' -Message "$PreviewAPIURL returned 404 not found."
+                            }
+                            elseif ($_.Exception.Message -like '*Status code 302*')
+                            {
+                                Write-ActivityHistory -MessageChannel 'Error' -Message "$PreviewAPIURL returned 302 redirected."
+                            }
+                            else
+                            {
+                                Write-ActivityHistory -ErrorRecord $_ -ErrorMessage "Getting data for $PreviewAPIURL."
+                            }
+                        }
                     }
-                }
-                try
-                {
-                    # Get info from the preview site
-                    $PreviewDefinition = Get-URLTableData -URL $PreviewAPIURL -ErrorAction Stop
-                }
-                catch
-                {
-                    if ($_.Exception.Message -like '*Status code 404*')
+
+                    # Check to see if the APIURL could not be read, otherwise document changes
+                    if ($APIURLChangedOrDeprecated -eq $true)
                     {
-                        Write-ActivityHistory -MessageChannel 'Error' -Message "$PreviewAPIURL returned 404 not found."
-                    }
-                    elseif ($_.Exception.Message -like '*Status code 302*')
-                    {
-                        $APIURLChangedOrDeprecated = $true
+                        $Deletions = 'API changed or deleted.'
                     }
                     else
                     {
-                        Write-ActivityHistory -ErrorRecord $_ -ErrorMessage "Getting data for $PreviewAPIURL."
+                        if ($CompareToLocalDefinitions)
+                        {
+                            # Additions are items that are in Production, but not in the class definition, deletions are in the class definition, but not in Production
+                            # Names are listed differently depending on whether the source was a class or enum
+                            switch (($ExtractedClassName.Replace('.','_') -as [type]).BaseType.ToString())
+                            {
+                                'System.Object'
+                                {
+                                    # Class object
+                                    $Additions = $ProductionDefinition | Where-Object {$ClassDefinition.Name      -notcontains $_.Name}
+                                    $Deletions = $ClassDefinition      | Where-Object {$ProductionDefinition.Name -notcontains $_.Name}
+                                }
+                                'System.Enum'
+                                {
+                                    # Enum
+                                    $Additions = $ProductionDefinition | Where-Object {$ClassDefinition           -notcontains $_.Name}
+                                    $Deletions = $ClassDefinition      | Where-Object {$ProductionDefinition.Name -notcontains $_     }
+                                }
+                            }
+                        }
+                        else
+                        {
+                            # Additions are items that are in Preview, but not in Production, deletions are in Production, but not in Preview
+                            $Additions = $PreviewDefinition    | Where-Object {$ProductionDefinition.Name -notcontains $_.Name}
+                            $Deletions = $ProductionDefinition | Where-Object {$PreviewDefinition.Name    -notcontains $_.Name}
+                        }
                     }
-                }
-                # Additions are items that are in the preview, but not in the current, deletions are in the current, but not in the preview
-                #  Currently, only testing by name.
-                $Additions = $PreviewDefinition | Where-Object {$CurrentDefinition.Name -notcontains $_.Name}
-                $Deletions = $CurrentDefinition | Where-Object {$PreviewDefinition.Name -notcontains $_.Name}
-                if ($APIURLChangedOrDeprecated -eq $true)
-                {
-                    $Deletions = 'API changed or deleted.'
-                }
-                if ($Additions -or $Deletions)
-                {
-                    [pscustomobject]@{
-                        API       = $APIURL.ToString().split('/')[-1].Replace('.','_')
-                        Additions = $Additions
-                        Deletions = $Deletions
+
+                    # Format for output
+                    if ($Additions -or $Deletions)
+                    {
+                        [pscustomobject]@{
+                            API       = $APIURL.ToString().split('/')[-1].Replace('.','_')
+                            Additions = $Additions
+                            Deletions = $Deletions
+                        }
                     }
                 }
             }

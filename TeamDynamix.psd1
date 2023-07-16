@@ -11,7 +11,7 @@
     RootModule = 'TeamDynamix'
 
     # Version number of this module.
-    ModuleVersion = '2.6.7'
+    ModuleVersion = '2.7.0'
 
     # Supported PSEditions
     # CompatiblePSEditions = @()
@@ -23,7 +23,7 @@
     Author = 'Brian W. Keller'
 
     # Company or vendor of this module
-    CompanyName = 'The Ohio State University'
+    CompanyName = 'QTS'
 
     # Copyright statement for this module
     Copyright = '(c) 2016-2021 Brian W. Keller. All rights reserved.'
