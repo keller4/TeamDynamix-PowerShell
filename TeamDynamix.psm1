@@ -8,7 +8,13 @@
     [Parameter(Mandatory=$false,
                Position=1)]
     [string]
-    $WorkingEnvironment = 'Production'
+    $WorkingEnvironment = 'Production',
+
+    # Allow setup with no login
+    [Parameter(Mandatory=$false,
+               Position=2)]
+    [switch]
+    $NoLogin
 )
 
 # Operational note on maintaining help documentation
@@ -183,7 +189,6 @@ enum TeamDynamix_Api_CustomAttributes_CustomAttributeComponent {
     Issue                = 3
     FileCabinetFile      = 8
     Ticket               = 9
-    Opportunity          = 11
     Account              = 14
     KnowledgeBaseArticle = 26
     Asset                = 27
@@ -191,13 +196,12 @@ enum TeamDynamix_Api_CustomAttributes_CustomAttributeComponent {
     Contract             = 29
     ProductModel         = 30
     Person               = 31
-    Product              = 37
-    QuestionBank         = 42
     Service              = 47
     ConfigurationItem    = 63
     Location             = 71
     Risk                 = 72
     LocationRoom         = 80
+    ServiceOffering      = 87
 }
 
 # Ticket classification of tickets to find, as described in TeamDynamix.Api.Tickets.TicketClass[]
@@ -218,7 +222,6 @@ enum TeamDynamix_Api_Users_UserType {
     None                = 0
     User                = 1
     Customer            = 2
-    Administrator       = 3
     ResourcePlaceholder = 8
     ServiceAccount      = 9
 }
@@ -257,32 +260,46 @@ enum TeamDynamix_Api_Attachments_AttachmentType {
     Issue             = 3
     Announcement      = 7
     Ticket            = 9
-    Opportunity       = 11
     Forums            = 13
-    Account           = 14
     Knowledgebase     = 26
     Asset             = 27
     Contract          = 29
+    Service           = 47
+    CalendarEvent     = 57
+    Expense           = 62
     ConfigurationItem = 63
+    Location          = 71
+    Risk              = 72
+    PortfolioIssue    = 83
+    PortfolioRisk     = 84
 }
 
 # Feed item types, as described in TeamDynamix.Api.Feed.FeedItemType[]
 enum TeamDynamix_Api_Feed_FeedItemType {
-    None                = 0
-    Project             = 1
-    ProjectRequest      = 1
-    Task                = 2
-    Issue               = 3
-    Link                = 4
-    Contact             = 6
-    Announcement        = 7
-    Ticket              = 9
-    File                = 15
-    UserStatus          = 24
-    TicketTask          = 25
-    MaintenanceActivity = 25
-    Asset               = 27
-    Risk                = 72
+    None                 = 0
+    Project              = 1
+    ProjectRequest       = 1
+    Task                 = 2
+    Issue                = 3
+    Link                 = 4
+    Contact              = 6
+    Announcement         = 7
+    Ticket               = 9
+    File                 = 15
+    UserStatus           = 24
+    TicketTask           = 25
+    MaintenanceActivity  = 25
+    KnowledgeBaseArticle = 26
+    Asset                = 27
+    Plan                 = 43
+    Workspace            = 45
+    Service              = 47
+    CalendarEvent        = 57
+    Expense              = 62
+    ConfigurationItem    = 63
+    Risk                 = 72
+    PortfolioIssue       = 83
+    PortfolioRisk        = 84
 }
 
 # Feed update types, as described in TeamDynamix.Api.Feed.UpdateType[]
@@ -446,6 +463,27 @@ enum TeamDynamix_Api_WorkflowEngine_WorkflowStatus {
     None     = 0
     Approved = 1
     Rejected = 2}
+
+# Describes the different date units that are used to calculate the end dates of contracts with sliding date models, as described in TeamDynamix.Api.Assets.SlidingContractDateUnit
+enum TeamDynamix_Api_Assets_SlidingContractDateUnit {
+    None  = 0
+    Day   = 1
+    Week  = 2
+    Month = 3
+    Year  = 4}
+
+# Represents the different types of contracts that can be created, as described in TeamDynamix.Api.Assets.ContractType
+enum TeamDynamix_Api_Assets_ContractType {
+    None              = 0
+    Warranty          = 1
+    ServiceContract   = 2
+    SupportContract   = 3
+    UpgradeProtection = 4}
+
+# Describes the different types of SLA deadline start basis options to be applied to a ticket, as described in TeamDynamix.Api.Tickets.SlaStartBasis
+enum TeamDynamix_Api_Tickets_SlaStartBasis {
+    CurrentDateTime        = 0
+    TicketCreationDateTime = 1}
 #endregion
 
 #region Class definitions
@@ -2363,6 +2401,7 @@ class TeamDynamix_Api_Feed_ItemUpdate
     [TeamDynamix_Api_Feed_Participant[]]$Participants
     [string]  $BreadcrumbsHTML
     [boolean] $HasAttachment
+    [string]  $Uri
 
     # Default constructor
     TeamDynamix_Api_Feed_ItemUpdate ()
@@ -2417,7 +2456,8 @@ class TeamDynamix_Api_Feed_ItemUpdate
         [int]     $LikesCount,
         [TeamDynamix_Api_Feed_Participant[]]$Participants,
         [string]  $BreadcrumbsHTML,
-        [boolean] $HasAttachment)
+        [boolean] $HasAttachment,
+        [string]  $Uri)
     {
         foreach ($Parameter in ([TeamDynamix_Api_Feed_ItemUpdate]::new() | Get-Member -MemberType Property))
         {
@@ -3659,7 +3699,7 @@ class TeamDynamix_Api_Users_UserSearch
     [string]$AppName
     [int[]] $AccountIDs
     [System.Nullable[int]]    $MaxResults
-    [int[]] $ReferenceID
+    [int[]] $ReferenceIDs
     [string]$ExternalID
     [string]$AlternateID
     [string]$UserName
@@ -3695,7 +3735,7 @@ class TeamDynamix_Api_Users_UserSearch
         [string]$AppName,
         [int[]] $AccountIDs,
         [System.Nullable[int]]    $MaxResults,
-        [int[]] $ReferenceID,
+        [int[]] $ReferenceIDs,
         [string]$ExternalID,
         [string]$AlternateID,
         [string]$UserName,
@@ -4307,7 +4347,6 @@ class TeamDynamix_Api_Users_NewUser
     [boolean] $IsActive
     [boolean] $IsConfidential
     [string]  $UserName
-    [string]  $FullName
     [string]  $FirstName
     [string]  $LastName
     [string]  $MiddleName
@@ -4328,7 +4367,6 @@ class TeamDynamix_Api_Users_NewUser
     [int[]]   $GroupIDs
     [int]     $ReferenceID
     [string]  $AlertEmail
-    [string]  $ProfileImageFileName
     [string]  $Company
     [string]  $Title
     [string]  $HomePhone
@@ -4371,6 +4409,8 @@ class TeamDynamix_Api_Users_NewUser
     [TeamDynamix_Api_CustomAttributes_CustomAttribute[]]$Attributes
     [string]  $IMProvider
     [string]  $IMHandle
+    [int32]   $LocationID
+    [int32]   $LocationRoomID
 
     # Default constructor
     TeamDynamix_Api_Users_NewUser ()
@@ -4401,7 +4441,6 @@ class TeamDynamix_Api_Users_NewUser
         [boolean] $IsActive,
         [boolean] $IsConfidential,
         [string]  $UserName,
-        [string]  $FullName,
         [string]  $FirstName,
         [string]  $LastName,
         [string]  $MiddleName,
@@ -4422,7 +4461,6 @@ class TeamDynamix_Api_Users_NewUser
         [int[]]   $GroupIDs,
         [int]     $ReferenceID,
         [string]  $AlertEmail,
-        [string]  $ProfileImageFileName,
         [string]  $Company,
         [string]  $Title,
         [string]  $HomePhone,
@@ -4464,7 +4502,9 @@ class TeamDynamix_Api_Users_NewUser
         [System.Nullable[int]]$AuthenticationProviderID,
         [TeamDynamix_Api_CustomAttributes_CustomAttribute[]]$Attributes,
         [string]  $IMProvider,
-        [string]  $IMHandle)
+        [string]  $IMHandle,
+        [int32]   $LocationID,
+        [int32]   $LocationRoomID)
     {
         foreach ($Parameter in ([TeamDynamix_Api_Users_NewUser]::new() | Get-Member -MemberType Property))
         {
@@ -4540,7 +4580,9 @@ class TeamDynamix_Api_Users_NewUser
         [System.Nullable[int]]$AuthenticationProviderID,
         [TeamDynamix_Api_CustomAttributes_CustomAttribute[]]$Attributes,
         [string]  $IMProvider,
-        [string]  $IMHandle)
+        [string]  $IMHandle,
+        [int32]   $LocationID,
+        [int32]   $LocationRoomID)
     {
         foreach ($Parameter in ([TeamDynamix_Api_Users_User]::new() | Get-Member -MemberType Property))
         {
@@ -6702,42 +6744,55 @@ class TeamDynamix_Api_ServiceCatalog_ServiceOfferingListing
 
 class TeamDynamix_Api_ServiceCatalog_Service
 {
-    [int]    $ID
-    [int]    $AppID
-    [string] $AppName
-    [string] $Name
-    [string] $ShortDescription
-    [string] $LongDescription
-    [int]    $CategoryID
-    [string] $CategoryName
-    [string] $FullCategoryText
-    [string] $CompositeName
-    [double] $Order
-    [boolean]$IsActive
-    [boolean]$IsPublic
-    [guid]   $ManagerUid
-    [string] $ManagerFullName
-    [int]    $ManagingGroupID
-    [string] $ManagingGroupName
-    [string] $RequestText
-    [string] $RequestUrl
-    [int]    $RequestApplicationID
-    [string] $RequestApplicationName
-    [boolean]$RequestApplicationIsActive
-    [int]    $RequestTypeID
-    [string] $RequestTypeName
-    [boolean]$RequestTypeIsActive
+    [int]     $ID
+    [int]     $AppID
+    [string]  $AppName
+    [string]  $Name
+    [string]  $ShortDescription
+    [string]  $LongDescription
+    [int]     $CategoryID
+    [string]  $CategoryName
+    [string]  $FullCategoryText
+    [string]  $CompositeName
+    [double]  $Order
+    [boolean] $IsActive
+    [boolean] $IsPublic
+    [datetime]$CreatedDateUtc
+    [guid]    $CreatedUID
+    [string]  $CreatedFullName
+    [datetime]$ModifiedDateUtc
+    [guid]    $ModifiedUID
+    [string]  $ModifiedFullName
+    [guid]    $ManagerUid
+    [string]  $ManagerFullName
+    [int]     $ManagingGroupID
+    [string]  $ManagingGroupName
+    [string]  $RequestText
+    [string]  $RequestUrl
+    [int]     $RequestApplicationID
+    [string]  $RequestApplicationName
+    [boolean] $RequestApplicationIsActive
+    [int]     $RequestTypeID
+    [string]  $RequestTypeName
+    [boolean] $RequestTypeIsActive
     [TeamDynamix_Api_ServiceCatalog_RequestComponent]$RequestTypeComponent
-    [int]    $RequestTypeCategoryID
-    [string] $RequestTypeCategoryName
-    [int]    $MaintenanceScheduleID
-    [string] $MaintenanceScheduleName
-    [int]    $ConfigurationItemID
-    [int]    $ServiceOfferingsCount
+    [int]     $RequestTypeCategoryID
+    [string]  $RequestTypeCategoryName
+    [int]     $MaintenanceScheduleID
+    [string]  $MaintenanceScheduleName
+    [int]     $ConfigurationItemID
+    [int]     $ServiceOfferingsCount
     [TeamDynamix_Api_ServiceCatalog_ServiceOfferingListing[]]$ServiceOfferings
     [TeamDynamix_Api_Attachments_Attachment[]]$Attachments
     [TeamDynamix_Api_CustomAttributes_CustomAttribute[]]$Attributes
-    [string] $Uri
+    [string]  $Uri
+    [string]  $SubmitText
+    [int]     $WorkflowID
+    [string]  $WorkflowName
+    [boolean] $ShouldNotifyResp
+    [boolean] $ShouldNotifyRequestor
+    [int]     $ConfigurationItemAppID
+    [string[]]$Tags
 
     # Default constructor
     TeamDynamix_Api_ServiceCatalog_Service ()
@@ -6762,42 +6817,55 @@ class TeamDynamix_Api_ServiceCatalog_Service
 
     # Full constructor
     TeamDynamix_Api_ServiceCatalog_Service(
-        [int]    $ID,
-        [int]    $AppID,
-        [string] $AppName,
-        [string] $Name,
-        [string] $ShortDescription,
-        [string] $LongDescription,
-        [int]    $CategoryID,
-        [string] $CategoryName,
-        [string] $FullCategoryText,
-        [string] $CompositeName,
-        [double] $Order,
-        [boolean]$IsActive,
-        [boolean]$IsPublic,
-        [guid]   $ManagerUid,
-        [string] $ManagerFullName,
-        [int]    $ManagingGroupID,
-        [string] $ManagingGroupName,
-        [string] $RequestText,
-        [string] $RequestUrl,
-        [int]    $RequestApplicationID,
-        [string] $RequestApplicationName,
-        [boolean]$RequestApplicationIsActive,
-        [int]    $RequestTypeID,
-        [string] $RequestTypeName,
-        [boolean]$RequestTypeIsActive,
+        [int]     $ID,
+        [int]     $AppID,
+        [string]  $AppName,
+        [string]  $Name,
+        [string]  $ShortDescription,
+        [string]  $LongDescription,
+        [int]     $CategoryID,
+        [string]  $CategoryName,
+        [string]  $FullCategoryText,
+        [string]  $CompositeName,
+        [double]  $Order,
+        [boolean] $IsActive,
+        [boolean] $IsPublic,
+        [datetime]$CreatedDateUtc,
+        [guid]    $CreatedUID,
+        [string]  $CreatedFullName,
+        [datetime]$ModifiedDateUtc,
+        [guid]    $ModifiedUID,
+        [string]  $ModifiedFullName,
+        [guid]    $ManagerUid,
+        [string]  $ManagerFullName,
+        [int]     $ManagingGroupID,
+        [string]  $ManagingGroupName,
+        [string]  $RequestText,
+        [string]  $RequestUrl,
+        [int]     $RequestApplicationID,
+        [string]  $RequestApplicationName,
+        [boolean] $RequestApplicationIsActive,
+        [int]     $RequestTypeID,
+        [string]  $RequestTypeName,
+        [boolean] $RequestTypeIsActive,
         [TeamDynamix_Api_ServiceCatalog_RequestComponent]$RequestTypeComponent,
-        [int]    $RequestTypeCategoryID,
-        [string] $RequestTypeCategoryName,
-        [int]    $MaintenanceScheduleID,
-        [string] $MaintenanceScheduleName,
-        [int]    $ConfigurationItemID,
-        [int]    $ServiceOfferingsCount,
+        [int]     $RequestTypeCategoryID,
+        [string]  $RequestTypeCategoryName,
+        [int]     $MaintenanceScheduleID,
+        [string]  $MaintenanceScheduleName,
+        [int]     $ConfigurationItemID,
+        [int]     $ServiceOfferingsCount,
         [TeamDynamix_Api_ServiceCatalog_ServiceOfferingListing[]]$ServiceOfferings,
         [TeamDynamix_Api_Attachments_Attachment[]]$Attachments,
         [TeamDynamix_Api_CustomAttributes_CustomAttribute[]]$Attributes,
-        [string] $Uri)
+        [string]  $Uri,
+        [string]  $SubmitText,
+        [int]     $WorkflowID,
+        [string]  $WorkflowName,
+        [boolean] $ShouldNotifyResp,
+        [boolean] $ShouldNotifyRequestor,
+        [int]     $ConfigurationItemAppID,
+        [string[]]$Tags)
     {
         foreach ($Parameter in ([TeamDynamix_Api_ServiceCatalog_Service]::new() | Get-Member -MemberType Property))
         {
@@ -7032,10 +7100,11 @@ class TeamDynamix_Api_Reporting_ReportInfo
 {
     [int]     $ID
     [string]  $Name
-    [string]  $Description
-    [guid]    $CreatedUid
+    [System.Nullable[guid]]$CreatedUid
     [string]  $CreatedFullName
     [datetime]$CreatedDate
+    [System.Nullable[int]]$OwningGroupID
+    [string]  $OwningGroupName
     [string]  $SystemAppName
     [int]     $PlatformAppID
     [string]  $PlatformAppName
@@ -7068,10 +7137,11 @@ class TeamDynamix_Api_Reporting_ReportInfo
     TeamDynamix_Api_Reporting_ReportInfo(
         [int]     $ID,
         [string]  $Name,
-        [string]  $Description,
         [guid]    $CreatedUid,
         [string]  $CreatedFullName,
         [datetime]$CreatedDate,
+        [System.Nullable[int]]$OwningGroupID,
+        [string]  $OwningGroupName,
         [string]  $SystemAppName,
         [int]     $PlatformAppID,
         [string]  $PlatformAppName,
@@ -7096,6 +7166,7 @@ class TeamDynamix_Api_Reporting_ReportInfo
 class TeamDynamix_Api_Reporting_ReportSearch
 {
     [System.Nullable[guid]]$OwnerUid
+    [System.Nullable[int]] $OwningGroupID
     [string]               $SearchText
     [System.Nullable[int]] $ForAppID
     [string]               $ForApplicationName
@@ -7125,6 +7196,7 @@ class TeamDynamix_Api_Reporting_ReportSearch
     # Full constructor
     TeamDynamix_Api_Reporting_ReportSearch(
         [System.Nullable[guid]]$OwnerUid,
+        [System.Nullable[int]] $OwningGroupID,
         [string]               $SearchText,
         [System.Nullable[int]] $ForAppID,
         [string]               $ForApplicationName,
@@ -7441,6 +7513,8 @@ class TeamDynamix_Api_Tickets_Ticket
     [String]  $ArticleSubject
     [TeamDynamix_Api_KnowledgeBase_ArticleStatus]$ArticleStatus
     [String]  $ArticleCategoryPathNames
+    [Int32]   $ArticleAppID
+    [System.Nullable[Int32]]$ArticleShortcutID
     [Int32]   $AppID
     [TeamDynamix_Api_CustomAttributes_CustomAttribute[]]$Attributes
     [TeamDynamix_Api_Attachments_Attachment[]]$Attachments
@@ -7580,6 +7654,8 @@ class TeamDynamix_Api_Tickets_Ticket
         [String]  $ArticleSubject,
         [TeamDynamix_Api_KnowledgeBase_ArticleStatus]$ArticleStatus,
         [String]  $ArticleCategoryPathNames,
+        [Int32]   $ArticleAppID,
+        [System.Nullable[Int32]]$ArticleShortcutID,
         [Int32]   $AppID,
         [TeamDynamix_Api_CustomAttributes_CustomAttribute[]]$Attributes,
         [TeamDynamix_Api_Attachments_Attachment[]]$Attachments,
@@ -7627,6 +7703,8 @@ class TeamDynamix_Api_Tickets_Ticket
         [Int32]   $LocationRoomID,
         [Int32]   $ServiceID,
         [Int32]   $ServiceOfferingID,
+        [Int32]   $ArticleID,
+        [System.Nullable[Int32]]$ArticleShortcutID,
         [TeamDynamix_Api_CustomAttributes_CustomAttribute[]]$Attributes)
     {
         $this.TypeID             = $TypeID
@@ -7652,6 +7730,8 @@ class TeamDynamix_Api_Tickets_Ticket
         $this.LocationRoomID     = $LocationRoomID
         $this.ServiceID          = $ServiceID
         $this.ServiceOfferingID  = $ServiceOfferingID
+        $this.ArticleID          = $ArticleID
+        $this.ArticleShortcutID  = $ArticleShortcutID
         $this.Attributes         = $Attributes
     }
 
@@ -7978,6 +8058,8 @@ class TD_TeamDynamix_Api_Tickets_Ticket
     [String] $ArticleSubject
     [TeamDynamix_Api_KnowledgeBase_ArticleStatus]$ArticleStatus
     [String] $ArticleCategoryPathNames
+    [Int32]  $ArticleAppID
+    [System.Nullable[Int32]]$ArticleShortcutID
     [Int32]  $AppID
     [TeamDynamix_Api_CustomAttributes_CustomAttribute[]]$Attributes
     [TeamDynamix_Api_Attachments_Attachment[]]$Attachments
@@ -8017,19 +8099,20 @@ class TD_TeamDynamix_Api_Tickets_Ticket
 class TeamDynamix_Api_Tickets_TicketSearch
 {
     [TeamDynamix_Api_Tickets_TicketClass[]]$TicketClassification
-    [Int32]   $MaxResults
+    [Int32]  $MaxResults
     [System.Nullable[Int32]]$TicketID
     [System.Nullable[Int32]]$ParentTicketID
-    [String]  $SearchText
-    [Int32[]] $StatusIDs
-    [Int32[]] $PastStatusIDs
-    [Int32[]] $StatusClassIDs
-    [Int32[]] $PriorityIDs
-    [Int32[]] $UrgencyIDs
-    [Int32[]] $ImpactIDs
-    [Int32[]] $AccountIDs
-    [Int32[]] $TypeIDs
-    [Int32[]] $SourceIDs
+    [String] $SearchText
+    [Int32[]]$FormIDs
+    [Int32[]]$StatusIDs
+    [Int32[]]$PastStatusIDs
+    [Int32[]]$StatusClassIDs
+    [Int32[]]$PriorityIDs
+    [Int32[]]$UrgencyIDs
+    [Int32[]]$ImpactIDs
+    [Int32[]]$AccountIDs
+    [Int32[]]$TypeIDs
+    [Int32[]]$SourceIDs
     [System.Nullable[DateTime]]$UpdatedDateFrom
     [System.Nullable[DateTime]]$UpdatedDateTo
     [System.Nullable[Guid]]$UpdatedByUid
@@ -8055,33 +8138,30 @@ class TeamDynamix_Api_Tickets_TicketSearch
     [System.Nullable[Guid]]$CreatedByUid
     [System.Nullable[Int32]]$DaysOldFrom
     [System.Nullable[Int32]]$DaysOldTo
-    [Guid[]]  $ResponsibilityUids
-    [Int32[]] $ResponsibilityGroupIDs
+    [Guid[]] $ResponsibilityUids
+    [Int32[]]$ResponsibilityGroupIDs
     [System.Nullable[Boolean]]$CompletedTaskResponsibilityFilter
-    [Guid[]]  $PrimaryResponsibilityUids
-    [Int32[]] $PrimaryResponsibilityGroupIDs
-    [Int32[]] $SlaIDs
+    [Guid[]] $PrimaryResponsibilityUids
+    [Int32[]]$PrimaryResponsibilityGroupIDs
+    [Int32[]]$SlaIDs
     [System.Nullable[Boolean]]$SlaViolationStatus
     [TeamDynamix_Api_Tickets_UnmetConstraintSearchType]$SlaUnmetConstraints
-    [Int32[]] $KBArticleIDs
+    [Int32[]]$KBArticleIDs
     [System.Nullable[Boolean]]$AssignmentStatus
     [System.Nullable[Boolean]]$ConvertedToTask
     [System.Nullable[Guid]]$ReviewerUid
-    [System.Nullable[Guid]]$SubmitterUid
-    [System.Nullable[Guid]]$UserAccountsUid
-    [System.Nullable[Guid]]$UserGroupsUid
-    [Guid[]]  $RequestorUids
-    [String]  $RequestorNameSearch
-    [String]  $RequestorEmailSearch
-    [String]  $RequestorPhoneSearch
-    [Int32[]] $ConfigurationItemIDs
-    [Int32[]] $ExcludeConfigurationItemIDs
+    [Guid[]] $RequestorUids
+    [String] $RequestorNameSearch
+    [String] $RequestorEmailSearch
+    [String] $RequestorPhoneSearch
+    [Int32[]]$ConfigurationItemIDs
+    [Int32[]]$ExcludeConfigurationItemIDs
     [System.Nullable[Boolean]]$IsOnHold
     [System.Nullable[DateTime]]$GoesOffHoldFrom
     [System.Nullable[DateTime]]$GoesOffHoldTo
-    [Int32[]] $LocationIDs
-    [Int32[]] $LocationRoomIDs
-    [Int32[]] $ServiceIDs
+    [Int32[]]$LocationIDs
+    [Int32[]]$LocationRoomIDs
+    [Int32[]]$ServiceIDs
     [TeamDynamix_Api_CustomAttributes_CustomAttribute[]]$CustomAttributes
     [System.Nullable[Boolean]]$HasReferenceCode
 
@@ -8109,19 +8189,20 @@ class TeamDynamix_Api_Tickets_TicketSearch
     # Full constructor
     TeamDynamix_Api_Tickets_TicketSearch(
         [TeamDynamix_Api_Tickets_TicketClass[]]$TicketClassification,
-        [Int32]   $MaxResults,
+        [Int32]  $MaxResults,
         [System.Nullable[Int32]]$TicketID,
         [System.Nullable[Int32]]$ParentTicketID,
-        [String]  $SearchText,
-        [Int32[]] $StatusIDs,
-        [Int32[]] $PastStatusIDs,
-        [Int32[]] $StatusClassIDs,
-        [Int32[]] $PriorityIDs,
-        [Int32[]] $UrgencyIDs,
-        [Int32[]] $ImpactIDs,
-        [Int32[]] $AccountIDs,
-        [Int32[]] $TypeIDs,
-        [Int32[]] $SourceIDs,
+        [String] $SearchText,
+        [Int32[]]$FomrIDs,
+        [Int32[]]$StatusIDs,
+        [Int32[]]$PastStatusIDs,
+        [Int32[]]$StatusClassIDs,
+        [Int32[]]$PriorityIDs,
+        [Int32[]]$UrgencyIDs,
+        [Int32[]]$ImpactIDs,
+        [Int32[]]$AccountIDs,
+        [Int32[]]$TypeIDs,
+        [Int32[]]$SourceIDs,
         [System.Nullable[DateTime]]$UpdatedDateFrom,
         [System.Nullable[DateTime]]$UpdatedDateTo,
         [System.Nullable[Guid]]$UpdatedByUid,
@@ -8147,27 +8228,24 @@ class TeamDynamix_Api_Tickets_TicketSearch
         [System.Nullable[Guid]]$CreatedByUid,
         [System.Nullable[Int32]]$DaysOldFrom,
         [System.Nullable[Int32]]$DaysOldTo,
-        [Guid[]]  $ResponsibilityUids,
-        [Int32[]] $ResponsibilityGroupIDs,
+        [Guid[]] $ResponsibilityUids,
+        [Int32[]]$ResponsibilityGroupIDs,
         [System.Nullable[Boolean]]$CompletedTaskResponsibilityFilter,
-        [Guid[]]  $PrimaryResponsibilityUids,
-        [Int32[]] $PrimaryResponsibilityGroupIDs,
-        [Int32[]] $SlaIDs,
+        [Guid[]] $PrimaryResponsibilityUids,
+        [Int32[]]$PrimaryResponsibilityGroupIDs,
+        [Int32[]]$SlaIDs,
         [System.Nullable[Boolean]]$SlaViolationStatus,
         [TeamDynamix_Api_Tickets_UnmetConstraintSearchType]$SlaUnmetConstraints,
-        [Int32[]] $KBArticleIDs,
+        [Int32[]]$KBArticleIDs,
         [System.Nullable[Boolean]]$AssignmentStatus,
         [System.Nullable[Boolean]]$ConvertedToTask,
         [System.Nullable[Guid]]$ReviewerUid,
-        [System.Nullable[Guid]]$SubmitterUid,
-        [System.Nullable[Guid]]$UserAccountsUid,
-        [System.Nullable[Guid]]$UserGroupsUid,
-        [Guid[]]  $RequestorUids,
-        [String]  $RequestorNameSearch,
-        [String]  $RequestorEmailSearch,
-        [String]  $RequestorPhoneSearch,
-        [Int32[]] $ConfigurationItemIDs,
-        [Int32[]] $ExcludeConfigurationItemIDs,
+        [Guid[]] $RequestorUids,
+        [String] $RequestorNameSearch,
+        [String] $RequestorEmailSearch,
+        [String] $RequestorPhoneSearch,
+        [Int32[]]$ConfigurationItemIDs,
+        [Int32[]]$ExcludeConfigurationItemIDs,
         [System.Nullable[Boolean]]$IsOnHold,
         [System.Nullable[DateTime]]$GoesOffHoldFrom,
         [System.Nullable[DateTime]]$GoesOffHoldTo,
@@ -8200,6 +8278,7 @@ class TD_TeamDynamix_Api_Tickets_TicketSearch
     [System.Nullable[Int32]]$TicketID
     [System.Nullable[Int32]]$ParentTicketID
     [String] $SearchText
+    [Int32[]]$FormIDs
     [Int32[]]$StatusIDs
     [Int32[]]$PastStatusIDs
     [Int32[]]$StatusClassIDs
@@ -8246,9 +8325,6 @@ class TD_TeamDynamix_Api_Tickets_TicketSearch
     [System.Nullable[Boolean]]$AssignmentStatus
     [System.Nullable[Boolean]]$ConvertedToTask
     [System.Nullable[Guid]]$ReviewerUid
-    [System.Nullable[Guid]]$SubmitterUid
-    [System.Nullable[Guid]]$UserAccountsUid
-    [System.Nullable[Guid]]$UserGroupsUid
     [Guid[]] $RequestorUids
     [String] $RequestorNameSearch
     [String] $RequestorEmailSearch
@@ -8350,7 +8426,7 @@ class TeamDynamix_Api_Tickets_TicketStatus
     [Double]  $Order
     [TeamDynamix_Api_Statuses_StatusClass]$StatusClass
     [Boolean] $IsActive
-    [Boolean] $RequiresGoesOffHold
+    [Boolean] $RequireGoesOffHold
     [Boolean] $DoNotReopen
     [Boolean] $IsDefault
 
@@ -8385,7 +8461,7 @@ class TeamDynamix_Api_Tickets_TicketStatus
         [Double]  $Order,
         [TeamDynamix_Api_Statuses_StatusClass]$StatusClass,
         [Boolean] $IsActive,
-        [Boolean] $RequiresGoesOffHold,
+        [Boolean] $RequireGoesOffHold,
         [Boolean] $DoNotReopen,
         [Boolean] $IsDefault)
     {
@@ -8482,6 +8558,10 @@ class TeamDynamix_Api_Tickets_TicketType
     [String]  $CategoryName
     [String]  $FullName
     [Boolean] $IsActive
+    [DateTime]$CreatedDate
+    [System.Nullable[Guid]]$CreatedByUid
+    [DateTime]$ModifiedDate
+    [System.Nullable[Guid]]$ModifiedByUid
     [System.Nullable[Guid]]$ReviewerUid
     [String]  $ReviewerFullName
     [String]  $ReviewerEmail
@@ -8494,6 +8574,7 @@ class TeamDynamix_Api_Tickets_TicketType
     [Boolean] $DefaultSLAIsActive
     [Int32]   $WorkspaceID
     [String]  $WorkspaceName
+    [Boolean] $ShouldAlertResponsibleOnTaskClose
 
     # Default constructor
     TeamDynamix_Api_Tickets_TicketType ()
@@ -8527,6 +8608,10 @@ class TeamDynamix_Api_Tickets_TicketType
         [String]  $CategoryName,
         [String]  $FullName,
         [Boolean] $IsActive,
+        [DateTime]$CreatedDate,
+        [System.Nullable[Guid]]$CreatedByUid,
+        [DateTime]$ModifiedDate,
+        [System.Nullable[Guid]]$ModifiedByUid,
         [System.Nullable[Guid]]$ReviewerUid,
         [String]  $ReviewerFullName,
         [String]  $ReviewerEmail,
@@ -8538,7 +8623,8 @@ class TeamDynamix_Api_Tickets_TicketType
         [String]  $DefaultSLAName,
         [Boolean] $DefaultSLAIsActive,
         [Int32]   $WorkspaceID,
-        [String]  $WorkspaceName)
+        [String]  $WorkspaceName,
+        [Boolean] $ShouldAlertResponsibleOnTaskClose)
     {
         foreach ($Parameter in ([TeamDynamix_Api_Tickets_TicketType]::new() | Get-Member -MemberType Property))
         {
@@ -9142,6 +9228,8 @@ class TeamDynamix_Api_Tickets_TicketWorkflow
     [Guid]    $FinalApprovalStepID
     [Guid]    $FinalRejectionStepID
     [TeamDynamix_Api_WorkflowEngine_HistoryEntry[]]$History
+    [Boolean] $NotifyRequestor
+    [Boolean] $NotifyReviewer
 
     # Default constructor
     TeamDynamix_Api_Tickets_TicketWorkflow ()
@@ -9191,7 +9279,9 @@ class TeamDynamix_Api_Tickets_TicketWorkflow
         [System.Nullable[DateTime]]$CompletedDateUtc,
         [Guid]    $FinalApprovalStepID,
         [Guid]    $FinalRejectionStepID,
-        [TeamDynamix_Api_WorkflowEngine_HistoryEntry[]]$History)
+        [TeamDynamix_Api_WorkflowEngine_HistoryEntry[]]$History,
+        [Boolean] $NotifyRequestor,
+        [Boolean] $NotifyReviewer)
     {
         foreach ($Parameter in ([TeamDynamix_Api_Tickets_TicketWorkflow]::new() | Get-Member -MemberType Property))
         {
@@ -9492,6 +9582,7 @@ class TeamDynamix_Api_PriorityFactors_Urgency
 class TeamDynamix_Api_Feed_TicketFeedEntry
 {
     [System.Nullable[Int32]]$NewStatusID
+    [Boolean] $CascadeStatus
     [String]  $Comments
     [String[]]$Notify
     [Boolean] $IsPrivate
@@ -9521,6 +9612,7 @@ class TeamDynamix_Api_Feed_TicketFeedEntry
     # Full constructor
     TeamDynamix_Api_Feed_TicketFeedEntry(
         [System.Nullable[Int32]]$NewStatusID,
+        [Boolean] $CascadeStatus,
         [String]  $Comments,
         [String[]]$Notify,
         [Boolean] $IsPrivate,
@@ -11724,6 +11816,7 @@ class TeamDynamix_Api_Plans_Plan
     [Int32]   $TaskCount
     [Int32]   $MyTaskCount
     [Boolean] $IsCheckedOut
+    [Boolean] $AnyNewTaskAssignments
     [DateTime]$CheckedOutDate
     [String]  $CheckedOutUID
     [String]  $CheckedOutFullName
@@ -11787,6 +11880,7 @@ class TeamDynamix_Api_Plans_Plan
         [Int32]   $TaskCount,
         [Int32]   $MyTaskCount,
         [Boolean] $IsCheckedOut,
+        [Boolean] $AnyNewTaskAssignments,
         [DateTime]$CheckedOutDate,
         [String]  $CheckedOutUID,
         [String]  $CheckedOutFullName,
@@ -12235,6 +12329,7 @@ class TeamDynamix_Api_PlanUpdates
     [TeamDynamix_Api_Plans_Task]$Plan
     [TeamDynamix_Api_Plans_Task[]]$Tasks
     [Boolean]$Succeeded
+    [Boolean]$AnyNewTaskAssignments
     [Int32]  $ErrorID
     [String] $Message
 
@@ -12274,6 +12369,7 @@ class TeamDynamix_Api_PlanUpdates
         [TeamDynamix_Api_Plans_Task]$Plan,
         [TeamDynamix_Api_Plans_Task[]]$Tasks,
         [Boolean]$Succeeded,
+        [Boolean]$AnyNewTaskAssignments,
         [Int32]  $ErrorID,
         [String] $Message)
     {
@@ -12447,6 +12543,7 @@ class TeamDynamix_Api_Plans_TaskChanges
 {
     [TeamDynamix_Api_Plans_ApplicationIdentifier]$AppId
     [TeamDynamix_Api_Plans_Task]$Task
+    [System.Nullable[Boolean]]  $NotifyNewResources
 
     # Default constructor
     TeamDynamix_Api_Plans_TaskChanges ()
@@ -12482,7 +12579,8 @@ class TeamDynamix_Api_Plans_TaskChanges
     # Full constructor
     TeamDynamix_Api_Plans_TaskChanges(
         [TeamDynamix_Api_Plans_ApplicationIdentifier]$AppId,
-        [TeamDynamix_Api_Plans_Task]$Task)
+        [TeamDynamix_Api_Plans_Task]$Task,
+        [System.Nullable[Boolean]]  $NotifyNewResources)
     {
         foreach ($Parameter in ([TeamDynamix_Api_Plans_TaskChanges]::new() | Get-Member -MemberType Property))
         {
@@ -14266,45 +14364,58 @@ class TeamDynamix_Api_Users_UserAccountsBulkManagementParameters
 
 class TeamDynamix_Api_ServiceCatalog_ServiceOffering
 {
-    [Int32]  $ID
-    [Int32]  $AppID
-    [String] $AppName
-    [String] $Name
-    [String] $ShortDescription
-    [String] $LongDescription
-    [Int32]  $ParentServiceID
-    [String] $ParentServiceName
-    [Int32]  $CategoryID
-    [String] $CategoryName
-    [String] $FullCategoryText
-    [String] $CompositeName
-    [Double] $Order
-    [Boolean]$IsActive
-    [Boolean]$IsPublic
-    [Guid]   $ManagerUid
-    [String] $ManagerFullName
-    [Int32]  $ManagingGroupID
-    [String] $ManagingGroupName
-    [String] $RequestText
-    [String] $RequestUrl
-    [Int32]  $RequestApplicationID
-    [String] $RequestApplicationName
-    [Boolean]$RequestApplicationIsActive
-    [Int32]  $RequestTypeID
-    [String] $RequestTypeName
-    [Boolean]$RequestTypeIsActive
+    [Int32]   $ID
+    [Int32]   $AppID
+    [String]  $AppName
+    [String]  $Name
+    [String]  $ShortDescription
+    [String]  $LongDescription
+    [Int32]   $ParentServiceID
+    [String]  $ParentServiceName
+    [Int32]   $CategoryID
+    [String]  $CategoryName
+    [String]  $FullCategoryText
+    [String]  $CompositeName
+    [Double]  $Order
+    [Boolean] $IsActive
+    [Boolean] $IsPublic
+    [Int32]   $IconCharCode
+    [DateTime]$CreatedDateUtc
+    [Guid]    $CreatedUID
+    [String]  $CreatedFullName
+    [DateTime]$ModifiedDateUtc
+    [Guid]    $ModifiedUID
+    [String]  $ModifiedFullName
+    [Guid]    $ManagerUid
+    [String]  $ManagerFullName
+    [Int32]   $ManagingGroupID
+    [String]  $ManagingGroupName
+    [String]  $RequestText
+    [String]  $SubmitText
+    [String]  $RequestUrl
+    [Int32]   $RequestApplicationID
+    [String]  $RequestApplicationName
+    [Boolean] $RequestApplicationIsActive
+    [Int32]   $RequestTypeID
+    [String]  $RequestTypeName
+    [Boolean] $RequestTypeIsActive
     [TeamDynamix_Api_ServiceCatalog_RequestComponent]$RequestTypeComponent
-    [Int32]  $RequestTypeCategoryID
-    [String] $RequestTypeCategoryName
-    [Int32]  $MaintenanceScheduleID
-    [String] $MaintenanceScheduleName
-    [Int32]  $ConfigurationItemID
-    [String] $ConfigurationItemName
-    [Int32]  $ConfigurationItemAppID
-    [String] $ConfigurationItemAppName
+    [Int32]   $RequestTypeCategoryID
+    [String]  $RequestTypeCategoryName
+    [Int32]   $WorkflowID
+    [String]  $WorkflowName
+    [Boolean] $ShouldNotifyResp
+    [Boolean] $ShouldNotifyRequestor
+    [Int32]   $MaintenanceScheduleID
+    [String]  $MaintenanceScheduleName
+    [Int32]   $ConfigurationItemID
+    [String]  $ConfigurationItemName
+    [Int32]   $ConfigurationItemAppID
+    [String]  $ConfigurationItemAppName
+    [String[]]$Tags
     [TeamDynamix_Api_Attachments_Attachment[]]$Attachments
     [TeamDynamix_Api_CustomAttributes_CustomAttribute[]]$Attributes
-    [String] $Uri
+    [String]  $Uri
 
     # Default constructor
     TeamDynamix_Api_ServiceCatalog_ServiceOffering ()
@@ -14339,45 +14450,57 @@ class TeamDynamix_Api_ServiceCatalog_ServiceOffering
 
     # Full constructor
     TeamDynamix_Api_ServiceCatalog_ServiceOffering(
-        [Int32]  $ID,
-        [Int32]  $AppID,
-        [String] $AppName,
-        [String] $Name,
-        [String] $ShortDescription,
-        [String] $LongDescription,
-        [Int32]  $ParentServiceID,
-        [String] $ParentServiceName,
-        [Int32]  $CategoryID,
-        [String] $CategoryName,
-        [String] $FullCategoryText,
-        [String] $CompositeName,
-        [Double] $Order,
-        [Boolean]$IsActive,
-        [Boolean]$IsPublic,
-        [Guid]   $ManagerUid,
-        [String] $ManagerFullName,
-        [Int32]  $ManagingGroupID,
-        [String] $ManagingGroupName,
-        [String] $RequestText,
-        [String] $RequestUrl,
-        [Int32]  $RequestApplicationID,
-        [String] $RequestApplicationName,
-        [Boolean]$RequestApplicationIsActive,
-        [Int32]  $RequestTypeID,
-        [String] $RequestTypeName,
-        [Boolean]$RequestTypeIsActive,
+        [Int32]   $ID,
+        [Int32]   $AppID,
+        [String]  $AppName,
+        [String]  $Name,
+        [String]  $ShortDescription,
+        [String]  $LongDescription,
+        [Int32]   $ParentServiceID,
+        [String]  $ParentServiceName,
+        [Int32]   $CategoryID,
+        [String]  $CategoryName,
+        [String]  $FullCategoryText,
+        [String]  $CompositeName,
+        [Double]  $Order,
+        [Boolean] $IsActive,
+        [Boolean] $IsPublic,
+        [Int32]   $IconCharCode,
+        [DateTime]$CreatedDateUtc,
+        [Guid]    $CreatedUID,
+        [String]  $CreatedFullName,
+        [DateTime]$ModifiedDateUtc,
+        [Guid]    $ModifiedUID,
+        [String]  $ModifiedFullName,
+        [Guid]    $ManagerUid,
+        [String]  $ManagerFullName,
+        [Int32]   $ManagingGroupID,
+        [String]  $ManagingGroupName,
+        [String]  $RequestText,
+        [String]  $RequestUrl,
+        [Int32]   $RequestApplicationID,
+        [String]  $RequestApplicationName,
+        [Boolean] $RequestApplicationIsActive,
+        [Int32]   $RequestTypeID,
+        [String]  $RequestTypeName,
+        [Boolean] $RequestTypeIsActive,
         [TeamDynamix_Api_ServiceCatalog_RequestComponent]$RequestTypeComponent,
-        [Int32]  $RequestTypeCategoryID,
-        [String] $RequestTypeCategoryName,
-        [Int32]  $MaintenanceScheduleID,
-        [String] $MaintenanceScheduleName,
-        [Int32]  $ConfigurationItemID,
-        [String] $ConfigurationItemName,
-        [Int32]  $ConfigurationItemAppID,
-        [String] $ConfigurationItemAppName,
+        [Int32]   $RequestTypeCategoryID,
+        [String]  $RequestTypeCategoryName,
+        [Int32]   $WorkflowID,
+        [String]  $WorkflowName,
+        [Boolean] $ShouldNotifyResp,
+        [Boolean] $ShouldNotifyRequestor,
+        [Int32]   $MaintenanceScheduleID,
+        [String]  $MaintenanceScheduleName,
+        [Int32]   $ConfigurationItemID,
+        [String]  $ConfigurationItemName,
+        [Int32]   $ConfigurationItemAppID,
+        [String]  $ConfigurationItemAppName,
+        [String[]]$Tags,
         [TeamDynamix_Api_Attachments_Attachment[]]$Attachments,
         [TeamDynamix_Api_CustomAttributes_CustomAttribute[]]$Attributes,
-        [String] $Uri)
+        [String]  $Uri)
     {
         foreach ($Parameter in ([TeamDynamix_Api_ServiceCatalog_ServiceOffering]::new() | Get-Member -MemberType Property))
         {
@@ -14445,6 +14568,1979 @@ class TeamDynamix_Api_FunctionalRole_FunctionalRole
         [String]$Name)
     {
         foreach ($Parameter in ([TeamDynamix_Api_FunctionalRole_FunctionalRole]::new() | Get-Member -MemberType Property))
+        {
+            if ($Parameter.Definition -notmatch '^datetime')
+            {
+                $this.$($Parameter.Name) = (Get-Variable -Name $Parameter.Name).Value
+            }
+            else
+            {
+                if ($Parameter.Definition -match '^datetime\[\]') # Handle array of dates
+                {
+                    if ($null -ne $this.$($Parameter.Name))
+                    {
+                        $this.$($Parameter.Name) = (Get-Variable -Name $Parameter.Name).Value | ForEach-Object {$_ | Get-Date}
+                    }
+                }
+                else # Single date
+                {
+                    $this.$($Parameter.Name) = (Get-Variable -Name $Parameter.Name).Value | Get-Date
+                }
+            }
+        }
+    }
+}
+
+class TeamDynamix_Api_Assets_Contract
+{
+    [Int32]   $ID
+    [Int32]   $AppID
+    [String]  $AppName
+    [String]  $ContractNumber
+    [Double]  $ContractPrice
+    [String]  $Description
+    [Int32]   $ProviderID
+    [String]  $ProviderName
+    [Boolean] $IsFixedModel
+    [String]  $DateModel
+    [DateTime]$StartDate
+    [DateTime]$EndDate
+    [Int32]   $SlidingDefaultDuration
+    [TeamDynamix_Api_Assets_SlidingContractDateUnit]$SlidingDefaultDateUnit
+    [String]  $SlidingDefaultDateUnitName
+    [TeamDynamix_Api_Assets_ContractType]$TypeID
+    [String]  $TypeName
+    [Int32]   $AccountID
+    [String]  $AccountName
+    [DateTime]$CreatedDate
+    [String]  $CreatedUID
+    [String]  $CreatedFullName
+    [DateTime]$ModifiedDate
+    [String]  $ModifiedUID
+    [String]  $ModifiedFullName
+    [Int32]   $AssetsCount
+    [TeamDynamix_Api_Attachments_Attachment[]]$Attachments
+    [TeamDynamix_Api_CustomAttributes_CustomAttribute[]]$Attributes
+    [Boolean] $IsActive
+
+    # Default constructor
+    TeamDynamix_Api_Assets_Contract ()
+    {
+    }
+
+    # Constructor from object (such as a return from REST API)
+    TeamDynamix_Api_Assets_Contract ([psobject]$Contract)
+    {
+        foreach ($Parameter in ([TeamDynamix_Api_Assets_Contract]::new() | Get-Member -MemberType Property))
+        {
+            if ($Parameter.Definition -notmatch '^datetime')
+            {
+                $this.$($Parameter.Name) = $Contract.$($Parameter.Name)
+            }
+            else
+            {
+                if ($Parameter.Definition -match '^datetime\[\]') # Handle array of dates
+                {
+                    if ($null -ne $this.$($Parameter.Name))
+                    {
+                        $this.$($Parameter.Name) = $Contract.$($Parameter.Name) | ForEach-Object {$_ | Get-Date}
+                    }
+                }
+                else # Single date
+                {
+                    $this.$($Parameter.Name) = $Contract.$($Parameter.Name) | Get-Date
+                }
+            }
+        }
+    }
+
+    # Full constructor
+    TeamDynamix_Api_Assets_Contract(
+        [Int32]   $ID,
+        [Int32]   $AppID,
+        [String]  $AppName,
+        [String]  $ContractNumber,
+        [Double]  $ContractPrice,
+        [String]  $Description,
+        [Int32]   $ProviderID,
+        [String]  $ProviderName,
+        [Boolean] $IsFixedModel,
+        [String]  $DateModel,
+        [DateTime]$StartDate,
+        [DateTime]$EndDate,
+        [Int32]   $SlidingDefaultDuration,
+        [TeamDynamix_Api_Assets_SlidingContractDateUnit]$SlidingDefaultDateUnit,
+        [String]  $SlidingDefaultDateUnitName,
+        [TeamDynamix_Api_Assets_ContractType]$TypeID,
+        [String]  $TypeName,
+        [Int32]   $AccountID,
+        [String]  $AccountName,
+        [DateTime]$CreatedDate,
+        [String]  $CreatedUID,
+        [String]  $CreatedFullName,
+        [DateTime]$ModifiedDate,
+        [String]  $ModifiedUID,
+        [String]  $ModifiedFullName,
+        [Int32]   $AssetsCount,
+        [TeamDynamix_Api_Attachments_Attachment[]]$Attachments,
+        [TeamDynamix_Api_CustomAttributes_CustomAttribute[]]$Attributes,
+        [Boolean] $IsActive)
+    {
+        foreach ($Parameter in ([TeamDynamix_Api_Assets_Contract]::new() | Get-Member -MemberType Property))
+        {
+            if ($Parameter.Definition -notmatch '^datetime')
+            {
+                $this.$($Parameter.Name) = (Get-Variable -Name $Parameter.Name).Value
+            }
+            else
+            {
+                if ($Parameter.Definition -match '^datetime\[\]') # Handle array of dates
+                {
+                    if ($null -ne $this.$($Parameter.Name))
+                    {
+                        $this.$($Parameter.Name) = (Get-Variable -Name $Parameter.Name).Value | ForEach-Object {$_ | Get-Date}
+                    }
+                }
+                else # Single date
+                {
+                    $this.$($Parameter.Name) = (Get-Variable -Name $Parameter.Name).Value | Get-Date
+                }
+            }
+        }
+    }
+
+    # Convenience constructor for editable parameters
+    TeamDynamix_Api_Assets_Contract(
+        [String]  $ContractNumber,
+        [Double]  $ContractPrice,
+        [String]  $Description,
+        [Int32]   $ProviderID,
+        [Boolean] $IsFixedModel,
+        [DateTime]$StartDate,
+        [DateTime]$EndDate,
+        [Int32]   $SlidingDefaultDuration,
+        [TeamDynamix_Api_Assets_SlidingContractDateUnit]$SlidingDefaultDateUnit,
+        [TeamDynamix_Api_Assets_ContractType]$TypeID,
+        [Int32]   $AccountID,
+        [TeamDynamix_Api_CustomAttributes_CustomAttribute[]]$Attributes,
+        [Boolean] $IsActive)
+    {
+        $this.ContractNumber         = $ContractNumber
+        $this.ContractPrice          = $ContractPrice
+        $this.Description            = $Description
+        $this.ProviderID             = $ProviderID
+        $this.IsFixedModel           = $IsFixedModel
+        $this.StartDate              = $StartDate              | Get-Date
+        $this.EndDate                = $EndDate                | Get-Date
+        $this.SlidingDefaultDuration = $SlidingDefaultDuration
+        $this.SlidingDefaultDateUnit = $SlidingDefaultDateUnit
+        $this.TypeID                 = $TypeID
+        $this.AccountID              = $AccountID
+        $this.Attributes             = $Attributes
+        $this.IsActive               = $IsActive
+    }
+
+    # Methods
+    [void] AddCustomAttribute (
+        [TeamDynamix_Api_CustomAttributes_CustomAttribute[]]$Attributes)
+    {
+        foreach ($CustomAttribute in $Attributes)
+        {
+            # Check to see if attribute is already present
+            $FoundAttribute = $this.Attributes | Where-Object ID -eq $CustomAttribute.ID
+            if (-not $FoundAttribute)
+            {
+                # Add attribute
+                $this.Attributes += $CustomAttribute
+            }
+            else
+            {
+                Write-ActivityHistory -MessageChannel 'Error' -Message "Attribute $($FoundAttribute.Name) is already present on $this.Name."
+            }
+        }
+    }
+
+    [void] AddCustomAttribute (
+        [TeamDynamix_Api_CustomAttributes_CustomAttribute[]]$Attributes,
+        [boolean]$Overwrite)
+    {
+        foreach ($CustomAttribute in $Attributes)
+        {
+            # Check to see if attribute is already present
+            $FoundAttribute = $this.Attributes | Where-Object ID -eq $CustomAttribute.ID
+            # Remove if Overwrite is set and the attribute is present
+            if ($FoundAttribute -and $Overwrite)
+            {
+                $this.RemoveCustomAttribute($CustomAttribute.ID)
+            }
+            if ((-not $FoundAttribute) -or $Overwrite)
+            {
+                # Add attribute
+                $this.Attributes += $CustomAttribute
+            }
+            else
+            {
+                Write-ActivityHistory -MessageChannel 'Error' -Message "Attribute $($FoundAttribute.Name) is already present on $this.Name."
+            }
+        }
+    }
+
+    [void] AddCustomAttribute (
+        [int] $AttributeID,
+        [Int] $AttributeValue)
+    {
+        # Check to see if attribute is already present on the asset
+        $FoundAttribute = $this.Attributes | Where-Object ID -eq $AttributeID
+        if (-not $FoundAttribute)
+        {
+            # Add attribute
+            $this.Attributes += [TeamDynamix_Api_CustomAttributes_CustomAttribute]::new($AttributeID,$AttributeValue)
+        }
+        else
+        {
+            Write-ActivityHistory -MessageChannel 'Error' -Message "Attribute $($FoundAttribute.Name) is already present on $this.Name."
+        }
+    }
+
+    [void] AddCustomAttribute (
+        [int]    $AttributeID,
+        [Int]    $AttributeValue,
+        [boolean]$Overwrite)
+    {
+        # Check to see if attribute is already present
+        $FoundAttribute = $this.Attributes | Where-Object ID -eq $AttributeID
+        # Remove if Overwrite is set and the attribute is present
+        if ($FoundAttribute -and $Overwrite)
+        {
+            $this.RemoveCustomAttribute($AttributeID)
+        }
+        if ((-not $FoundAttribute) -or $Overwrite)
+        {
+            # Add attribute
+            $this.Attributes += [TeamDynamix_Api_CustomAttributes_CustomAttribute]::new($AttributeID,$AttributeValue)
+        }
+        else
+        {
+            Write-ActivityHistory -MessageChannel 'Error' -Message "Attribute $($FoundAttribute.Name) is already present on $this.Name."
+        }
+    }
+
+    [void] AddCustomAttribute (
+        [string]   $AttributeName,
+        [string]   $AttributeValue,
+        [int]      $AppID,
+        [hashtable]$TDAuthentication,
+        [EnvironmentChoices]$Environment)
+    {
+        # Check to see if attribute is already present
+        $FoundAttribute = $this.Attributes | Where-Object Name -eq $AttributeName
+        if (-not $FoundAttribute)
+        {
+            # Add attribute
+            $this.Attributes += [TeamDynamix_Api_CustomAttributes_CustomAttribute]::new($AttributeName,$AttributeValue,'Asset',$AppID,$TDAuthentication,$Environment)
+        }
+        else
+        {
+            Write-ActivityHistory -MessageChannel 'Error' -Message "Attribute $($FoundAttribute.Name) is already present on $this.Name."
+        }
+    }
+
+    [void] AddCustomAttribute (
+        [string]   $AttributeName,
+        [string]   $AttributeValue,
+        [boolean]  $Overwrite,
+        [int]      $AppID,
+        [hashtable]$TDAuthentication,
+        [EnvironmentChoices]$Environment)
+    {
+        # Check to see if attribute is already present
+        $FoundAttribute = $this.Attributes | Where-Object Name -eq $AttributeName
+        # Remove if Overwrite is set and the attribute is present
+        if ($FoundAttribute -and $Overwrite)
+        {
+            $this.RemoveCustomAttribute($FoundAttribute.ID)
+        }
+        if ((-not $FoundAttribute) -or $Overwrite)
+        {
+            # Add attribute
+            $this.Attributes += [TeamDynamix_Api_CustomAttributes_CustomAttribute]::new($AttributeName,$AttributeValue,'Asset',$AppID,$TDAuthentication,$Environment)
+        }
+        else
+        {
+            Write-ActivityHistory -MessageChannel 'Error' -Message "Attribute $($FoundAttribute.Name) is already present on $this.Name."
+        }
+    }
+
+    [void] RemoveCustomAttribute (
+        [int] $AttributeID)
+    {
+        $UpdatedAttributeList = $this.Attributes | Where-Object ID -ne $AttributeID
+        $this.Attributes = $UpdatedAttributeList
+    }
+
+    [void] RemoveCustomAttribute (
+        [string] $AttributeName)
+    {
+        $UpdatedAttributeList = $this.Attributes | Where-Object Name -ne $AttributeName
+        $this.Attributes = $UpdatedAttributeList
+    }
+}
+
+class TD_TeamDynamix_Api_Assets_Contract
+{
+    [Int32]  $ID
+    [Int32]  $AppID
+    [String] $AppName
+    [String] $ContractNumber
+    [Double] $ContractPrice
+    [String] $Description
+    [Int32]  $ProviderID
+    [String] $ProviderName
+    [Boolean]$IsFixedModel
+    [String] $DateModel
+    [String] $StartDate
+    [String] $EndDate
+    [Int32]  $SlidingDefaultDuration
+    [TeamDynamix_Api_Assets_SlidingContractDateUnit]$SlidingDefaultDateUnit
+    [String] $SlidingDefaultDateUnitName
+    [TeamDynamix_Api_Assets_ContractType]$TypeID
+    [String] $TypeName
+    [Int32]  $AccountID
+    [String] $AccountName
+    [String] $CreatedDate
+    [String] $CreatedUID
+    [String] $CreatedFullName
+    [String] $ModifiedDate
+    [String] $ModifiedUID
+    [String] $ModifiedFullName
+    [Int32]  $AssetsCount
+    [TeamDynamix_Api_Attachments_Attachment[]]$Attachments
+    [TeamDynamix_Api_CustomAttributes_CustomAttribute[]]$Attributes
+    [Boolean]$IsActive
+
+    # Constructor from object (such as a return from REST API)
+    TD_TeamDynamix_Api_Assets_Contract ([psobject]$Contract)
+    {
+        foreach ($Parameter in ([TeamDynamix_Api_Assets_Contract]::new() | Get-Member -MemberType Property))
+        {
+            if ($Parameter.Definition -notmatch '^datetime')
+            {
+                $this.$($Parameter.Name) = $Contract.$($Parameter.Name)
+            }
+            else
+            {
+                if ($Parameter.Definition -match '^datetime\[\]') # Handle array of dates
+                {
+                    if ($null -ne $this.$($Parameter.Name))
+                    {
+                        $this.$($Parameter.Name) = $Contract.$($Parameter.Name) | ForEach-Object {$_ | Get-Date -Format o}
+                    }
+                }
+                else # Single date
+                {
+                    $this.$($Parameter.Name) = $Contract.$($Parameter.Name) | Get-Date -Format o
+                }
+            }
+        }
+    }
+}
+
+class TeamDynamix_Api_Assets_ContractSearch
+{
+    [String]  $NameLike
+    [Int32[]] $ProviderIDs
+    [DateTime]$StartDateFrom
+    [DateTime]$StartDateTo
+    [DateTime]$EndDateFrom
+    [DateTime]$EndDateTo
+    [Int32[]] $AssetIDs
+    [Int32[]] $ExcludeAssetIDs
+    [Double]  $ContractPriceFrom
+    [Double]  $ContractPriceTo
+    [TeamDynamix_Api_Assets_ContractType[]]$ContractTypeIDs
+    [Int32[]] $AccountIDs
+    [Boolean] $IsActive
+    [Boolean] $IsFixedDateModel
+    [TeamDynamix_Api_CustomAttributes_CustomAttribute[]]$CustomAttributes
+    [Int32]   $MaxResults
+
+    # Default constructor
+    TeamDynamix_Api_Assets_ContractSearch ()
+    {
+    }
+
+    # Constructor from object (such as a return from REST API)
+    TeamDynamix_Api_Assets_ContractSearch ([psobject]$ContractSearch)
+    {
+        foreach ($Parameter in ([TeamDynamix_Api_Assets_ContractSearch]::new() | Get-Member -MemberType Property))
+        {
+            if ($Parameter.Definition -notmatch '^datetime')
+            {
+                $this.$($Parameter.Name) = $ContractSearch.$($Parameter.Name)
+            }
+            else
+            {
+                if ($Parameter.Definition -match '^datetime\[\]') # Handle array of dates
+                {
+                    if ($null -ne $this.$($Parameter.Name))
+                    {
+                        $this.$($Parameter.Name) = $ContractSearch.$($Parameter.Name) | ForEach-Object {$_ | Get-Date}
+                    }
+                }
+                else # Single date
+                {
+                    $this.$($Parameter.Name) = $ContractSearch.$($Parameter.Name) | Get-Date
+                }
+            }
+        }
+    }
+
+    # Full constructor
+    TeamDynamix_Api_Assets_ContractSearch(
+        [String]  $NameLike,
+        [Int32[]] $ProviderIDs,
+        [DateTime]$StartDateFrom,
+        [DateTime]$StartDateTo,
+        [DateTime]$EndDateFrom,
+        [DateTime]$EndDateTo,
+        [Int32[]] $AssetIDs,
+        [Int32[]] $ExcludeAssetIDs,
+        [Double]  $ContractPriceFrom,
+        [Double]  $ContractPriceTo,
+        [TeamDynamix_Api_Assets_ContractType[]]$ContractTypeIDs,
+        [Int32[]] $AccountIDs,
+        [Boolean] $IsActive,
+        [Boolean] $IsFixedDateModel,
+        [TeamDynamix_Api_CustomAttributes_CustomAttribute[]]$CustomAttributes,
+        [Int32]   $MaxResults)
+    {
+        foreach ($Parameter in ([TeamDynamix_Api_Assets_ContractSearch]::new() | Get-Member -MemberType Property))
+        {
+            if ($Parameter.Definition -notmatch '^datetime')
+            {
+                $this.$($Parameter.Name) = (Get-Variable -Name $Parameter.Name).Value
+            }
+            else
+            {
+                if ($Parameter.Definition -match '^datetime\[\]') # Handle array of dates
+                {
+                    if ($null -ne $this.$($Parameter.Name))
+                    {
+                        $this.$($Parameter.Name) = (Get-Variable -Name $Parameter.Name).Value | ForEach-Object {$_ | Get-Date}
+                    }
+                }
+                else # Single date
+                {
+                    $this.$($Parameter.Name) = (Get-Variable -Name $Parameter.Name).Value | Get-Date
+                }
+            }
+        }
+    }
+}
+
+class TeamDynamix_Api_Permissions_Permission
+{
+    [Boolean]$InheritPermissions
+    [Boolean]$IsPublic
+    [Int32[]]$GroupIDs
+    [Boolean]$AllowlistGroups
+
+    # Default constructor
+    TeamDynamix_Api_Permissions_Permission ()
+    {
+    }
+
+    # Constructor from object (such as a return from REST API)
+    TeamDynamix_Api_Permissions_Permission ([psobject]$Permission)
+    {
+        foreach ($Parameter in ([TeamDynamix_Api_Permissions_Permission]::new() | Get-Member -MemberType Property))
+        {
+            if ($Parameter.Definition -notmatch '^datetime')
+            {
+                $this.$($Parameter.Name) = $Permission.$($Parameter.Name)
+            }
+            else
+            {
+                if ($Parameter.Definition -match '^datetime\[\]') # Handle array of dates
+                {
+                    if ($null -ne $this.$($Parameter.Name))
+                    {
+                        $this.$($Parameter.Name) = $Permission.$($Parameter.Name) | ForEach-Object {$_ | Get-Date}
+                    }
+                }
+                else # Single date
+                {
+                    $this.$($Parameter.Name) = $Permission.$($Parameter.Name) | Get-Date
+                }
+            }
+        }
+    }
+
+    # Full constructor
+    TeamDynamix_Api_Permissions_Permission(
+        [Boolean]$InheritPermissions,
+        [Boolean]$IsPublic,
+        [Int32[]]$GroupIDs,
+        [Boolean]$AllowlistGroups)
+    {
+        foreach ($Parameter in ([TeamDynamix_Api_Permissions_Permission]::new() | Get-Member -MemberType Property))
+        {
+            if ($Parameter.Definition -notmatch '^datetime')
+            {
+                $this.$($Parameter.Name) = (Get-Variable -Name $Parameter.Name).Value
+            }
+            else
+            {
+                if ($Parameter.Definition -match '^datetime\[\]') # Handle array of dates
+                {
+                    if ($null -ne $this.$($Parameter.Name))
+                    {
+                        $this.$($Parameter.Name) = (Get-Variable -Name $Parameter.Name).Value | ForEach-Object {$_ | Get-Date}
+                    }
+                }
+                else # Single date
+                {
+                    $this.$($Parameter.Name) = (Get-Variable -Name $Parameter.Name).Value | Get-Date
+                }
+            }
+        }
+    }
+}
+
+class TeamDynamix_Api_ServiceCatalog_ServiceCategory
+{
+    [Int32]   $ID
+    [Int32]   $AppID
+    [String]  $AppName
+    [Int32]   $ParentID
+    [String]  $ParentName
+    [Double]  $Order
+    [String]  $Name
+    [String]  $Description
+    [Boolean] $IsActive
+    [Int32]   $IconCharCode
+    [String]  $IconColor
+    [Boolean] $IsPublic
+    [Boolean] $AllowlistGroups
+    [Boolean] $InheritPermissions
+    [DateTime]$CreatedDate
+    [Guid]    $CreatedUid
+    [String]  $CreatedFullName
+    [DateTime]$ModifiedDate
+    [Guid]    $ModifiedUid
+    [String]  $ModifiedFullName
+    [TeamDynamix_Api_ServiceCatalog_ServiceCategory[]]$Subcategories
+
+    # Default constructor
+    TeamDynamix_Api_ServiceCatalog_ServiceCategory ()
+    {
+    }
+
+    # Constructor from object (such as a return from REST API)
+    TeamDynamix_Api_ServiceCatalog_ServiceCategory ([psobject]$ServiceCategory)
+    {
+        foreach ($Parameter in ([TeamDynamix_Api_ServiceCatalog_ServiceCategory]::new() | Get-Member -MemberType Property))
+        {
+            if ($Parameter.Definition -notmatch '^datetime')
+            {
+                $this.$($Parameter.Name) = $ServiceCategory.$($Parameter.Name)
+            }
+            else
+            {
+                if ($Parameter.Definition -match '^datetime\[\]') # Handle array of dates
+                {
+                    if ($null -ne $this.$($Parameter.Name))
+                    {
+                        $this.$($Parameter.Name) = $ServiceCategory.$($Parameter.Name) | ForEach-Object {$_ | Get-Date}
+                    }
+                }
+                else # Single date
+                {
+                    $this.$($Parameter.Name) = $ServiceCategory.$($Parameter.Name) | Get-Date
+                }
+            }
+        }
+    }
+
+    # Full constructor
+    TeamDynamix_Api_ServiceCatalog_ServiceCategory(
+        [Int32]   $ID,
+        [Int32]   $AppID,
+        [String]  $AppName,
+        [Int32]   $ParentID,
+        [String]  $ParentName,
+        [Double]  $Order,
+        [String]  $Name,
+        [String]  $Description,
+        [Boolean] $IsActive,
+        [Int32]   $IconCharCode,
+        [String]  $IconColor,
+        [Boolean] $IsPublic,
+        [Boolean] $AllowlistGroups,
+        [Boolean] $InheritPermissions,
+        [DateTime]$CreatedDate,
+        [Guid]    $CreatedUid,
+        [String]  $CreatedFullName,
+        [DateTime]$ModifiedDate,
+        [Guid]    $ModifiedUid,
+        [String]  $ModifiedFullName,
+        [TeamDynamix_Api_ServiceCatalog_ServiceCategory[]]$Subcategories)
+    {
+        foreach ($Parameter in ([TeamDynamix_Api_ServiceCatalog_ServiceCategory]::new() | Get-Member -MemberType Property))
+        {
+            if ($Parameter.Definition -notmatch '^datetime')
+            {
+                $this.$($Parameter.Name) = (Get-Variable -Name $Parameter.Name).Value
+            }
+            else
+            {
+                if ($Parameter.Definition -match '^datetime\[\]') # Handle array of dates
+                {
+                    if ($null -ne $this.$($Parameter.Name))
+                    {
+                        $this.$($Parameter.Name) = (Get-Variable -Name $Parameter.Name).Value | ForEach-Object {$_ | Get-Date}
+                    }
+                }
+                else # Single date
+                {
+                    $this.$($Parameter.Name) = (Get-Variable -Name $Parameter.Name).Value | Get-Date
+                }
+            }
+        }
+    }
+
+    # Convenience constructor for editable parameters
+    TeamDynamix_Api_ServiceCatalog_ServiceCategory(
+        [Int32]  $ParentID,
+        [Double] $Order,
+        [String] $Name,
+        [String] $Description,
+        [Boolean]$IsActive,
+        [Int32]  $IconCharCode,
+        [String] $IconColor)
+    {
+        $this.ParentID     = $ParentID
+        $this.Order        = $Order
+        $this.Name         = $Name
+        $this.Description  = $Description
+        $this.IsActive     = $IsActive
+        $this.IconCharCode = $IconCharCode
+        $this.IconColor    = $IconColor
+    }
+}
+
+class TeamDynamix_Api_ServiceCatalog_ServiceOrOfferingSearch
+{
+    [String] $SearchText
+    [Int32]  $RequestFormID
+    [Int32]  $CategoryID
+    [Guid]   $ManagerUID
+    [Int32]  $ManagingGroupID
+    [Int32[]]$MaintenanceWindowIDs
+    [Boolean]$IsActive
+    [Boolean]$IsPublic
+    [Int32]  $ReturnCount
+    [Boolean]$IncludeLongDescription
+    [Boolean]$IncludeShortcuts
+
+    # Default constructor
+    TeamDynamix_Api_ServiceCatalog_ServiceOrOfferingSearch ()
+    {
+    }
+
+    # Constructor from object (such as a return from REST API)
+    TeamDynamix_Api_ServiceCatalog_ServiceOrOfferingSearch ([psobject]$ServiceOrOfferingSearch)
+    {
+        foreach ($Parameter in ([TeamDynamix_Api_ServiceCatalog_ServiceOrOfferingSearch]::new() | Get-Member -MemberType Property))
+        {
+            if ($Parameter.Definition -notmatch '^datetime')
+            {
+                $this.$($Parameter.Name) = $ServiceOrOfferingSearch.$($Parameter.Name)
+            }
+            else
+            {
+                if ($Parameter.Definition -match '^datetime\[\]') # Handle array of dates
+                {
+                    if ($null -ne $this.$($Parameter.Name))
+                    {
+                        $this.$($Parameter.Name) = $ServiceOrOfferingSearch.$($Parameter.Name) | ForEach-Object {$_ | Get-Date}
+                    }
+                }
+                else # Single date
+                {
+                    $this.$($Parameter.Name) = $ServiceOrOfferingSearch.$($Parameter.Name) | Get-Date
+                }
+            }
+        }
+    }
+
+    # Full constructor
+    TeamDynamix_Api_ServiceCatalog_ServiceOrOfferingSearch(
+        [String] $SearchText,
+        [Int32]  $RequestFormID,
+        [Int32]  $CategoryID,
+        [Guid]   $ManagerUID,
+        [Int32]  $ManagingGroupID,
+        [Int32[]]$MaintenanceWindowIDs,
+        [Boolean]$IsActive,
+        [Boolean]$IsPublic,
+        [Int32]  $ReturnCount,
+        [Boolean]$IncludeLongDescription,
+        [Boolean]$IncludeShortcuts)
+    {
+        foreach ($Parameter in ([TeamDynamix_Api_ServiceCatalog_ServiceOrOfferingSearch]::new() | Get-Member -MemberType Property))
+        {
+            if ($Parameter.Definition -notmatch '^datetime')
+            {
+                $this.$($Parameter.Name) = (Get-Variable -Name $Parameter.Name).Value
+            }
+            else
+            {
+                if ($Parameter.Definition -match '^datetime\[\]') # Handle array of dates
+                {
+                    if ($null -ne $this.$($Parameter.Name))
+                    {
+                        $this.$($Parameter.Name) = (Get-Variable -Name $Parameter.Name).Value | ForEach-Object {$_ | Get-Date}
+                    }
+                }
+                else # Single date
+                {
+                    $this.$($Parameter.Name) = (Get-Variable -Name $Parameter.Name).Value | Get-Date
+                }
+            }
+        }
+    }
+}
+
+class TeamDynamix_Api_Cmdb_ConfigurationItemSavedSearchOptions
+{
+    [String]$SearchText
+    [TeamDynamix_Api_RequestPage]$Page
+
+    # Default constructor
+    TeamDynamix_Api_Cmdb_ConfigurationItemSavedSearchOptions ()
+    {
+    }
+
+    # Constructor from object (such as a return from REST API)
+    TeamDynamix_Api_Cmdb_ConfigurationItemSavedSearchOptions ([psobject]$ConfigurationItemSavedSearchOptions)
+    {
+        foreach ($Parameter in ([TeamDynamix_Api_Cmdb_ConfigurationItemSavedSearchOptions]::new() | Get-Member -MemberType Property))
+        {
+            if ($Parameter.Definition -notmatch '^datetime')
+            {
+                $this.$($Parameter.Name) = $ConfigurationItemSavedSearchOptions.$($Parameter.Name)
+            }
+            else
+            {
+                if ($Parameter.Definition -match '^datetime\[\]') # Handle array of dates
+                {
+                    if ($null -ne $this.$($Parameter.Name))
+                    {
+                        $this.$($Parameter.Name) = $ConfigurationItemSavedSearchOptions.$($Parameter.Name) | ForEach-Object {$_ | Get-Date}
+                    }
+                }
+                else # Single date
+                {
+                    $this.$($Parameter.Name) = $ConfigurationItemSavedSearchOptions.$($Parameter.Name) | Get-Date
+                }
+            }
+        }
+    }
+
+    # Full constructor
+    TeamDynamix_Api_Cmdb_ConfigurationItemSavedSearchOptions(
+        [String]$SearchText,
+        [TeamDynamix_Api_RequestPage]$Page)
+    {
+        foreach ($Parameter in ([TeamDynamix_Api_Cmdb_ConfigurationItemSavedSearchOptions]::new() | Get-Member -MemberType Property))
+        {
+            if ($Parameter.Definition -notmatch '^datetime')
+            {
+                $this.$($Parameter.Name) = (Get-Variable -Name $Parameter.Name).Value
+            }
+            else
+            {
+                if ($Parameter.Definition -match '^datetime\[\]') # Handle array of dates
+                {
+                    if ($null -ne $this.$($Parameter.Name))
+                    {
+                        $this.$($Parameter.Name) = (Get-Variable -Name $Parameter.Name).Value | ForEach-Object {$_ | Get-Date}
+                    }
+                }
+                else # Single date
+                {
+                    $this.$($Parameter.Name) = (Get-Variable -Name $Parameter.Name).Value | Get-Date
+                }
+            }
+        }
+    }
+}
+
+class TeamDynamix_Api_Tickets_TicketListing
+{
+    [Int32]   $ID
+    [String]  $Title
+    [Int32]   $AppID
+    [String]  $AppName
+    [Int32]   $ClassificationID
+    [String]  $ClassificationName
+    [Int32]   $StatusID
+    [String]  $StatusName
+    [Int32]   $AccountID
+    [String]  $AccountName
+    [Int32]   $TypeCategoryID
+    [String]  $TypeCategoryName
+    [Int32]   $TypeID
+    [String]  $TypeName
+    [Guid]    $CreatedUid
+    [DateTime]$CreatedDate
+    [String]  $CreatedFullName
+    [Guid]    $ModifiedUid
+    [DateTime]$ModifiedDate
+    [String]  $ModifiedFullName
+    [Guid]    $ContactUid
+    [String]  $ContactFullName
+    [DateTime]$StartDate
+    [DateTime]$EndDate
+    [DateTime]$RespondByDate
+    [DateTime]$ResolveByDate
+    [DateTime]$GoesOffHoldDate
+    [Boolean] $IsArchived
+    [Int32]   $PriorityID
+    [String]  $PriorityName
+    [Int32]   $LocationID
+    [String]  $LocationName
+    [Int32]   $LocationRoomID
+    [String]  $LocationRoomName
+
+    # Default constructor
+    TeamDynamix_Api_Tickets_TicketListing ()
+    {
+    }
+
+    # Constructor from object (such as a return from REST API)
+    TeamDynamix_Api_Tickets_TicketListing ([psobject]$TicketListing)
+    {
+        foreach ($Parameter in ([TeamDynamix_Api_Tickets_TicketListing]::new() | Get-Member -MemberType Property))
+        {
+            if ($Parameter.Definition -notmatch '^datetime')
+            {
+                $this.$($Parameter.Name) = $TicketListing.$($Parameter.Name)
+            }
+            else
+            {
+                if ($Parameter.Definition -match '^datetime\[\]') # Handle array of dates
+                {
+                    if ($null -ne $this.$($Parameter.Name))
+                    {
+                        $this.$($Parameter.Name) = $TicketListing.$($Parameter.Name) | ForEach-Object {$_ | Get-Date}
+                    }
+                }
+                else # Single date
+                {
+                    $this.$($Parameter.Name) = $TicketListing.$($Parameter.Name) | Get-Date
+                }
+            }
+        }
+    }
+
+    # Full constructor
+    TeamDynamix_Api_Tickets_TicketListing(
+        [Int32]   $ID,
+        [String]  $Title,
+        [Int32]   $AppID,
+        [String]  $AppName,
+        [Int32]   $ClassificationID,
+        [String]  $ClassificationName,
+        [Int32]   $StatusID,
+        [String]  $StatusName,
+        [Int32]   $AccountID,
+        [String]  $AccountName,
+        [Int32]   $TypeCategoryID,
+        [String]  $TypeCategoryName,
+        [Int32]   $TypeID,
+        [String]  $TypeName,
+        [Guid]    $CreatedUid,
+        [DateTime]$CreatedDate,
+        [String]  $CreatedFullName,
+        [Guid]    $ModifiedUid,
+        [DateTime]$ModifiedDate,
+        [String]  $ModifiedFullName,
+        [Guid]    $ContactUid,
+        [String]  $ContactFullName,
+        [DateTime]$StartDate,
+        [DateTime]$EndDate,
+        [DateTime]$RespondByDate,
+        [DateTime]$ResolveByDate,
+        [DateTime]$GoesOffHoldDate,
+        [Boolean] $IsArchived,
+        [Int32]   $PriorityID,
+        [String]  $PriorityName,
+        [Int32]   $LocationID,
+        [String]  $LocationName,
+        [Int32]   $LocationRoomID,
+        [String]  $LocationRoomName)
+    {
+        foreach ($Parameter in ([TeamDynamix_Api_Tickets_TicketListing]::new() | Get-Member -MemberType Property))
+        {
+            if ($Parameter.Definition -notmatch '^datetime')
+            {
+                $this.$($Parameter.Name) = (Get-Variable -Name $Parameter.Name).Value
+            }
+            else
+            {
+                if ($Parameter.Definition -match '^datetime\[\]') # Handle array of dates
+                {
+                    if ($null -ne $this.$($Parameter.Name))
+                    {
+                        $this.$($Parameter.Name) = (Get-Variable -Name $Parameter.Name).Value | ForEach-Object {$_ | Get-Date}
+                    }
+                }
+                else # Single date
+                {
+                    $this.$($Parameter.Name) = (Get-Variable -Name $Parameter.Name).Value | Get-Date
+                }
+            }
+        }
+    }
+}
+
+class TeamDynamix_Api_Users_UserListing
+{
+    [Guid]   $UID
+    [Int32]  $ReferenceID
+    [String] $UserName
+    [String] $FirstName
+    [String] $LastName
+    [String] $FullName
+    [String] $PrimaryEmail
+    [String] $AlertEmail
+    [String] $AuthenticationUserName
+    [String] $ExternalID
+    [String] $AlternateID
+    [Boolean]$IsEmployee
+    [Boolean]$IsActive
+    [Boolean]$IsConfidential
+    [TeamDynamix_Api_Users_UserType]$TypeID
+    [Int32]  $DefaultAccountID
+
+    # Default constructor
+    TeamDynamix_Api_Users_UserListing ()
+    {
+    }
+
+    # Constructor from object (such as a return from REST API)
+    TeamDynamix_Api_Users_UserListing ([psobject]$UserListing)
+    {
+        foreach ($Parameter in ([TeamDynamix_Api_Users_UserListing]::new() | Get-Member -MemberType Property))
+        {
+            if ($Parameter.Definition -notmatch '^datetime')
+            {
+                $this.$($Parameter.Name) = $UserListing.$($Parameter.Name)
+            }
+            else
+            {
+                if ($Parameter.Definition -match '^datetime\[\]') # Handle array of dates
+                {
+                    if ($null -ne $this.$($Parameter.Name))
+                    {
+                        $this.$($Parameter.Name) = $UserListing.$($Parameter.Name) | ForEach-Object {$_ | Get-Date}
+                    }
+                }
+                else # Single date
+                {
+                    $this.$($Parameter.Name) = $UserListing.$($Parameter.Name) | Get-Date
+                }
+            }
+        }
+    }
+
+    # Full constructor
+    TeamDynamix_Api_Users_UserListing(
+        [Guid]   $UID,
+        [Int32]  $ReferenceID,
+        [String] $UserName,
+        [String] $FirstName,
+        [String] $LastName,
+        [String] $FullName,
+        [String] $PrimaryEmail,
+        [String] $AlertEmail,
+        [String] $AuthenticationUserName,
+        [String] $ExternalID,
+        [String] $AlternateID,
+        [Boolean]$IsEmployee,
+        [Boolean]$IsActive,
+        [Boolean]$IsConfidential,
+        [TeamDynamix_Api_Users_UserType]$TypeID,
+        [Int32]  $DefaultAccountID)
+    {
+        foreach ($Parameter in ([TeamDynamix_Api_Users_UserListing]::new() | Get-Member -MemberType Property))
+        {
+            if ($Parameter.Definition -notmatch '^datetime')
+            {
+                $this.$($Parameter.Name) = (Get-Variable -Name $Parameter.Name).Value
+            }
+            else
+            {
+                if ($Parameter.Definition -match '^datetime\[\]') # Handle array of dates
+                {
+                    if ($null -ne $this.$($Parameter.Name))
+                    {
+                        $this.$($Parameter.Name) = (Get-Variable -Name $Parameter.Name).Value | ForEach-Object {$_ | Get-Date}
+                    }
+                }
+                else # Single date
+                {
+                    $this.$($Parameter.Name) = (Get-Variable -Name $Parameter.Name).Value | Get-Date
+                }
+            }
+        }
+    }
+}
+
+class TeamDynamix_Api_TypeCategories_TypeCategory
+{
+    [Int32]   $ID
+    [String]  $Name
+    [String]  $Description
+    [DateTime]$CreatedDate
+    [String]  $CreatedByUid
+    [String]  $CreatedByFullName
+    [DateTime]$ModifiedDate
+    [String]  $ModifiedByUid
+    [String]  $ModifiedByFullName
+    [Double]  $Order
+    [Boolean] $IsActive
+
+    # Default constructor
+    TeamDynamix_Api_TypeCategories_TypeCategory ()
+    {
+    }
+
+    # Constructor from object (such as a return from REST API)
+    TeamDynamix_Api_TypeCategories_TypeCategory ([psobject]$TypeCategory)
+    {
+        foreach ($Parameter in ([TeamDynamix_Api_TypeCategories_TypeCategory]::new() | Get-Member -MemberType Property))
+        {
+            if ($Parameter.Definition -notmatch '^datetime')
+            {
+                $this.$($Parameter.Name) = $TypeCategory.$($Parameter.Name)
+            }
+            else
+            {
+                if ($Parameter.Definition -match '^datetime\[\]') # Handle array of dates
+                {
+                    if ($null -ne $this.$($Parameter.Name))
+                    {
+                        $this.$($Parameter.Name) = $TypeCategory.$($Parameter.Name) | ForEach-Object {$_ | Get-Date}
+                    }
+                }
+                else # Single date
+                {
+                    $this.$($Parameter.Name) = $TypeCategory.$($Parameter.Name) | Get-Date
+                }
+            }
+        }
+    }
+
+    # Full constructor
+    TeamDynamix_Api_TypeCategories_TypeCategory(
+        [Int32]   $ID,
+        [String]  $Name,
+        [String]  $Description,
+        [DateTime]$CreatedDate,
+        [String]  $CreatedByUid,
+        [String]  $CreatedByFullName,
+        [DateTime]$ModifiedDate,
+        [String]  $ModifiedByUid,
+        [String]  $ModifiedByFullName,
+        [Double]  $Order,
+        [Boolean] $IsActive)
+    {
+        foreach ($Parameter in ([TeamDynamix_Api_TypeCategories_TypeCategory]::new() | Get-Member -MemberType Property))
+        {
+            if ($Parameter.Definition -notmatch '^datetime')
+            {
+                $this.$($Parameter.Name) = (Get-Variable -Name $Parameter.Name).Value
+            }
+            else
+            {
+                if ($Parameter.Definition -match '^datetime\[\]') # Handle array of dates
+                {
+                    if ($null -ne $this.$($Parameter.Name))
+                    {
+                        $this.$($Parameter.Name) = (Get-Variable -Name $Parameter.Name).Value | ForEach-Object {$_ | Get-Date}
+                    }
+                }
+                else # Single date
+                {
+                    $this.$($Parameter.Name) = (Get-Variable -Name $Parameter.Name).Value | Get-Date
+                }
+            }
+        }
+    }
+
+        # Convenience constructor for editable parameters
+        TeamDynamix_Api_TypeCategories_TypeCategory(
+                [String]  $Name,
+                [String]  $Description,
+                [Double]  $Order,
+                [Boolean] $IsActive)
+        {
+                $this.Name        = $Name
+                $this.Description = $Description
+                $this.Order       = $Order
+                $this.IsActive    = $IsActive
+        }
+}
+
+class TeamDynamix_Api_Projects_ProjectType
+{
+    [Int32]   $ID
+    [String]  $Name
+    [String]  $Description
+    [Int32]   $CategoryID
+    [String]  $CategoryName
+    [String]  $FullName
+    [Boolean] $IsActive
+    [DateTime]$CreatedDate
+    [String]  $CreatedByUid
+    [DateTime]$ModifiedDate
+    [String]  $ModifiedByUid
+    [Guid]    $EvaluatorUid
+    [String]  $EvaluatorFullName
+    [String]  $EvaluatorEmail
+    [Boolean] $NotifyEvaluator
+
+    # Default constructor
+    TeamDynamix_Api_Projects_ProjectType ()
+    {
+    }
+
+    # Constructor from object (such as a return from REST API)
+    TeamDynamix_Api_Projects_ProjectType ([psobject]$ProjectType)
+    {
+        foreach ($Parameter in ([TeamDynamix_Api_Projects_ProjectType]::new() | Get-Member -MemberType Property))
+        {
+            if ($Parameter.Definition -notmatch '^datetime')
+            {
+                $this.$($Parameter.Name) = $ProjectType.$($Parameter.Name)
+            }
+            else
+            {
+                if ($Parameter.Definition -match '^datetime\[\]') # Handle array of dates
+                {
+                    if ($null -ne $this.$($Parameter.Name))
+                    {
+                        $this.$($Parameter.Name) = $ProjectType.$($Parameter.Name) | ForEach-Object {$_ | Get-Date}
+                    }
+                }
+                else # Single date
+                {
+                    $this.$($Parameter.Name) = $ProjectType.$($Parameter.Name) | Get-Date
+                }
+            }
+        }
+    }
+
+    # Full constructor
+    TeamDynamix_Api_Projects_ProjectType(
+        [Int32]   $ID,
+        [String]  $Name,
+        [String]  $Description,
+        [Int32]   $CategoryID,
+        [String]  $CategoryName,
+        [String]  $FullName,
+        [Boolean] $IsActive,
+        [DateTime]$CreatedDate,
+        [String]  $CreatedByUid,
+        [DateTime]$ModifiedDate,
+        [String]  $ModifiedByUid,
+        [Guid]    $EvaluatorUid,
+        [String]  $EvaluatorFullName,
+        [String]  $EvaluatorEmail,
+        [Boolean] $NotifyEvaluator)
+    {
+        foreach ($Parameter in ([TeamDynamix_Api_Projects_ProjectType]::new() | Get-Member -MemberType Property))
+        {
+            if ($Parameter.Definition -notmatch '^datetime')
+            {
+                $this.$($Parameter.Name) = (Get-Variable -Name $Parameter.Name).Value
+            }
+            else
+            {
+                if ($Parameter.Definition -match '^datetime\[\]') # Handle array of dates
+                {
+                    if ($null -ne $this.$($Parameter.Name))
+                    {
+                        $this.$($Parameter.Name) = (Get-Variable -Name $Parameter.Name).Value | ForEach-Object {$_ | Get-Date}
+                    }
+                }
+                else # Single date
+                {
+                    $this.$($Parameter.Name) = (Get-Variable -Name $Parameter.Name).Value | Get-Date
+                }
+            }
+        }
+    }
+
+        # Convenience constructor for editable parameters
+        TeamDynamix_Api_Projects_ProjectType(
+                [String]  $Name,
+                [String]  $Description,
+                [Int32]   $CategoryID,
+                [Boolean] $IsActive,
+                [Guid]    $EvaluatorUid,
+                [Boolean] $NotifyEvaluator)
+        {
+                $this.Name            = $Name
+                $this.Description     = $Description
+                $this.CategoryID      = $CategoryID
+                $this.IsActive        = $IsActive
+                $this.EvaluatorUid    = $EvaluatorUid
+                $this.NotifyEvaluator = $NotifyEvaluator
+        }
+}
+
+class TeamDynamix_Api_Schedules_ResourcePool
+{
+    [Int32]   $ID
+    [String]  $Name
+    [DateTime]$CreatedDate
+    [DateTime]$ModifiedDate
+    [Boolean] $IsActive
+    [Boolean] $NotifyOnAssignment
+    [Boolean] $RequiresApproval
+    [String]  $ManagerFullName
+    [Guid]    $ManagerUID
+    [Int32]   $ResourceCount
+
+    # Default constructor
+    TeamDynamix_Api_Schedules_ResourcePool ()
+    {
+    }
+
+    # Constructor from object (such as a return from REST API)
+    TeamDynamix_Api_Schedules_ResourcePool ([psobject]$ResourcePool)
+    {
+        foreach ($Parameter in ([TeamDynamix_Api_Schedules_ResourcePool]::new() | Get-Member -MemberType Property))
+        {
+            if ($Parameter.Definition -notmatch '^datetime')
+            {
+                $this.$($Parameter.Name) = $ResourcePool.$($Parameter.Name)
+            }
+            else
+            {
+                if ($Parameter.Definition -match '^datetime\[\]') # Handle array of dates
+                {
+                    if ($null -ne $this.$($Parameter.Name))
+                    {
+                        $this.$($Parameter.Name) = $ResourcePool.$($Parameter.Name) | ForEach-Object {$_ | Get-Date}
+                    }
+                }
+                else # Single date
+                {
+                    $this.$($Parameter.Name) = $ResourcePool.$($Parameter.Name) | Get-Date
+                }
+            }
+        }
+    }
+
+    # Full constructor
+    TeamDynamix_Api_Schedules_ResourcePool(
+        [Int32]   $ID,
+        [String]  $Name,
+        [DateTime]$CreatedDate,
+        [DateTime]$ModifiedDate,
+        [Boolean] $IsActive,
+        [Boolean] $NotifyOnAssignment,
+        [Boolean] $RequiresApproval,
+        [String]  $ManagerFullName,
+        [Guid]    $ManagerUID,
+        [Int32]   $ResourceCount)
+    {
+        foreach ($Parameter in ([TeamDynamix_Api_Schedules_ResourcePool]::new() | Get-Member -MemberType Property))
+        {
+            if ($Parameter.Definition -notmatch '^datetime')
+            {
+                $this.$($Parameter.Name) = (Get-Variable -Name $Parameter.Name).Value
+            }
+            else
+            {
+                if ($Parameter.Definition -match '^datetime\[\]') # Handle array of dates
+                {
+                    if ($null -ne $this.$($Parameter.Name))
+                    {
+                        $this.$($Parameter.Name) = (Get-Variable -Name $Parameter.Name).Value | ForEach-Object {$_ | Get-Date}
+                    }
+                }
+                else # Single date
+                {
+                    $this.$($Parameter.Name) = (Get-Variable -Name $Parameter.Name).Value | Get-Date
+                }
+            }
+        }
+    }
+
+        # Convenience constructor for editable parameters
+        TeamDynamix_Api_Schedules_ResourcePool(
+                [String]  $Name,
+                [Boolean] $IsActive,
+                [Boolean] $NotifyOnAssignment,
+                [Boolean] $RequiresApproval,
+                [Guid]    $ManagerUID)
+        {
+                $this.Name               = $Name
+                $this.IsActive           = $IsActive
+                $this.NotifyOnAssignment = $NotifyOnAssignment
+                $this.RequiresApproval   = $RequiresApproval
+                $this.ManagerUID         = $ManagerUID
+        }
+}
+
+class TeamDynamix_Api_Schedules_ResourcePoolSearch
+{
+    [String] $Name
+    [Guid]   $ManagerUID
+    [Int32]  $MaxResults
+    [Boolean]$IsActive
+    [Boolean]$ReturnItemCounts
+
+    # Default constructor
+    TeamDynamix_Api_Schedules_ResourcePoolSearch ()
+    {
+    }
+
+    # Constructor from object (such as a return from REST API)
+    TeamDynamix_Api_Schedules_ResourcePoolSearch ([psobject]$ResourcePoolSearch)
+    {
+        foreach ($Parameter in ([TeamDynamix_Api_Schedules_ResourcePoolSearch]::new() | Get-Member -MemberType Property))
+        {
+            if ($Parameter.Definition -notmatch '^datetime')
+            {
+                $this.$($Parameter.Name) = $ResourcePoolSearch.$($Parameter.Name)
+            }
+            else
+            {
+                if ($Parameter.Definition -match '^datetime\[\]') # Handle array of dates
+                {
+                    if ($null -ne $this.$($Parameter.Name))
+                    {
+                        $this.$($Parameter.Name) = $ResourcePoolSearch.$($Parameter.Name) | ForEach-Object {$_ | Get-Date}
+                    }
+                }
+                else # Single date
+                {
+                    $this.$($Parameter.Name) = $ResourcePoolSearch.$($Parameter.Name) | Get-Date
+                }
+            }
+        }
+    }
+
+    # Full constructor
+    TeamDynamix_Api_Schedules_ResourcePoolSearch(
+        [String] $Name,
+        [Guid]   $ManagerUID,
+        [Int32]  $MaxResults,
+        [Boolean]$IsActive,
+        [Boolean]$ReturnItemCounts)
+    {
+        foreach ($Parameter in ([TeamDynamix_Api_Schedules_ResourcePoolSearch]::new() | Get-Member -MemberType Property))
+        {
+            if ($Parameter.Definition -notmatch '^datetime')
+            {
+                $this.$($Parameter.Name) = (Get-Variable -Name $Parameter.Name).Value
+            }
+            else
+            {
+                if ($Parameter.Definition -match '^datetime\[\]') # Handle array of dates
+                {
+                    if ($null -ne $this.$($Parameter.Name))
+                    {
+                        $this.$($Parameter.Name) = (Get-Variable -Name $Parameter.Name).Value | ForEach-Object {$_ | Get-Date}
+                    }
+                }
+                else # Single date
+                {
+                    $this.$($Parameter.Name) = (Get-Variable -Name $Parameter.Name).Value | Get-Date
+                }
+            }
+        }
+    }
+}
+
+class TeamDynamix_Api_ProjectRequests_ProjectRequest
+{
+    [Int32]   $ID
+    [String]  $Name
+    [DateTime]$StartDate
+    [DateTime]$EndDate
+    [Int32]   $AccountID
+    [Int32]   $TypeID
+    [Int32]   $ServiceID
+    [Int32]   $ServiceOfferingID
+    [Int32]   $PriorityID
+    [Guid]    $SponsorUID
+    [String]  $Description
+    [String]  $Requirements
+    [Boolean] $AssignServiceFormIfExists
+    [Int32]   $ClassificationID
+    [TeamDynamix_Api_CustomAttributes_CustomAttribute[]]$Attributes
+
+    # Default constructor
+    TeamDynamix_Api_ProjectRequests_ProjectRequest ()
+    {
+    }
+
+    # Constructor from object (such as a return from REST API)
+    TeamDynamix_Api_ProjectRequests_ProjectRequest ([psobject]$ProjectRequest)
+    {
+        foreach ($Parameter in ([TeamDynamix_Api_ProjectRequests_ProjectRequest]::new() | Get-Member -MemberType Property))
+        {
+            if ($Parameter.Definition -notmatch '^datetime')
+            {
+                $this.$($Parameter.Name) = $ProjectRequest.$($Parameter.Name)
+            }
+            else
+            {
+                if ($Parameter.Definition -match '^datetime\[\]') # Handle array of dates
+                {
+                    if ($null -ne $this.$($Parameter.Name))
+                    {
+                        $this.$($Parameter.Name) = $ProjectRequest.$($Parameter.Name) | ForEach-Object {$_ | Get-Date}
+                    }
+                }
+                else # Single date
+                {
+                    $this.$($Parameter.Name) = $ProjectRequest.$($Parameter.Name) | Get-Date
+                }
+            }
+        }
+    }
+
+    # Full constructor
+    TeamDynamix_Api_ProjectRequests_ProjectRequest(
+        [Int32]   $ID,
+        [String]  $Name,
+        [DateTime]$StartDate,
+        [DateTime]$EndDate,
+        [Int32]   $AccountID,
+        [Int32]   $TypeID,
+        [Int32]   $ServiceID,
+        [Int32]   $ServiceOfferingID,
+        [Int32]   $PriorityID,
+        [Guid]    $SponsorUID,
+        [String]  $Description,
+        [String]  $Requirements,
+        [Boolean] $AssignServiceFormIfExists,
+        [Int32]   $ClassificationID,
+        [TeamDynamix_Api_CustomAttributes_CustomAttribute[]]$Attributes)
+    {
+        foreach ($Parameter in ([TeamDynamix_Api_ProjectRequests_ProjectRequest]::new() | Get-Member -MemberType Property))
+        {
+            if ($Parameter.Definition -notmatch '^datetime')
+            {
+                $this.$($Parameter.Name) = (Get-Variable -Name $Parameter.Name).Value
+            }
+            else
+            {
+                if ($Parameter.Definition -match '^datetime\[\]') # Handle array of dates
+                {
+                    if ($null -ne $this.$($Parameter.Name))
+                    {
+                        $this.$($Parameter.Name) = (Get-Variable -Name $Parameter.Name).Value | ForEach-Object {$_ | Get-Date}
+                    }
+                }
+                else # Single date
+                {
+                    $this.$($Parameter.Name) = (Get-Variable -Name $Parameter.Name).Value | Get-Date
+                }
+            }
+        }
+    }
+
+    # Convenience constructor for editable parameters
+    TeamDynamix_Api_ProjectRequests_ProjectRequest(
+        [String]  $Name,
+        [DateTime]$StartDate,
+        [DateTime]$EndDate,
+        [Int32]   $AccountID,
+        [Int32]   $TypeID,
+        [Int32]   $ServiceID,
+        [Int32]   $ServiceOfferingID,
+        [Int32]   $PriorityID,
+        [Guid]    $SponsorUID,
+        [String]  $Description,
+        [String]  $Requirements,
+        [Boolean] $AssignServiceFormIfExists,
+        [Int32]   $ClassificationID,
+        [TeamDynamix_Api_CustomAttributes_CustomAttribute[]]$Attributes)
+    {
+        $this.Name                      = $Name
+        $this.StartDate                 = $StartDate                 | Get-Date
+        $this.EndDate                   = $EndDate                   | Get-Date
+        $this.AccountID                 = $AccountID
+        $this.TypeID                    = $TypeID
+        $this.ServiceID                 = $ServiceID
+        $this.ServiceOfferingID         = $ServiceOfferingID
+        $this.PriorityID                = $PriorityID
+        $this.SponsorUID                = $SponsorUID
+        $this.Description               = $Description
+        $this.Requirements              = $Requirements
+        $this.AssignServiceFormIfExists = $AssignServiceFormIfExists
+        $this.ClassificationID          = $ClassificationID
+        $this.Attributes                = $Attributes
+    }
+
+    # Methods
+    [void] AddCustomAttribute (
+        [TeamDynamix_Api_CustomAttributes_CustomAttribute[]]$Attributes)
+    {
+        foreach ($CustomAttribute in $Attributes)
+        {
+            # Check to see if attribute is already present
+            $FoundAttribute = $this.Attributes | Where-Object ID -eq $CustomAttribute.ID
+            if (-not $FoundAttribute)
+            {
+                # Add attribute
+                $this.Attributes += $CustomAttribute
+            }
+            else
+            {
+                Write-ActivityHistory -MessageChannel 'Error' -Message "Attribute $($FoundAttribute.Name) is already present on $this.Name."
+            }
+        }
+    }
+
+    [void] AddCustomAttribute (
+        [TeamDynamix_Api_CustomAttributes_CustomAttribute[]]$Attributes,
+        [boolean]$Overwrite)
+    {
+        foreach ($CustomAttribute in $Attributes)
+        {
+            # Check to see if attribute is already present
+            $FoundAttribute = $this.Attributes | Where-Object ID -eq $CustomAttribute.ID
+            # Remove if Overwrite is set and the attribute is present
+            if ($FoundAttribute -and $Overwrite)
+            {
+                $this.RemoveCustomAttribute($CustomAttribute.ID)
+            }
+            if ((-not $FoundAttribute) -or $Overwrite)
+            {
+                # Add attribute
+                $this.Attributes += $CustomAttribute
+            }
+            else
+            {
+                Write-ActivityHistory -MessageChannel 'Error' -Message "Attribute $($FoundAttribute.Name) is already present on $this.Name."
+            }
+        }
+    }
+
+    [void] AddCustomAttribute (
+        [int] $AttributeID,
+        [Int] $AttributeValue)
+    {
+        # Check to see if attribute is already present on the asset
+        $FoundAttribute = $this.Attributes | Where-Object ID -eq $AttributeID
+        if (-not $FoundAttribute)
+        {
+            # Add attribute
+            $this.Attributes += [TeamDynamix_Api_CustomAttributes_CustomAttribute]::new($AttributeID,$AttributeValue)
+        }
+        else
+        {
+            Write-ActivityHistory -MessageChannel 'Error' -Message "Attribute $($FoundAttribute.Name) is already present on $this.Name."
+        }
+    }
+
+    [void] AddCustomAttribute (
+        [int]    $AttributeID,
+        [Int]    $AttributeValue,
+        [boolean]$Overwrite)
+    {
+        # Check to see if attribute is already present
+        $FoundAttribute = $this.Attributes | Where-Object ID -eq $AttributeID
+        # Remove if Overwrite is set and the attribute is present
+        if ($FoundAttribute -and $Overwrite)
+        {
+            $this.RemoveCustomAttribute($AttributeID)
+        }
+        if ((-not $FoundAttribute) -or $Overwrite)
+        {
+            # Add attribute
+            $this.Attributes += [TeamDynamix_Api_CustomAttributes_CustomAttribute]::new($AttributeID,$AttributeValue)
+        }
+        else
+        {
+            Write-ActivityHistory -MessageChannel 'Error' -Message "Attribute $($FoundAttribute.Name) is already present on $this.Name."
+        }
+    }
+
+    [void] AddCustomAttribute (
+        [string]   $AttributeName,
+        [string]   $AttributeValue,
+        [int]      $AppID,
+        [hashtable]$TDAuthentication,
+        [EnvironmentChoices]$Environment)
+    {
+        # Check to see if attribute is already present
+        $FoundAttribute = $this.Attributes | Where-Object Name -eq $AttributeName
+        if (-not $FoundAttribute)
+        {
+            # Add attribute
+            $this.Attributes += [TeamDynamix_Api_CustomAttributes_CustomAttribute]::new($AttributeName,$AttributeValue,'Project',$AppID,$TDAuthentication,$Environment)
+        }
+        else
+        {
+            Write-ActivityHistory -MessageChannel 'Error' -Message "Attribute $($FoundAttribute.Name) is already present on $this.Name."
+        }
+    }
+
+    [void] AddCustomAttribute (
+        [string]   $AttributeName,
+        [string]   $AttributeValue,
+        [boolean]  $Overwrite,
+        [int]      $AppID,
+        [hashtable]$TDAuthentication,
+        [EnvironmentChoices]$Environment)
+    {
+        # Check to see if attribute is already present
+        $FoundAttribute = $this.Attributes | Where-Object Name -eq $AttributeName
+        # Remove if Overwrite is set and the attribute is present
+        if ($FoundAttribute -and $Overwrite)
+        {
+            $this.RemoveCustomAttribute($FoundAttribute.ID)
+        }
+        if ((-not $FoundAttribute) -or $Overwrite)
+        {
+            # Add attribute
+            $this.Attributes += [TeamDynamix_Api_CustomAttributes_CustomAttribute]::new($AttributeName,$AttributeValue,'Project',$AppID,$TDAuthentication,$Environment)
+        }
+        else
+        {
+            Write-ActivityHistory -MessageChannel 'Error' -Message "Attribute $($FoundAttribute.Name) is already present on $this.Name."
+        }
+    }
+
+    [void] RemoveCustomAttribute (
+        [int] $AttributeID)
+    {
+        $UpdatedAttributeList = $this.Attributes | Where-Object ID -ne $AttributeID
+        $this.Attributes = $UpdatedAttributeList
+    }
+
+    [void] RemoveCustomAttribute (
+        [string] $AttributeName)
+    {
+        $UpdatedAttributeList = $this.Attributes | Where-Object Name -ne $AttributeName
+        $this.Attributes = $UpdatedAttributeList
+    }
+}
+
+class TD_TeamDynamix_Api_ProjectRequests_ProjectRequest
+{
+    [Int32]  $ID
+    [String] $Name
+    [String] $StartDate
+    [String] $EndDate
+    [Int32]  $AccountID
+    [Int32]  $TypeID
+    [Int32]  $ServiceID
+    [Int32]  $ServiceOfferingID
+    [Int32]  $PriorityID
+    [Guid]   $SponsorUID
+    [String] $Description
+    [String] $Requirements
+    [Boolean]$AssignServiceFormIfExists
+    [Int32]  $ClassificationID
+    [TeamDynamix_Api_CustomAttributes_CustomAttribute[]]$Attributes
+
+    # Constructor from object (such as a return from REST API)
+    TD_TeamDynamix_Api_ProjectRequests_ProjectRequest ([psobject]$ProjectRequest)
+    {
+        foreach ($Parameter in ([TeamDynamix_Api_ProjectRequests_ProjectRequest]::new() | Get-Member -MemberType Property))
+        {
+            if ($Parameter.Definition -notmatch '^datetime')
+            {
+                $this.$($Parameter.Name) = $ProjectRequest.$($Parameter.Name)
+            }
+            else
+            {
+                if ($Parameter.Definition -match '^datetime\[\]') # Handle array of dates
+                {
+                    if ($null -ne $this.$($Parameter.Name))
+                    {
+                        $this.$($Parameter.Name) = $ProjectRequest.$($Parameter.Name) | ForEach-Object {$_ | Get-Date -Format o}
+                    }
+                }
+                else # Single date
+                {
+                    $this.$($Parameter.Name) = $ProjectRequest.$($Parameter.Name) | Get-Date -Format o
+                }
+            }
+        }
+    }
+}
+
+class TeamDynamix_Api_Permissions_PermissionStore
+{
+    [Boolean]$InheritPermissions
+    [Boolean]$IsPublic
+    [Int32[]]$GroupIDs
+    [Boolean]$AllowlistGroups
+
+    # Default constructor
+    TeamDynamix_Api_Permissions_PermissionStore ()
+    {
+    }
+
+    # Constructor from object (such as a return from REST API)
+    TeamDynamix_Api_Permissions_PermissionStore ([psobject]$PermissionStore)
+    {
+        foreach ($Parameter in ([TeamDynamix_Api_Permissions_PermissionStore]::new() | Get-Member -MemberType Property))
+        {
+            if ($Parameter.Definition -notmatch '^datetime')
+            {
+                $this.$($Parameter.Name) = $PermissionStore.$($Parameter.Name)
+            }
+            else
+            {
+                if ($Parameter.Definition -match '^datetime\[\]') # Handle array of dates
+                {
+                    if ($null -ne $this.$($Parameter.Name))
+                    {
+                        $this.$($Parameter.Name) = $PermissionStore.$($Parameter.Name) | ForEach-Object {$_ | Get-Date}
+                    }
+                }
+                else # Single date
+                {
+                    $this.$($Parameter.Name) = $PermissionStore.$($Parameter.Name) | Get-Date
+                }
+            }
+        }
+    }
+
+    # Full constructor
+    TeamDynamix_Api_Permissions_PermissionStore(
+        [Boolean]$InheritPermissions,
+        [Boolean]$IsPublic,
+        [Int32[]]$GroupIDs,
+        [Boolean]$AllowlistGroups)
+    {
+        foreach ($Parameter in ([TeamDynamix_Api_Permissions_PermissionStore]::new() | Get-Member -MemberType Property))
+        {
+            if ($Parameter.Definition -notmatch '^datetime')
+            {
+                $this.$($Parameter.Name) = (Get-Variable -Name $Parameter.Name).Value
+            }
+            else
+            {
+                if ($Parameter.Definition -match '^datetime\[\]') # Handle array of dates
+                {
+                    if ($null -ne $this.$($Parameter.Name))
+                    {
+                        $this.$($Parameter.Name) = (Get-Variable -Name $Parameter.Name).Value | ForEach-Object {$_ | Get-Date}
+                    }
+                }
+                else # Single date
+                {
+                    $this.$($Parameter.Name) = (Get-Variable -Name $Parameter.Name).Value | Get-Date
+                }
+            }
+        }
+    }
+}
+
+class TeamDynamix_Api_Tickets_MoveTicketOptions
+{
+    [Int32]  $NewAppID
+    [Int32]  $NewFormID
+    [Int32]  $NewTicketTypeID
+    [Int32]  $NewStatusID
+    [String] $Comments
+    [Boolean]$IsRichHtml
+
+    # Default constructor
+    TeamDynamix_Api_Tickets_MoveTicketOptions ()
+    {
+    }
+
+    # Constructor from object (such as a return from REST API)
+    TeamDynamix_Api_Tickets_MoveTicketOptions ([psobject]$MoveTicketOptions)
+    {
+        foreach ($Parameter in ([TeamDynamix_Api_Tickets_MoveTicketOptions]::new() | Get-Member -MemberType Property))
+        {
+            if ($Parameter.Definition -notmatch '^datetime')
+            {
+                $this.$($Parameter.Name) = $MoveTicketOptions.$($Parameter.Name)
+            }
+            else
+            {
+                if ($Parameter.Definition -match '^datetime\[\]') # Handle array of dates
+                {
+                    if ($null -ne $this.$($Parameter.Name))
+                    {
+                        $this.$($Parameter.Name) = $MoveTicketOptions.$($Parameter.Name) | ForEach-Object {$_ | Get-Date}
+                    }
+                }
+                else # Single date
+                {
+                    $this.$($Parameter.Name) = $MoveTicketOptions.$($Parameter.Name) | Get-Date
+                }
+            }
+        }
+    }
+
+    # Full constructor
+    TeamDynamix_Api_Tickets_MoveTicketOptions(
+        [Int32]  $NewAppID,
+        [Int32]  $NewFormID,
+        [Int32]  $NewTicketTypeID,
+        [Int32]  $NewStatusID,
+        [String] $Comments,
+        [Boolean]$IsRichHtml)
+    {
+        foreach ($Parameter in ([TeamDynamix_Api_Tickets_MoveTicketOptions]::new() | Get-Member -MemberType Property))
+        {
+            if ($Parameter.Definition -notmatch '^datetime')
+            {
+                $this.$($Parameter.Name) = (Get-Variable -Name $Parameter.Name).Value
+            }
+            else
+            {
+                if ($Parameter.Definition -match '^datetime\[\]') # Handle array of dates
+                {
+                    if ($null -ne $this.$($Parameter.Name))
+                    {
+                        $this.$($Parameter.Name) = (Get-Variable -Name $Parameter.Name).Value | ForEach-Object {$_ | Get-Date}
+                    }
+                }
+                else # Single date
+                {
+                    $this.$($Parameter.Name) = (Get-Variable -Name $Parameter.Name).Value | Get-Date
+                }
+            }
+        }
+    }
+}
+
+class TeamDynamix_Api_Tickets_SlaAssignmentOptions
+{
+    [Int32]   $NewSlaID
+    [TeamDynamix_Api_Tickets_SlaStartBasis]$StartBasis
+    [Boolean] $ShouldCascade
+    [String[]]$Notify
+    [String]  $Comments
+
+    # Default constructor
+    TeamDynamix_Api_Tickets_SlaAssignmentOptions ()
+    {
+    }
+
+    # Constructor from object (such as a return from REST API)
+    TeamDynamix_Api_Tickets_SlaAssignmentOptions ([psobject]$SlaAssignmentOptions)
+    {
+        foreach ($Parameter in ([TeamDynamix_Api_Tickets_SlaAssignmentOptions]::new() | Get-Member -MemberType Property))
+        {
+            if ($Parameter.Definition -notmatch '^datetime')
+            {
+                $this.$($Parameter.Name) = $SlaAssignmentOptions.$($Parameter.Name)
+            }
+            else
+            {
+                if ($Parameter.Definition -match '^datetime\[\]') # Handle array of dates
+                {
+                    if ($null -ne $this.$($Parameter.Name))
+                    {
+                        $this.$($Parameter.Name) = $SlaAssignmentOptions.$($Parameter.Name) | ForEach-Object {$_ | Get-Date}
+                    }
+                }
+                else # Single date
+                {
+                    $this.$($Parameter.Name) = $SlaAssignmentOptions.$($Parameter.Name) | Get-Date
+                }
+            }
+        }
+    }
+
+    # Full constructor
+    TeamDynamix_Api_Tickets_SlaAssignmentOptions(
+        [Int32]   $NewSlaID,
+        [TeamDynamix_Api_Tickets_SlaStartBasis]$StartBasis,
+        [Boolean] $ShouldCascade,
+        [String[]]$Notify,
+        [String]  $Comments)
+    {
+        foreach ($Parameter in ([TeamDynamix_Api_Tickets_SlaAssignmentOptions]::new() | Get-Member -MemberType Property))
+        {
+            if ($Parameter.Definition -notmatch '^datetime')
+            {
+                $this.$($Parameter.Name) = (Get-Variable -Name $Parameter.Name).Value
+            }
+            else
+            {
+                if ($Parameter.Definition -match '^datetime\[\]') # Handle array of dates
+                {
+                    if ($null -ne $this.$($Parameter.Name))
+                    {
+                        $this.$($Parameter.Name) = (Get-Variable -Name $Parameter.Name).Value | ForEach-Object {$_ | Get-Date}
+                    }
+                }
+                else # Single date
+                {
+                    $this.$($Parameter.Name) = (Get-Variable -Name $Parameter.Name).Value | Get-Date
+                }
+            }
+        }
+    }
+}
+
+class TeamDynamix_Api_Tickets_SlaRemovalOptions
+{
+    [Boolean] $ShouldCascade
+    [String[]]$Notify
+    [String]  $Comments
+
+    # Default constructor
+    TeamDynamix_Api_Tickets_SlaRemovalOptions ()
+    {
+    }
+
+    # Constructor from object (such as a return from REST API)
+    TeamDynamix_Api_Tickets_SlaRemovalOptions ([psobject]$SlaRemovalOptions)
+    {
+        foreach ($Parameter in ([TeamDynamix_Api_Tickets_SlaRemovalOptions]::new() | Get-Member -MemberType Property))
+        {
+            if ($Parameter.Definition -notmatch '^datetime')
+            {
+                $this.$($Parameter.Name) = $SlaRemovalOptions.$($Parameter.Name)
+            }
+            else
+            {
+                if ($Parameter.Definition -match '^datetime\[\]') # Handle array of dates
+                {
+                    if ($null -ne $this.$($Parameter.Name))
+                    {
+                        $this.$($Parameter.Name) = $SlaRemovalOptions.$($Parameter.Name) | ForEach-Object {$_ | Get-Date}
+                    }
+                }
+                else # Single date
+                {
+                    $this.$($Parameter.Name) = $SlaRemovalOptions.$($Parameter.Name) | Get-Date
+                }
+            }
+        }
+    }
+
+    # Full constructor
+    TeamDynamix_Api_Tickets_SlaRemovalOptions(
+        [Boolean] $ShouldCascade,
+        [String[]]$Notify,
+        [String]  $Comments)
+    {
+        foreach ($Parameter in ([TeamDynamix_Api_Tickets_SlaRemovalOptions]::new() | Get-Member -MemberType Property))
         {
             if ($Parameter.Definition -notmatch '^datetime')
             {
@@ -17255,77 +19351,91 @@ class TD_CustomAttributeChoice_Cache : Object_Cache
 (Test-ModuleManifest $PSScriptRoot\TeamDynamix.psd1).FileList | Where-Object {$_ -like '*.ps1'} | ForEach-Object {. $_}
 
 #region Module authentication
-Write-Progress -ID 100 -Activity 'Loading module' -Status 'Authenticating' -PercentComplete 66
 
-# Check to see if a credential is supplied via -ArgumentList
-if (-not $Credential)
+# Check to see if a non-credentialed start has been requested
+if (-not $NoLogin)
 {
-    # Prompt user for authentication information
-    $GUILogin = Set-TDAuthentication -GUI -Passthru -NoInvalidateCache
-    switch ($GUILogin.Site)
+    Write-Progress -ID 100 -Activity 'Loading module' -Status 'Authenticating' -PercentComplete 66
+    # Check to see if a credential is supplied via -ArgumentList
+    if (-not $Credential)
     {
-        Production {$WorkingEnvironment = 'Production'}
-        Sandbox    {$WorkingEnvironment = 'Sandbox'   }
-        Preview    {$WorkingEnvironment = 'Preview'   }
+        # Prompt user for authentication information
+        $GUILogin = Set-TDAuthentication -GUI -Passthru -NoInvalidateCache
+        switch ($GUILogin.Site)
+        {
+            Production {$WorkingEnvironment = 'Production'}
+            Sandbox    {$WorkingEnvironment = 'Sandbox'   }
+            Preview    {$WorkingEnvironment = 'Preview'   }
+        }
+    }
+    else
+    {
+        # Authenticate from a file or via PSCredential
+        switch ($Credential.GetType().Name)
+        {
+            'string'
+            {
+                Set-TDAuthentication -CredentialPath $Credential -Environment $WorkingEnvironment -NoInvalidateCache
+            }
+            'PSCredential'
+            {
+                Set-TDAuthentication -Credential     $Credential -Environment $WorkingEnvironment -NoInvalidateCache
+            }
+            default
+            {
+                throw 'Unable to authenticate. No authentication methods provided.'
+            }
+        }
     }
 }
 else
 {
-    # Authenticate from a file or via PSCredential
-    switch ($Credential.GetType().Name)
-    {
-        'string'
-        {
-            Set-TDAuthentication -CredentialPath $Credential -Environment $WorkingEnvironment -NoInvalidateCache
-        }
-        'PSCredential'
-        {
-            Set-TDAuthentication -Credential     $Credential -Environment $WorkingEnvironment -NoInvalidateCache
-        }
-        default
-        {
-            throw 'Unable to authenticate. No authentication methods provided.'
-        }
-    }
+    Write-Warning 'Unauthenticated session requested. Most functions will not work correctly.'
 }
 #endregion
 
-#region Any script-wide or global variables that depend on class definitions or TD authentication must come after this point.
-Write-Progress -ID 100 -Activity 'Loading module' -Status 'Loading caches' -PercentComplete 90
+#region Variable definitions dependent on classes or authentication
+# Any script-wide or global variables that depend on class definitions or TD authentication must come after this point.
 
-# Load caches - order dependent
-try
+# Skip variable definitions if -NoLogin has been requested
+if (-not $NoLogin)
 {
-    $script:TDApplications           = [TD_Application_Cache]::new()
-    $script:TicketingAppID           = ($TDApplications.Get($TDConfig.DefaultTicketingApp)).AppID
-    $script:AssetCIAppID             = ($TDApplications.Get($TDConfig.DefaultAssetCIsApp )).AppID
-    $script:ClientPortalID           = ($TDApplications.Get($TDConfig.DefaultPortalApp   )).AppID
-    $script:TDAssetStatuses          = [TD_AssetStatus_Cache]::new($AssetCIAppID)
-    $script:TDTicketPriorities       = [TD_TicketPriority_Cache]::new($TicketingAppID)
-    $script:TDTicketUrgencies        = [TD_TicketUrgency_Cache ]::new($TicketingAppID)
-    $script:TDTicketStatuses         = [TD_TicketStatus_Cache  ]::new($TicketingAppID)
-    $script:TDTicketSources          = [TD_TicketSource_Cache  ]::new($TicketingAppID)
-    $script:TDTicketImpacts          = [TD_TicketImpact_Cache  ]::new($TicketingAppID)
-    $script:TDTicketTypes            = [TD_TicketType_Cache    ]::new($TicketingAppID)
-    $script:TDTicketStatusClasses    = Get-TDTicketStatusClass -AuthenticationToken $TDAuthentication -Environment $WorkingEnvironment | Sort-Object Name
-    $script:TDTimeZones              = Get-TDTimeZoneInformation -SortByGMTOffset
-    $script:TDVendors                = [TD_Vendor_Cache]::new($AssetCIAppID)
-    $script:TDProductTypes           = [TD_ProductType_Cache ]::new($AssetCIAppID)
-    $script:TDProductModels          = [TD_ProductModel_Cache]::new($AssetCIAppID)
-    $script:TDAccounts               = [TD_Account_Cache]::new()
-    $script:TDGroups                 = [TD_Group_Cache]::new()
-    $script:TDForms                  = [TD_Form_Cache ]::new()
-    $script:TDAssetSearches          = [TD_AssetSearch_Cache]::new()
-    $script:TDConfigurationItemTypes = [TD_ConfigurationItemType_Cache]::new()
-    $script:TDSecurityRoles          = [TD_SecurityRole_Cache]::new()
-    $script:TDBuildingsRooms         = [TD_Location_Cache]::new()
-    $script:TDServices               = [TD_Service_Cache]::new()
-    $script:TDCustomAttributes       = [TD_CustomAttribute_Cache]::new()
-    $script:TDCustomAttributeChoices = [TD_CustomAttributeChoice_Cache]::new()
-}
-catch
-{
-    throw 'Unable to lookup TeamDynamix applications from server'
+    Write-Progress -ID 100 -Activity 'Loading module' -Status 'Loading caches' -PercentComplete 90
+
+    # Load caches - order dependent
+    try
+    {
+        $script:TDApplications           = [TD_Application_Cache]::new()
+        $script:TicketingAppID           = ($TDApplications.Get($TDConfig.DefaultTicketingApp)).AppID
+        $script:AssetCIAppID             = ($TDApplications.Get($TDConfig.DefaultAssetCIsApp )).AppID
+        $script:ClientPortalID           = ($TDApplications.Get($TDConfig.DefaultPortalApp   )).AppID
+        $script:TDAssetStatuses          = [TD_AssetStatus_Cache]::new($AssetCIAppID)
+        $script:TDTicketPriorities       = [TD_TicketPriority_Cache]::new($TicketingAppID)
+        $script:TDTicketUrgencies        = [TD_TicketUrgency_Cache ]::new($TicketingAppID)
+        $script:TDTicketStatuses         = [TD_TicketStatus_Cache  ]::new($TicketingAppID)
+        $script:TDTicketSources          = [TD_TicketSource_Cache  ]::new($TicketingAppID)
+        $script:TDTicketImpacts          = [TD_TicketImpact_Cache  ]::new($TicketingAppID)
+        $script:TDTicketTypes            = [TD_TicketType_Cache    ]::new($TicketingAppID)
+        $script:TDTicketStatusClasses    = Get-TDTicketStatusClass -AuthenticationToken $TDAuthentication -Environment $WorkingEnvironment | Sort-Object Name
+        $script:TDTimeZones              = Get-TDTimeZoneInformation -SortByGMTOffset
+        $script:TDVendors                = [TD_Vendor_Cache]::new($AssetCIAppID)
+        $script:TDProductTypes           = [TD_ProductType_Cache ]::new($AssetCIAppID)
+        $script:TDProductModels          = [TD_ProductModel_Cache]::new($AssetCIAppID)
+        $script:TDAccounts               = [TD_Account_Cache]::new()
+        $script:TDGroups                 = [TD_Group_Cache]::new()
+        $script:TDForms                  = [TD_Form_Cache ]::new()
+        $script:TDAssetSearches          = [TD_AssetSearch_Cache]::new()
+        $script:TDConfigurationItemTypes = [TD_ConfigurationItemType_Cache]::new()
+        $script:TDSecurityRoles          = [TD_SecurityRole_Cache]::new()
+        $script:TDBuildingsRooms         = [TD_Location_Cache]::new()
+        $script:TDServices               = [TD_Service_Cache]::new()
+        $script:TDCustomAttributes       = [TD_CustomAttribute_Cache]::new()
+        $script:TDCustomAttributeChoices = [TD_CustomAttributeChoice_Cache]::new()
+    }
+    catch
+    {
+        throw 'Unable to lookup TeamDynamix applications from server'
+    }
 }
 #endregion
 

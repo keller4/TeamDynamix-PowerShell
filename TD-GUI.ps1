@@ -70,6 +70,24 @@ function Get-TDGUILogin
                                     Content   = 'Preview'/>
                             </StackPanel>
                         </Border>
+                        <Border
+                            BorderBrush     = 'Silver'
+                            BorderThickness = '1'>
+                            <StackPanel Name = 'rbAuthGroup'>
+                            <Label
+                                FontWeight = 'Bold'
+                                Content    = 'Authentication'/>
+                            <RadioButton
+                                GroupName = 'Auth'
+                                Name      = 'rbAuth'
+                                IsChecked = 'True'
+                                Content   = 'Authentication'/>
+                            <RadioButton
+                                GroupName = 'Auth'
+                                Name      = 'rbNoAuth'
+                                Content   = 'No Authentication'/>
+                            </StackPanel>
+                        </Border>
                     <StackPanel
                         VerticalAlignment = 'Bottom'
                         HorizontalAlignment = 'Center'>
@@ -547,7 +565,7 @@ function Start-TDGUI
     $bCommandGUI.add_Click(
         {
             $pCommandGUI.Visibility      = 'Visible'
-            $pDirLookup.Visibility          = 'Collapsed'
+            $pDirLookup.Visibility       = 'Collapsed'
             $pUpdateUser.Visibility      = 'Collapsed'
             $pDuplicateAssets.Visibility = 'Collapsed'
             $cmbCommandGUI.ItemsSource   = $CommandList
@@ -558,7 +576,7 @@ function Start-TDGUI
     $bDirLookup.add_Click(
         {
             $pCommandGUI.Visibility      = 'Collapsed'
-            $pDirLookup.Visibility          = 'Visible'
+            $pDirLookup.Visibility       = 'Visible'
             $pUpdateUser.Visibility      = 'Collapsed'
             $pDuplicateAssets.Visibility = 'Collapsed'
             $tbDirLookupUsername.Focus()
@@ -567,7 +585,7 @@ function Start-TDGUI
     $bUpdateUser.add_Click(
         {
             $pCommandGUI.Visibility      = 'Collapsed'
-            $pDirLookup.Visibility          = 'Collapsed'
+            $pDirLookup.Visibility       = 'Collapsed'
             $pUpdateUser.Visibility      = 'Visible'
             $pDuplicateAssets.Visibility = 'Collapsed'
             $tbUpdateUserUsername.Focus()
@@ -577,7 +595,7 @@ function Start-TDGUI
     $bDuplicates.add_Click(
         {
             $pCommandGUI.Visibility            = 'Collapsed'
-            $pDirLookup.Visibility                = 'Collapsed'
+            $pDirLookup.Visibility             = 'Collapsed'
             $pUpdateUser.Visibility            = 'Collapsed'
             $pDuplicateAssets.Visibility       = 'Visible'
             $pDuplicateSelectSearch.Visibility = 'Visible'
@@ -588,7 +606,7 @@ function Start-TDGUI
     $bAssetConsistency.add_Click(
         {
             $pCommandGUI.Visibility      = 'Collapsed'
-            $pDirLookup.Visibility          = 'Collapsed'
+            $pDirLookup.Visibility       = 'Collapsed'
             $pUpdateUser.Visibility      = 'Collapsed'
             $pDuplicateAssets.Visibility = 'Collapsed'
         }
@@ -596,7 +614,7 @@ function Start-TDGUI
 
     $bGroups.add_Click(
         {
-            $pDirLookup.Visibility          = 'Collapsed'
+            $pDirLookup.Visibility       = 'Collapsed'
             $pUpdateUser.Visibility      = 'Collapsed'
             $pDuplicateAssets.Visibility = 'Collapsed'
         }
