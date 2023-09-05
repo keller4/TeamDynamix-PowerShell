@@ -26,7 +26,7 @@
     CompanyName = 'QTS'
 
     # Copyright statement for this module
-    Copyright = '(c) 2016-2021 Brian W. Keller. All rights reserved.'
+    Copyright = '(c) 2016-2023 Brian W. Keller. All rights reserved.'
 
     # Description of the functionality provided by this module
     Description = 'PowerShell interface to TeamDynamix'

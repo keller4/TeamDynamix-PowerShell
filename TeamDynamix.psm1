@@ -7223,6 +7223,7 @@ class TeamDynamix_Api_Tickets_TicketTask
     [String]  $Title
     [String]  $Description
     [Boolean] $IsActive
+    [Boolean] $NotifyResponsible
     [System.Nullable[DateTime]]$StartDate
     [System.Nullable[DateTime]]$EndDate
     [System.Nullable[Int32]]$CompleteWithinMinutes
@@ -7281,6 +7282,7 @@ class TeamDynamix_Api_Tickets_TicketTask
         [String]  $Title,
         [String]  $Description,
         [Boolean] $IsActive,
+        [Boolean] $NotifyResponsible,
         [System.Nullable[DateTime]]$StartDate,
         [System.Nullable[DateTime]]$EndDate,
         [System.Nullable[Int32]]$CompleteWithinMinutes,
@@ -7328,6 +7330,7 @@ class TeamDynamix_Api_Tickets_TicketTask
     TeamDynamix_Api_Tickets_TicketTask(
         [String]  $Title,
         [String]  $Description,
+        [Boolean] $NotifyResponsible,
         [System.Nullable[DateTime]]$StartDate,
         [System.Nullable[DateTime]]$EndDate,
         [System.Nullable[Int32]]$CompleteWithinMinutes,
@@ -7338,6 +7341,7 @@ class TeamDynamix_Api_Tickets_TicketTask
     {
         $this.Title                 = $Title
         $this.Description           = $Description
+        $this.NotifyResponsible     = $NotifyResponsible
         $this.StartDate             = $StartDate             | Get-Date
         $this.EndDate               = $EndDate               | Get-Date
         $this.CompleteWithinMinutes = $CompleteWithinMinutes
@@ -15038,75 +15042,6 @@ class TeamDynamix_Api_Assets_ContractSearch
     }
 }
 
-class TeamDynamix_Api_Permissions_Permission
-{
-    [Boolean]$InheritPermissions
-    [Boolean]$IsPublic
-    [Int32[]]$GroupIDs
-    [Boolean]$AllowlistGroups
-
-    # Default constructor
-    TeamDynamix_Api_Permissions_Permission ()
-    {
-    }
-
-    # Constructor from object (such as a return from REST API)
-    TeamDynamix_Api_Permissions_Permission ([psobject]$Permission)
-    {
-        foreach ($Parameter in ([TeamDynamix_Api_Permissions_Permission]::new() | Get-Member -MemberType Property))
-        {
-            if ($Parameter.Definition -notmatch '^datetime')
-            {
-                $this.$($Parameter.Name) = $Permission.$($Parameter.Name)
-            }
-            else
-            {
-                if ($Parameter.Definition -match '^datetime\[\]') # Handle array of dates
-                {
-                    if ($null -ne $this.$($Parameter.Name))
-                    {
-                        $this.$($Parameter.Name) = $Permission.$($Parameter.Name) | ForEach-Object {$_ | Get-Date}
-                    }
-                }
-                else # Single date
-                {
-                    $this.$($Parameter.Name) = $Permission.$($Parameter.Name) | Get-Date
-                }
-            }
-        }
-    }
-
-    # Full constructor
-    TeamDynamix_Api_Permissions_Permission(
-        [Boolean]$InheritPermissions,
-        [Boolean]$IsPublic,
-        [Int32[]]$GroupIDs,
-        [Boolean]$AllowlistGroups)
-    {
-        foreach ($Parameter in ([TeamDynamix_Api_Permissions_Permission]::new() | Get-Member -MemberType Property))
-        {
-            if ($Parameter.Definition -notmatch '^datetime')
-            {
-                $this.$($Parameter.Name) = (Get-Variable -Name $Parameter.Name).Value
-            }
-            else
-            {
-                if ($Parameter.Definition -match '^datetime\[\]') # Handle array of dates
-                {
-                    if ($null -ne $this.$($Parameter.Name))
-                    {
-                        $this.$($Parameter.Name) = (Get-Variable -Name $Parameter.Name).Value | ForEach-Object {$_ | Get-Date}
-                    }
-                }
-                else # Single date
-                {
-                    $this.$($Parameter.Name) = (Get-Variable -Name $Parameter.Name).Value | Get-Date
-                }
-            }
-        }
-    }
-}
-
 class TeamDynamix_Api_ServiceCatalog_ServiceCategory
 {
     [Int32]   $ID
@@ -19367,6 +19302,10 @@ if (-not $NoLogin)
             Sandbox    {$WorkingEnvironment = 'Sandbox'   }
             Preview    {$WorkingEnvironment = 'Preview'   }
         }
+        if ($GUILogin.Authenticated -eq $false)
+        {
+            $NoLogin = $true
+        }
     }
     else
     {
@@ -19383,12 +19322,12 @@ if (-not $NoLogin)
             }
             default
             {
-                throw 'Unable to authenticate. No authentication methods provided.'
+                throw 'Unable to authenticate. No authentication methods provided. Use NoLogin parameter to start an unauthenticated session.'
             }
         }
     }
 }
-else
+if ($NoLogin)
 {
     Write-Warning 'Unauthenticated session requested. Most functions will not work correctly.'
 }
