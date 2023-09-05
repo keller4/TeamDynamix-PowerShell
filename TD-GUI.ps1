@@ -20,7 +20,9 @@ function Get-TDGUILogin
                     FontWeight = 'Bold'
                     Content    = 'Enter your TeamDynamix credentials'/>
                 <StackPanel Orientation = 'Vertical'>
-                    <StackPanel Orientation = 'Horizontal'>
+                    <StackPanel
+                        Orientation = 'Horizontal'
+                        Name = 'spCredentialUsername'>
                         <Label
                             Width   = '70'
                             Content = 'Username'/>
@@ -29,7 +31,9 @@ function Get-TDGUILogin
                             Height = '25'
                             Width  = '200'/>
                     </StackPanel>
-                    <StackPanel Orientation = 'Horizontal'>
+                    <StackPanel
+                        Orientation = 'Horizontal'
+                        Name = 'spCredentialPassword'>
                         <Label
                             Width   = '70'
                             Content = 'Password'/>
@@ -121,16 +125,8 @@ function Get-TDGUILogin
     $XamlReader = (New-Object System.Xml.XmlNodeReader $Xaml)
     $LoginGUI   = [System.Windows.Markup.XamlReader]::Load($XamlReader)
 
-    # Create friendly names for controls
-    $UsernameTextBox = $LoginGUI.FindName('UsernameTextBox')
-    $PasswordBox     = $LoginGUI.FindName('PasswordBox'    )
-    $LoginButton     = $LoginGUI.FindName('LoginButton'    )
-    $rbSiteGroup     = $LoginGUI.FindName('rbSiteGroup'    )
-    $tbAuthName      = $LoginGUI.FindName('tbAuthName'     )
-    $tbAuthValue     = $LoginGUI.FindName('tbAuthValue'    )
-    $lbStatus        = $LoginGUI.FindName('lbStatus'       )
-    # Shortcut for mass creation: $xaml.SelectNodes('//*[@Name]') | foreach-object {Set-Variable -Name ($_.Name) -Value $LoginGUI.FindName($_.Name)}
-    #  See system.xml documentation and XPath for how to query SelectNodes (this one reads: search whole document and return the attribute named, "Name", from all nodes)
+    # Create variables for each of the named controls
+    $xaml.SelectNodes('//*[@Name]') | foreach-object {Set-Variable -Name ($_.Name) -Value $LoginGUI.FindName($_.Name)}
 
     # Set typing focus
     $UsernameTextBox.Focus()
@@ -142,86 +138,125 @@ function Get-TDGUILogin
             Authenticate
         }
     )
+    $rbAuth.add_Click(
+        {
+            # Authentication selected
+            # Enable out user/pass boxes
+            # Enable other tabs on the GUI panel
+            # Change Login button text to Login
+            $spCredentialUsername.Visibility = 'Visible'
+            $spCredentialPassword.Visibility = 'Visible'
+            $LoginButton.Content             = "Login"
+        }
+    )
+    $rbNoAuth.add_Click(
+        {
+            # No authentication selected
+            # Grey out user/pass boxes
+            # Grey out other tabs on the GUI panel
+            # Change Login button text to No Login
+            # Also, fix Set-TDAuthentication to allow a non-GUI No Login
+            $spCredentialUsername.Visibility = 'Hidden'
+            $spCredentialPassword.Visibility = 'Hidden'
+            $LoginButton.Content             = "No Authentication"
+        }
+    )
 
     function Authenticate
     {
-        # Read Site radiobuttons and find the one that's checked - use to determine which site to authenticate to
-        switch (($rbSiteGroup.Children | Where-Object IsChecked -eq $true).Name)
+        # Read Site radiobuttons and find the one that's checked - use to determine which site to connect to
+        $Environment = ($rbSiteGroup.Children | Where-Object IsChecked -eq $true).Name
+
+        # Read Auth radio buttons and find the one that's checked - use to determine whether to try authenicating or not
+        switch (($rbAuthGroup.Children | Where-Object IsChecked -eq $true).Name)
         {
-            Production
+            rbNoAuth
             {
-                $Environment = 'Production'
+                # No authentication selected
+                $LoginGUI.close()
             }
-            Sandbox
+            rbAuth
             {
-                $Environment = 'Sandbox'
+                # Authentication selected
+                $ErrorFlag = $false
+
+                # Attempt to authenticate
+                $PSCredential = New-Object System.Management.Automation.PsCredential ($UsernameTextBox.Text, (ConvertTo-SecureString $PasswordBox.Password -AsPlainText -Force))
+                try
+                {
+                    $Authentication = Set-TDAuthentication -Credential $PSCredential -Environment $Environment -NoUpdate
+                }
+                catch
+                {
+                    switch ($_.Exception.Message)
+                    {
+                        "Cannot bind argument to parameter `'Username`' because it is an empty string."
+                        {
+                            $UsernameTextBox.Clear()
+                            $PasswordBox.Clear()
+                            $lbStatus.Content = 'Error: empty username'
+                            $lbStatus.Visibility = 'Visible'
+                            $ErrorFlag = $true
+                        }
+                        "Cannot bind argument to parameter `'Password`' because it is an empty string."
+                        {
+                            $UsernameTextBox.Clear()
+                            $PasswordBox.Clear()
+                            $lbStatus.Content = 'Error: empty password'
+                            $lbStatus.Visibility = 'Visible'
+                            $ErrorFlag = $true
+                        }
+                        $script:TDLoginFailureText
+                        {
+                            $UsernameTextBox.Clear()
+                            $PasswordBox.Clear()
+                            $lbStatus.Content = 'Error: bad user/password'
+                            $lbStatus.Visibility = 'Visible'
+                            $ErrorFlag = $true
+                        }
+                        Default
+                        {
+                            $UsernameTextBox.Clear()
+                            $PasswordBox.Clear()
+                            $lbStatus.Content = "Error: unspecified - $($_.Exception.Message)"
+                            $lbStatus.Visibility = 'Visible'
+                            $ErrorFlag = $true
+                        }
+                    }
+                }
+                if (-not $ErrorFlag)
+                {
+                    $LoginButton.Content = 'Logged in'
+                    $tbAuthName.Text  = $Authentication.Authentication.Keys[0]
+                    $tbAuthValue.Text = $Authentication.Authentication.Values[0]
+                    $LoginGUI.close()
+                }
             }
-            Preview
-            {
-                $Environment = 'Preview'
-            }
-        }
-        $ErrorFlag = $false
-        # Attempt to authenticate
-        $PSCredential = New-Object System.Management.Automation.PsCredential ($UsernameTextBox.Text, (ConvertTo-SecureString $PasswordBox.Password -AsPlainText -Force))
-        try
-        {
-            $Authentication = Set-TDAuthentication -Credential $PSCredential -Environment $Environment -NoUpdate
-        }
-        catch
-        {
-            switch ($_.Exception.Message)
-            {
-                "Cannot bind argument to parameter `'Username`' because it is an empty string."
-                {
-                    $UsernameTextBox.Clear()
-                    $PasswordBox.Clear()
-                    $lbStatus.Content = 'Error: empty username'
-                    $lbStatus.Visibility = 'Visible'
-                    $ErrorFlag = $true
-                }
-                "Cannot bind argument to parameter `'Password`' because it is an empty string."
-                {
-                    $UsernameTextBox.Clear()
-                    $PasswordBox.Clear()
-                    $lbStatus.Content = 'Error: empty password'
-                    $lbStatus.Visibility = 'Visible'
-                    $ErrorFlag = $true
-                }
-                $script:TDLoginFailureText
-                {
-                    $UsernameTextBox.Clear()
-                    $PasswordBox.Clear()
-                    $lbStatus.Content = 'Error: bad user/password'
-                    $lbStatus.Visibility = 'Visible'
-                    $ErrorFlag = $true
-                }
-                Default
-                {
-                    $UsernameTextBox.Clear()
-                    $PasswordBox.Clear()
-                    $lbStatus.Content = "Error: unspecified - $($_.Exception.Message)"
-                    $lbStatus.Visibility = 'Visible'
-                    $ErrorFlag = $true
-                }
-            }
-        }
-        if (-not $ErrorFlag)
-        {
-            $LoginButton.Content = 'Logged in'
-            $tbAuthName.Text  = $Authentication.Authentication.Keys[0]
-            $tbAuthValue.Text = $Authentication.Authentication.Values[0]
-            $LoginGUI.close()
         }
     }
 
     # Launch the window
     $LoginGUI.ShowDialog() | Out-Null
-    if ($tbAuthName.Text -eq '')
+
+    # Read Auth radio buttons and find the one that's checked - use to determine whether this is an authenticated session or not
+    switch (($rbAuthGroup.Children | Where-Object IsChecked -eq $true).Name)
+    {
+        rbNoAuth
+            {
+                $Authenticated = $false
+            }
+        rbAuth
+            {
+                $Authenticated = $true
+            }
+    }
+
+    if ($Authenticated -and ($tbAuthName.Text -eq ''))
     {
         throw 'Authentication cancelled.'
     }
     $Return = [PSCustomObject]@{
+        Authenticated  = $Authenticated
         Authentication = @{$tbAuthName.Text = $tbAuthValue.Text}
         Site           = ($rbSiteGroup.Children | Where-Object IsChecked -eq $true).Name
         }

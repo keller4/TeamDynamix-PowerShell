@@ -31,13 +31,13 @@ function Update-ConfigurationFile {
     #region Global settings
         #region Required settings
             # Webhook URI (used for user and asset updates) - required for LoggingPreference = 'Webhook'
-            LogWebhookDefault = 'https://contoso.webhook.office.com/webhookb2/c627fdd6-560f-4433-b11f-65137eded5c4@cbe7cb90-079a-460a-9807-72654ead5c6c/IncomingWebhook/e8aa780542e34d47a46512e4ab7ed834/211489d0-4577-4a7e-9b46-b517fb9470f4'
+            LogWebhookDefault = 'https://buckeyemailosu.webhook.office.com/webhookb2/62ce6309-ead2-4db9-bc34-7b48380bbe6d@eb095636-1052-4895-952b-1ff9df1d1121/IncomingWebhook/e8aa780542e34d47a46512e4ab7ed834/3bcdcc77-a3fe-4417-95d7-9c14d3d14f20'
 
             # Log file directory (used for user and asset updates) - required for LoggingPreference = 'File'
             LogFileDirDefault = 'C:\Temp\TD'
 
             # Email address domain (the part after the @), used to set usernames and primary email address
-            DefaultEmailDomain = 'contoso.com'
+            DefaultEmailDomain = 'osu.edu'
 
             # User recognition regex pattern
             #  Using a regular expression, describe what a valid username looks like (the part before the @ in an email address)
@@ -45,13 +45,13 @@ function Update-ConfigurationFile {
             UsernameRegex = '.*\.\d+'
 
             # Default TeamDynamix applications
-            DefaultAssetCIsApp  = 'Assets/CIs'
-            DefaultTicketingApp = 'Tickets'
-            DefaultPortalApp    = 'Client Portal'
+            DefaultAssetCIsApp  = 'ASC-Assets/CIs'
+            DefaultTicketingApp = 'ASC-Tickets'
+            DefaultPortalApp    = 'ASC-Client Portal'
 
             # TeamDynamix URIs, used for API and portal
-            DefaultTDBaseURI        = 'https://contoso.teamdynamix.com'
-            DefaultTDPreviewBaseURI = 'https://contoso.teamdynamixpreview.com'
+            DefaultTDBaseURI        = 'https://osu.teamdynamix.com'
+            DefaultTDPreviewBaseURI = 'https://osu.teamdynamixpreview.com'
 
             # Default TeamDynamix authentication provider ID
             DefaultAuthenticationProviderID = 373
@@ -66,10 +66,10 @@ function Update-ConfigurationFile {
 
             # User directory information command
             #  Command should be written so it is possible to add the name to lookup to the end
-            DirectoryLookup = 'Get-DirectoryListing -Properties * -Name'
+            DirectoryLookup = 'Get-OSUDirectoryListing -Properties * -Name'
 
             # Alternate email address domain (the part after the @), used to set alternate email address
-            AlternateEmailDomain = 'internal.contoso.com'
+            AlternateEmailDomain = 'buckeyemail.osu.edu'
 
             # Activity reporting queue depth, select any value 1 or higher
             #  This is the number of recent activities to be reported when there is an error

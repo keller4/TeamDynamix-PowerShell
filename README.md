@@ -4,31 +4,37 @@ This module provides a PowerShell wrapper to many TeamDynamix REST API calls. Al
 
 Import the module with `Import-Module TeamDynamix`, which will prompt for TeamDynamix credentials and initialize the module to the desired environment (production environment, by default). All commands issued will default to the environment specified when the module was loaded. The environment may be overridden on each command, if desired.
 
-Parameters available in the ArgumentList for `Import-Module TeamDynamix` are (in positional order):  
-**Credential** - Provide a credential object or a path to one to log into TeamDynamix.  
+Parameters available in the ArgumentList for `Import-Module TeamDynamix` are (in positional order):
+**Credential** - Provide a credential object or a path to one to log into TeamDynamix.
 **Environment** - Valid choices are *Production*, *Sandbox*, and *Preview*. Initializes the module from the named TeamDynamix site (environment) and sets the default for all commands to be from that environment. The default is *Production*.
+**NoLogin** - Valid choices are $true and $false. Allows the module to load without attempting to authenticate to TeamDynamix. Very limited functionality.
 
 If options are desired for the import, add their values in order. Values omitted at the end will be set to their defaults. Values prior to the end must not be omitted.
 
-Example 1:  
+Example 1:
 `Import-Module TeamDynamix`
 
 The default. Prompts for TeamDynamix credentials. Initializes the module to the production environment.
 
-Example 2:  
+Example 2:
 `Import-Module TeamDynamix -ArgumentList $Credential`
 
 Initializes the module to the production environment.
 
-Example 3:  
+Example 3:
 `Import-Module TeamDynamix -ArgumentList $Credential,Sandbox`
 
 Initializes the module to the sandbox environment.
 
-Example 4:  
+Example 4:
 `Import-Module TeamDynamix -ArgumentList $Credential,Preview`
 
 Initializes the module to the preview environment.
+
+Example 5:
+`Import-Module TeamDynamix -ArgumentList $null,Production,$true`
+
+Initializes the module to the production environment without authenticating to TeamDynamix.
 
 # Authentication
 

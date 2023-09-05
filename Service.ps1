@@ -1138,13 +1138,13 @@ function Compare-TDAPIDefinitions
                     catch
                     {
                         $APIURLChangedOrDeprecated = $true
-                        if ($_.Exception.Message -like '*Status code 404*')
+                        if ([int]$_.Exception.Response.StatusCode -eq 404)
                         {
-                            Write-ActivityHistory -MessageChannel 'Error' -Message "$APIURL returned 404 not found."
+                            Write-ActivityHistory -MessageChannel 'Information' -Message "$APIURL returned 404 not found."
                         }
-                        elseif ($_.Exception.Message -like '*Status code 302*')
+                        elseif ([int]$_.Exception.Response.StatusCode -eq 302)
                         {
-                            Write-ActivityHistory -MessageChannel 'Error' -Message "$APIURL returned 302 redirected."
+                            Write-ActivityHistory -MessageChannel 'Information' -Message "$APIURL returned 302 redirected."
                         }
                         else
                         {

@@ -118,13 +118,19 @@ function Set-TDAuthentication
             }
             # Set site
             $AuthenticationSite = $Environment
+            $Authenticated = $true
         }
         PSCredential
         {
             # Extract credentials from PSCredential object
+            # Check for blank credentials and start an unauthenticated session if blanks are found
             if (($Credential.Username -eq '') -or ($Credential.GetNetworkCredential().Password -eq ''))
             {
-                throw 'Blank username/password not allowed.'
+                $Authenticated = $false
+            }
+            else
+            {
+                $Authenticated = $true
             }
             # Set site
             $AuthenticationSite = $Environment
@@ -137,12 +143,14 @@ function Set-TDAuthentication
             if ($ModuleGUI)
             {
                 $AuthenticationInfo   = Get-TDGUILogin
+                $Authenticated        = $AuthenticationInfo.Authenticated
                 $AuthenticationHeader = $AuthenticationInfo.Authentication
                 $AuthenticationSite   = $AuthenticationInfo.Site
             }
             else
             {
                 $AuthenticationInfo   = Set-TDAuthentication -Prompt -NoUpdate
+                $Authenticated        = $AuthenticationInfo.Authenticated
                 $AuthenticationHeader = $AuthenticationInfo.Authentication
                 $AuthenticationSite   = $AuthenticationInfo.Site
             }
@@ -160,9 +168,17 @@ function Set-TDAuthentication
                 R       {$AuthenticationSite = 'Preview'}
                 Default {$AuthenticationSite = 'Production'}
             }
+            if ($Username -eq '')
+            {
+                $Authenticated = $false
+            }
+            else
+            {
+                $Authenticated = $true
+            }
         }
     }
-    if (-not $GUI)
+    if ($Authenticated -and -not $GUI)
     {
         # Check to see if username contains a BEID, if so, move it to the BEID for proper processing
         if ($Credential.Username -match '^[A-Fa-f0-9]{8}-([A-Fa-f0-9]{4}-){3}[A-Fa-f0-9]{12}$')
@@ -226,6 +242,7 @@ function Set-TDAuthentication
     if ($Passthru -or $NoUpdate)
     {
         $Return = [PSCustomObject]@{
+            Authenticated  = $Authenticated
             Authentication = $AuthenticationHeader
             Site           = $AuthenticationSite
             }
